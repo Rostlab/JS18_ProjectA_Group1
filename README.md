@@ -12,14 +12,18 @@ checkout this repository
 ### code structure
 ```
 .
+├── app/                            
+│   ├── test/                  # Client-side Unit tests   
+│   ├── app.js                 # Client-side JavaScrip entry
+│   ├── index.html             # Client-side html
+│   ├── index.html             # Client-side test conf
 ├── controllers/               # Express route handlers
 ├── models/                    # Express database models
 ├── public/                            
 │   ├── css/                   # Sass/LESS/PostCSS/CSS stylesheets (both source and generated)
 │   ├── fonts/                 # Web fonts
-│   ├── js/                    # Client-side JavaScript and third-party vendor files
-├── views/                     # Templates
-├── test/                      # Unit tests                    
+│   ├── js/                    # Client-side (compiled) JavaScript and third-party vendor files
+├── test/                      # Server-side Unit tests                    
 ├── .env                       # API keys, passwords, and other sensitive information
 ├── server.js                  # Express application
 └── package.json               # NPM Dependencies and scripts
