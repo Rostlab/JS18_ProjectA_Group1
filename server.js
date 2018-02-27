@@ -2,55 +2,37 @@ var express = require('express');
 var path = require('path');
 var logger = require('morgan');
 var compression = require('compression');
-var methodOverride = require('method-override');
-var session = require('express-session');
-var flash = require('express-flash');
+var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
 var dotenv = require('dotenv');
-var exphbs = require('express-handlebars');
 
 // Load environment variables from .env file
 dotenv.load();
 
 // Controllers
-var HomeController = require('./controllers/home');
 var contactController = require('./controllers/contact');
 
 var app = express();
 
-
-var hbs = exphbs.create({
-  defaultLayout: 'main',
-  helpers: {
-    ifeq: function(a, b, options) {
-      if (a === b) {
-        return options.fn(this);
-      }
-      return options.inverse(this);
-    },
-    toJSON : function(object) {
-      return JSON.stringify(object);
-    }
-  }
-});
-
-app.engine('handlebars', hbs.engine);
-app.set('view engine', 'handlebars');
 app.set('port', process.env.PORT || 3000);
 app.use(compression());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(expressValidator());
-app.use(methodOverride('_method'));
-app.use(session({ secret: process.env.SESSION_SECRET, resave: true, saveUninitialized: true }));
-app.use(flash());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', HomeController.index);
-app.get('/contact', contactController.contactGet);
 app.post('/contact', contactController.contactPost);
+
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, 'app', 'index.html'));
+});
+
+app.get('*', function(req, res) {
+  res.redirect('/#' + req.originalUrl);
+});
 
 // Production error handler
 if (app.get('env') === 'production') {
