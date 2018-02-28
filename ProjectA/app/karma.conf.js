@@ -2,7 +2,7 @@ module.exports = function(config) {
   config.set({
     files: [
       // App entry point
-      'app.js',
+      '../public/js/application.js',
       // Unit tests
       'test/unit/**/*.test.js'
     ],
