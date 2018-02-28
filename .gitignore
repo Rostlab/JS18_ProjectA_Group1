@@ -72,3 +72,11 @@ typings/
 
 
 # End of https://www.gitignore.io/api/node,visualstudiocode
+
+
+### Intellij ###
+*.iml
+modules.xml
+.idea
+*.ipr
+/out/
