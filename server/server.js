@@ -22,12 +22,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(expressValidator());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../client/public')));
 
 app.post('/contact', contactController.contactPost);
 
 app.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname, 'app', 'index.html'));
+  res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
 });
 
 app.get('*', function(req, res) {

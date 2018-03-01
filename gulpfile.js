@@ -11,31 +11,33 @@ var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var plumber = require('gulp-plumber');
 
-gulp.task('sass', function() {
-  return gulp.src('public/css/main.scss')
-    .pipe(plumber())
-    .pipe(sass())
-    .pipe(autoprefixer())
-    .pipe(gulpif(argv.production, csso()))
-    .pipe(gulp.dest('public/css'));
+gulp.task('sass', function () {
+    return gulp.src('client/scss/main.scss')
+        .pipe(plumber())
+        .pipe(sass())
+        .pipe(autoprefixer())
+        .pipe(gulpif(argv.production, csso()))
+        .pipe(gulp.dest('client/public/css'));
 });
 
-gulp.task('app', function() {
-  return gulp.src([
-    'app/app.js',
-  ])
-    .pipe(concat('application.js'))
-    .pipe(babel({
-      presets: ['env']
-    }))
-    .pipe(gulpif(argv.production, uglify()))
-    .pipe(gulp.dest('public/js'));
+gulp.task('js', function () {
+    return gulp.src(['client/js/app.js',])
+        .pipe(concat('application.js'))
+        .pipe(babel({presets: ['env']}))
+        .pipe(gulpif(argv.production, uglify()))
+        .pipe(gulp.dest('client/public/js'));
 });
 
-gulp.task('watch', function() {
-  gulp.watch('public/css/**/*.scss', ['sass']);
-  gulp.watch('app/**/*.js', ['app']);
+gulp.task('html', function () {
+    return gulp.src(['client/index.html',])
+        .pipe(gulp.dest('client/public'));
 });
 
-gulp.task('build', ['sass', 'app']);
+gulp.task('watch', function () {
+    gulp.watch('client/scss/**/*.scss', ['sass']);
+    gulp.watch('client/js/**/*.js', ['js']);
+    gulp.watch('client/index.html', ['html']);
+});
+
+gulp.task('build', ['sass', 'js', 'html']);
 gulp.task('default', ['build', 'watch']);
