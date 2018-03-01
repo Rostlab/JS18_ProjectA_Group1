@@ -6,12 +6,16 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
 var dotenv = require('dotenv');
+var papaparse = require('papaparse');
+var fs = require('fs');
 
 // Load environment variables from .env file
 dotenv.load();
 
 // Controllers
 var contactController = require('./controllers/contact');
+var bookshelf = require('./config/bookshelf');
+
 
 var app = express();
 
@@ -47,3 +51,43 @@ app.listen(app.get('port'), function() {
 });
 
 module.exports = app;
+
+//var file = fs.readFile('./data/core_dataset.csv');
+fs.readFile('./server/data/core_dataset.csv', "utf8",  function read(err, data) {
+    if (err) throw err;
+
+    papaparse.parse(data, {
+        header: true,
+        beforeFirstChunk: function(chunk) {
+            var rows = chunk.split( /\r\n|\r|\n/ );
+            var headings = rows[0].toLowerCase();
+            headings = headings.split(' ').join('_');
+            rows[0] = headings;
+            return rows.join("\r\n");
+        },
+        complete: function(results) {
+            parsedData = results.data;
+
+            //labels = parsedData[0];
+
+
+            var User = bookshelf.Model.extend({
+                tableName: 'Employee',
+                idAttribute: 'employee_number'
+            });
+
+
+
+            var bob = new User(parsedData[0]);
+            bob.save(null, {method: 'insert'});
+
+            //var employees = Accounts.forge(data[1])
+
+        }
+    });
+        // Or put the next step in a function and invoke it
+});
+
+
+
+
