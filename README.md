@@ -2,9 +2,9 @@
 
 ## This file contains the following items:
 ### project description
-### technical consdieration:
+### technical consideration:
 * dependencies
-* archtietcutre
+* architecture
 * other
 * env variables
 ### how to get the code
@@ -12,21 +12,29 @@ checkout this repository
 ### code structure
 ```
 .
-├── app/                            
-│   ├── test/                  # Client-side Unit tests   
-│   ├── app.js                 # Client-side JavaScrip entry
-│   ├── index.html             # Client-side html
-│   ├── index.html             # Client-side test conf
-├── controllers/               # Express route handlers
-├── models/                    # Express database models
-├── public/                            
-│   ├── css/                   # Sass/LESS/PostCSS/CSS stylesheets (both source and generated)
-│   ├── fonts/                 # Web fonts
-│   ├── js/                    # Client-side (compiled) JavaScript and third-party vendor files
-├── test/                      # Server-side Unit tests                    
-├── .env                       # API keys, passwords, and other sensitive information
-├── server.js                  # Express application
-└── package.json               # NPM Dependencies and scripts
+├── client/
+│   ├── index.html              # Client-side html              
+│   ├── js/
+│   │   └── app.js              # Client-side JavaScrip entry
+│   ├── scss/
+│   │   └── main.scss           # Client-side SCSS entry               
+│   ├── test/                  
+│   │   ├── karma.conf.js       # Client-side test configuration
+│   │   └── unit/               # Client-side Unit tests  
+│   └── public/                 # Compiled client sources
+├── server/
+│   ├── server.js               # Express application
+│   ├── .env                    # API keys, passwords, and other sensitive information
+│   ├── config/
+│   │   └── bookshelf.js        # Bookshelf configuration
+│   ├── controllers/            # Express controllers
+│   ├── data/
+│   │   └── commands.json       # NLP command specification
+│   └── test/
+│       └── unit/               # Client-side Unit tests     
+├── .travis.yaml                # Continous integration script
+├── gulpfile.js                 # Task desinitions
+└── package.json                # NPM Dependencies and scripts
 ```
 ### how to build
  1) install node/npm
