@@ -1,0 +1,26 @@
+language: node_js
+node_js:
+  - "8.1"     #Azure web app compability
+notifications:
+  on_success: change
+  on_failure: always
+  slack: js2018sose:Xavb1Q1dBIeFGCjiBOS1nb4c
+cache:
+  directories:
+    - "node_modules"
+# default install: npm install
+# default script: npm test
+#before_deploy: "echo 'Deployment started'"
+#deploy:
+#  provider: azure_web_apps
+#  site: azure_deployment_sitename       # If AZURE_WA_SITE isn't set
+#  slot: azure_deployment_slotname       # (optional) If AZURE_WA_SLOT isn't set
+#  verbose: true                         # deployment progress and logs
+#  on: develop                           # all_branches: true
+#after_deploy: "echo 'Deployment finished'"
+
+#karma
+#before_script:
+#  - export DISPLAY=:99.0
+#  - sh -e /etc/init.d/xvfb start
+#  karma start --browsers Firefox --single-run

@@ -1,0 +1,27 @@
+[
+  {
+    "hotwords": [
+      "histogram"
+    ],
+    "parameters": [
+      {
+        "type": "COLUMN",
+        "TODO operations": "",
+        "TODO column type?": ""
+      }
+    ],
+    "function": "get_data_for_histogram",
+    "tests": [
+      {
+        "input": "Plot a histogram of age",
+        "function": "get_data_for_histogram",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
+      }
+    ]
+  }
+]

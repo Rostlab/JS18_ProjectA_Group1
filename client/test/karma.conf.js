@@ -2,9 +2,9 @@ module.exports = function(config) {
   config.set({
     files: [
       // App entry point
-      'app.js',
+      '../public/js/application.js',
       // Unit tests
-      'test/unit/**/*.test.js'
+      'unit/**/*.test.js'
     ],
 
     autoWatch: true,
@@ -28,7 +28,7 @@ module.exports = function(config) {
 
     coverageReporter: {
       type: 'lcov',
-      dir: 'test',
+      dir: '.',
       subdir: 'coverage'
     }
   });
