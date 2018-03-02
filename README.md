@@ -30,10 +30,13 @@ checkout this repository
 │   ├── controllers/            # Express controllers
 │   ├── data/
 │   │   └── commands.json       # NLP command specification
+│   ├── migrations  
+│   │   └── employees.js        # first migration file 
 │   └── test/
 │       └── unit/               # Client-side Unit tests     
 ├── .travis.yaml                # Continous integration script
 ├── gulpfile.js                 # Task desinitions
+├── knexfile.js                 # knex configuration
 └── package.json                # NPM Dependencies and scripts
 ```
 ### how to build
@@ -76,6 +79,25 @@ $ npm run start
   -> Express server listening on port 3000
 ```
 2) visit http://localhost:3000/ in the browser
+
+### how to migrate
+1) run the following command
+```
+# Start the app
+$ npm run migrate
+  -> Batch 1 run: 1 migrations    or
+  -> Already up to date
+```
+
+### how to rollback
+1) run the following command
+```
+# Start the app
+$ npm run rollback
+  -> Batch 1 rolled back: 1 migrations     or
+  -> Already at the base migration
+```
+
 ### useful commands
 ```
 # build the system

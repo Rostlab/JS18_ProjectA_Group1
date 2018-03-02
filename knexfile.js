@@ -1,7 +1,4 @@
-var dotenv = require('dotenv');
-
-
-dotenv.load();
+var dotenv = require('dotenv').config();
 
 module.exports = {
   client: 'pg',

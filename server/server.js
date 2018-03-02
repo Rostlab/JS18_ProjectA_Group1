@@ -92,7 +92,6 @@ fs.readFile('./server/data/core_dataset.csv', "utf8",  function read(err, data) 
             });
 
 
-
             var bob = new User(parsedData[0]);
             bob.save(null, {method: 'insert'});
 

@@ -10,6 +10,8 @@
     "test": "npm run test:server && npm run test:client",
     "test:client": "karma start ./client/test/karma.conf.js --single-run",
     "test:server": "mocha ./server/test/**/*.js --recursive --exit",
+    "migrate": "knex migrate:latest",
+    "rollback": "knex migrate:rollback",
     "watch": "gulp"
   },
   "dependencies": {
