@@ -71,3 +71,31 @@ form button[type="submit"] {
   height: 30px;
   vertical-align: middle;
 }
+.header {
+    background-color: #2e80a9;
+    height: 20%;
+    text-align: center;
+}
+
+.text-input {
+    margin :20px;
+    .mdl-textfield{
+        width: 100% !important;
+    }
+}
+
+.graph-container {
+    height: 500px;
+    div {
+        width: 50%;
+        height: 100%;
+    }
+    .plot {
+        background-color: lightgray;
+    }
+    .dock {
+        table, h5 {
+            margin-left: 13%;
+        }
+    }
+}
