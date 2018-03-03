@@ -58,13 +58,14 @@ var User = bookshelf.Model.extend({
     idAttribute: 'employee_number'
 });
 
-var util = require('util');
-var knexClient = require('knex/lib/client');
-var origQuery = knexClient.prototype.query;
-knexClient.prototype.query = function (connection, obj) {
-    console.log(`SQL: ${obj.sql}  --  ${util.inspect(this.prepBindings(obj.bindings))}`);
-    return origQuery.apply(this, arguments);
-};
+ // Code for seeing the actual sql queries might be useful
+// var util = require('util');
+// var knexClient = require('knex/lib/client');
+// var origQuery = knexClient.prototype.query;
+// knexClient.prototype.query = function (connection, obj) {
+//     console.log(`SQL: ${obj.sql}  --  ${util.inspect(this.prepBindings(obj.bindings))}`);
+//     return origQuery.apply(this, arguments);
+// };
 
 User.fetchAll().then(function (resData) {
     if(resData.length === 0){
