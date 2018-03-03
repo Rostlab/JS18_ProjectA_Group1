@@ -16,7 +16,7 @@ exports.up = function(knex, Promise) {
         table.string('employment_status');
         table.string('department');
         table.string('position');
-        table.integer('pay_rate');
+        table.double('pay_rate');
         table.string('employee_source');
         table.string('performance_score');
         table.string('date_of_termination');

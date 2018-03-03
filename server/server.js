@@ -8,6 +8,7 @@ var expressValidator = require('express-validator');
 var dotenv = require('dotenv');
 var papaparse = require('papaparse');
 var fs = require('fs');
+var _ = require('lodash');
 
 // Load environment variables from .env file
 dotenv.load();
@@ -52,56 +53,70 @@ app.listen(app.get('port'), function() {
 
 module.exports = app;
 
-//var file = fs.readFile('./data/core_dataset.csv');
-fs.readFile('./server/data/core_dataset.csv', "utf8",  function read(err, data) {
-    if (err) throw err;
-
-    papaparse.parse(data, {
-        header: true,
-        beforeFirstChunk: function(chunk) {
-            var rows = chunk.split( /\r\n|\r|\n/ );
-            var headings = rows[0].toLowerCase();
-            headings = headings.split(' ').join('_');
-            rows[0] = headings;
-            for(var i = 1; i < rows.length; i++){
-                columnValues = rows[i].split(",");
-                for(var j = 0; j < columnValues.length; j++){
-                    var dateParts = columnValues[j].split("/");
-                    if(dateParts.length>2){
-                        var swap = dateParts[1];
-                        dateParts[1] = dateParts [0];
-                        dateParts[0] = swap;
-                        var dateObject = dateParts.join("/");
-                        columnValues[j] = dateObject;
-                    }
-                }
-                columnValues.join(",");
-                rows[i] = columnValues;
-            }
-            return rows.join("\r\n");
-        },
-        complete: function(results) {
-            parsedData = results.data;
-
-            //labels = parsedData[0];
-
-
-            var User = bookshelf.Model.extend({
-                tableName: 'Employee',
-                idAttribute: 'employee_number'
-            });
-
-
-            var bob = new User(parsedData[0]);
-            bob.save(null, {method: 'insert'});
-
-            //var employees = Accounts.forge(data[1])
-
-        }
-    });
-        // Or put the next step in a function and invoke it
+var User = bookshelf.Model.extend({
+    tableName: 'Employee',
+    idAttribute: 'employee_number'
 });
 
+var util = require('util');
+var knexClient = require('knex/lib/client');
+var origQuery = knexClient.prototype.query;
+knexClient.prototype.query = function (connection, obj) {
+    console.log(`SQL: ${obj.sql}  --  ${util.inspect(this.prepBindings(obj.bindings))}`);
+    return origQuery.apply(this, arguments);
+};
 
+User.fetchAll().then(function (resData) {
+    if(resData.length === 0){
+        fs.readFile('./server/data/core_dataset.csv', "utf8",  function read(err, data) {
+            if (err) throw err;
+            papaparse.parse(data, {
+                header: true,
+                beforeFirstChunk: function(chunk) {
+                    //delete the last line ",,,,,,,,"
+                    chunk = chunk.replace(/\r?\n?[^\r\n]*$/, "").replace(/\r?\n?[^\r\n]*$/, "");
+                    //tranform everything to small letters and add _ instead of spaces
+                    var rows = chunk.split( /\r\n|\r|\n/ );
+                    var headings = rows[0].toLowerCase();
+                    headings = headings.split(' ').join('_');
+                    rows[0] = headings;
+                    //change all the dates to the right format
+                    // for(var i = 1; i < rows.length; i++){
+                    //     columnValues = rows[i].split(",");
+                    //     for(var j = 0; j < columnValues.length; j++){
+                    //         var dateParts = columnValues[j].split("/");
+                    //         if(dateParts.length>2){
+                    //             var swap = dateParts[1];
+                    //             dateParts[1] = dateParts [0];
+                    //             dateParts[0] = swap;
+                    //             var dateObject = dateParts.join("/");
+                    //             columnValues[j] = dateObject;
+                    //         }
+                    //     }
+                    //     columnValues.join(",");
+                    //     rows[i] = columnValues;
+                    // }
+                    return rows.join("\r\n");
+
+                },
+                complete: function(results) {
+                    parsedData = results.data;
+
+                    var User = bookshelf.Model.extend({
+                        tableName: 'Employee',
+                        idAttribute: 'employee_number'
+                    });
+
+                    var entryToSave;
+                    _.forEach(parsedData, function (itemToSave) {
+                        entryToSave = new User(itemToSave);
+                        let query = entryToSave.save(null, {method: 'insert'});
+                    });
+                }
+            });
+            // Or put the next step in a function and invoke it
+        });
+    }
+});
 
 
