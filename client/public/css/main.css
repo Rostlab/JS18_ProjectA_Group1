@@ -1114,3 +1114,23 @@ form button[type="submit"] {
   width: 30px;
   height: 30px;
   vertical-align: middle; }
+
+.header {
+  background-color: #2e80a9;
+  height: 20%;
+  text-align: center; }
+
+.text-input {
+  margin: 20px; }
+  .text-input .mdl-textfield {
+    width: 100%; }
+
+.graph-container {
+  height: 500px;
+  padding: 25px; }
+  .graph-container .plot {
+    background-color: lightgray; }
+  .graph-container .dock {
+    text-align: center; }
+    .graph-container .dock table {
+      margin-left: 8%; }

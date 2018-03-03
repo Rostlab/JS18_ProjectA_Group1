@@ -11,6 +11,7 @@ body {
 }
 
 ul, ol {
+
   list-style: none;
 }
 
@@ -71,6 +72,7 @@ form button[type="submit"] {
   height: 30px;
   vertical-align: middle;
 }
+
 .header {
     background-color: #2e80a9;
     height: 20%;
@@ -79,23 +81,22 @@ form button[type="submit"] {
 
 .text-input {
     margin :20px;
-    .mdl-textfield{
-        width: 100% !important;
+    .mdl-textfield
+    {
+        width: 100%;
     }
 }
 
 .graph-container {
     height: 500px;
-    div {
-        width: 50%;
-        height: 100%;
-    }
+    padding: 25px;
     .plot {
         background-color: lightgray;
     }
     .dock {
-        table, h5 {
-            margin-left: 13%;
+    text-align: center;
+        table {
+        margin-left: 8%;
         }
     }
 }
