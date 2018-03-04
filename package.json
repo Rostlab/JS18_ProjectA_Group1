@@ -10,7 +10,8 @@
     "test": "npm run test:server && npm run test:client",
     "test:client": "karma start ./client/test/karma.conf.js --single-run",
     "test:server": "mocha ./server/test/**/*.js --recursive --exit",
-    "watch": "gulp"
+    "watch": "gulp",
+    "watch:server": "gulp watch:server"
   },
   "dependencies": {
     "body-parser": "^1.15.1",

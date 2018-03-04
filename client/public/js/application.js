@@ -13,5 +13,19 @@ function generateGraph(dataset, input) {
     };
 }
 
-// TODO replace with input field
-generateGraph("employee", "Plot histogram of employee’s age.");
+window.onload = function () {
+
+    document.getElementById('menu-button').addEventListener('click', function () {
+        document.querySelector('.mdl-layout__drawer').classList.toggle('is-expanded');
+        setTimeout(function () {
+            Plotly.Plots.resize('graph');
+        }, 300);
+    }, false);
+
+    // TODO replace with input field
+    generateGraph("employee", "Plot histogram of employee’s age.");
+};
+
+window.onresize = function () {
+    Plotly.Plots.resize('graph');
+};

@@ -8,62 +8,38 @@
     <title>nlp-graph</title>
     <link rel="stylesheet" href="./css/main.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script src="./js/application.js"></script>
 </head>
 <body>
-
-<main>
-    <div class="demo-layout-transparent mdl-layout mdl-js-layout">
-        <div class="mdl-layout__drawer">
-            <span class="mdl-layout-title">Data Help</span>
-            <div class="row dataset-selection">
-                <div class="col-xs-5">Human Resource Dataset</div>
-                <div class="col-xs-2">
-                    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-1">
-                        <input type="checkbox" id="switch-1" class="mdl-switch__input" checked>
-                    </label>
-                </div>
-                <div class="col-xs-5">World Development Dataset</div>
-            </div>
-            <section class="column-data">
-                <h5>Column names of selected Data-set</h5>
-                <table class="mdl-data-table mdl-js-data-table">
-                    <thead>
-                    <tr>
-                        <th class="mdl-data-table__cell--non-numeric">Column Name</th>
-                        <th>DataType</th>
-                        <th>Select</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
-            </section>
-        </div>
-        <section class="text-input">
-            <form action="#">
-                <div class="row">
-                    <div class="col-xs-10">
-                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                            <input class="mdl-textfield__input" type="text" id="sample3">
-                            <label class="mdl-textfield__label" for="sample3">Plot a...</label>
-                        </div>
-                    </div>
-                    <div class="col-xs-2">
-                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
-                            Show graph
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </section>
-        <section class="graph-container row">
-            <div class="plot col-xs-12"></div>
-        </section>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
+    <div class="mdl-layout__drawer" id="drawer">
+        <span class="mdl-layout-title"></span>
+        <nav class="mdl-navigation">
+        </nav>
     </div>
-</main>
+    <header class="mdl-layout__header" id="header">
+        <div class="mdl-layout__header-row">
+            <button id="menu-button" class="mdl-button mdl-js-button mdl-button--icon">
+                <i class="material-icons">menu</i>
+            </button>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="query-textfield">
+                <input class="mdl-textfield__input" type="text" id="sample3">
+                <label class="mdl-textfield__label" for="sample3">Plot a...</label>
+            </div>
+            <button class="mdl-button mdl-js-button mdl-button--icon">
+                <i class="material-icons">send</i>
+            </button>
+        </div>
+    </header>
+    <main class="mdl-layout__content" id="content">
+        <div class="page-content">
+            <div id="graph"></div>
+        </div>
+    </main>
+</div>
 </body>
 </html>
+

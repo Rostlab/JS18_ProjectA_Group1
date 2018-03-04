@@ -1,6 +1,8 @@
 @import 'normalize';
 @import 'flexboxgrid';
 
+$header_width: 400px;
+
 html {
   position: relative;
   min-height: 100%;
@@ -87,51 +89,64 @@ form button[type="submit"] {
   }
 }
 
-.mdl-layout__drawer.is-visible {
-  width: 33%;
+#drawer {
+  overflow: hidden;
+  width: 0;
+  transform: translateX(-1px);
+  transition: 250ms width ease-in-out;
+
+  + #header,
+  ~ #content {
+    transition: 250ms margin-left ease-in-out, 250ms width ease-in-out;
+  }
+
+  &.is-expanded {
+    transform: translateX(0);
+    width: $header_width;
+
+    + #header {
+      width: calc(100% - #{$header_width});
+      margin-left: $header_width;
+    }
+
+    ~ #content {
+      margin-left: $header_width;
+    }
+  }
 }
 
-.mdl-layout__obfuscator.is-visible {
-  display: none;
+#content {
+  margin-left: 0;
+}
+
+#header {
+  margin-left: 0;
+  width: 100%;
+}
+
+.mdl-navigation {
+  width: $header_width;
+}
+
+.mdl-layout__header-row {
+  padding: 0 16px 0 22px;
+}
+
+#query-textfield {
+  flex-grow: 1;
+  color: white;
+  margin-left: 16px;
+  margin-right: 16px;
+
+  label {
+    color: white
+  }
+
+  input {
+    border-bottom: 1px solid #fff;
+  }
 }
 
 .mdl-layout__drawer-button {
-  color: black !important;
-}
-
-.dataset-selection {
-  text-align: center;
-  margin-top: 30px;
-}
-
-.column-data {
-  text-align: center;
-  table {
-    margin-left: 19%;
-  }
-}
-
-.graph-container {
-  height: 600px;
-  padding: 35px;
-  .plot {
-    background-color: lightgray;
-  }
-}
-
-.mdl-layout__drawer, .is-visible ~ .text-input {
-  width: 66%;
-  right: 0px;
-  position: absolute;
-}
-
-.mdl-layout__drawer, .is-visible ~ .graph-container {
-  width: 67%;
-  right: 0;
-  position: absolute;
-  top: 13%;
-}
-
-.mdl-layout__drawer, .is-visible ~ .mdl-layout__drawer-button {
-  left: 33%;
+  display: none !important;
 }

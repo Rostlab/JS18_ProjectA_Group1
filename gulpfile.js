@@ -10,6 +10,8 @@ var buffer = require('vinyl-buffer');
 var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var plumber = require('gulp-plumber');
+var spawn = require('child_process').spawn;
+var node;
 
 gulp.task('sass', function () {
     return gulp.src('client/scss/main.scss')
@@ -32,6 +34,16 @@ gulp.task('html', function () {
     return gulp.src(['client/index.html',])
         .pipe(gulp.dest('client/public'));
 });
+
+gulp.task('watch:server', function() {
+    if (node) node.kill();
+    node = spawn('node', ['--inspect-brk=53648', './server/server.js'], {stdio: 'inherit'});
+    node.on('close', function (code) {
+        if (code === 8) {
+            gulp.log('Error detected, waiting for changes...');
+        }
+    });
+})
 
 gulp.task('watch', function () {
     gulp.watch('client/scss/**/*.scss', ['sass']);
