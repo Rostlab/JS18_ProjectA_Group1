@@ -33,8 +33,6 @@ checkout this repository
 │   │   └── commands.json       # NLP command specification
 │   ├── migrations/
 │   │   └── enployees.js        # migration that creates the database table
-│   ├── migrations  
-│   │   └── employees.js        # first migration file 
 │   └── test/
 │       └── unit/               # Client-side Unit tests     
 ├── .travis.yaml                # Continous integration script
