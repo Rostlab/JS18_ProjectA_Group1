@@ -12,6 +12,7 @@ dotenv.load();
 
 // Controllers
 var contactController = require('./controllers/contact');
+var nlpController = require('./controllers/nlp');
 
 var app = express();
 
@@ -25,6 +26,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../client/public')));
 
 app.post('/contact', contactController.contactPost);
+
+app.post('/API/nlp', nlpController.handleInput);
 
 app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
