@@ -1130,7 +1130,7 @@ form button[type="submit"] {
   width: 33%; }
 
 .mdl-layout__obfuscator.is-visible {
-  opacity: 0 !important; }
+  display: none; }
 
 .mdl-layout__drawer-button {
   color: black !important; }
@@ -1151,7 +1151,7 @@ form button[type="submit"] {
     background-color: lightgray; }
 
 .mdl-layout__drawer, .is-visible ~ .text-input {
-  width: 69%;
+  width: 66%;
   right: 0px;
   position: absolute; }
 
@@ -1160,3 +1160,6 @@ form button[type="submit"] {
   right: 0;
   position: absolute;
   top: 13%; }
+
+.mdl-layout__drawer, .is-visible ~ .mdl-layout__drawer-button {
+  left: 33%; }
