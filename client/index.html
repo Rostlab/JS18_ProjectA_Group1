@@ -14,30 +14,10 @@
 <body>
 <script src="./js/application.js"></script>
 <main>
-    <section class="header">
-        <h3>Javascript Technology Seminar Project</h3>
-    </section>
-    <section>
-        <form action="#" class="text-input">
-            <div class="row">
-                <div class="col-xs-10">
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                        <input class="mdl-textfield__input" type="text" id="sample3">
-                        <label class="mdl-textfield__label" for="sample3">Plot a...</label>
-                    </div>
-                </div>
-                <div class="col-xs-2">
-                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
-                        Show graph
-                    </button>
-                </div>
-            </div>
-        </form>
-    </section>
-    <section class="graph-container row">
-        <div class="plot col-xs-6"></div>
-        <div class="dock col-xs-6">
-            <div class="row">
+    <div class="demo-layout-transparent mdl-layout mdl-js-layout">
+        <div class="mdl-layout__drawer">
+            <span class="mdl-layout-title">Data Help</span>
+            <div class="row dataset-selection">
                 <div class="col-xs-5">Human Resource Dataset</div>
                 <div class="col-xs-2">
                     <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-1">
@@ -46,25 +26,42 @@
                 </div>
                 <div class="col-xs-5">World Development Dataset</div>
             </div>
-            <div class="row">
-                <div class="col-xs-2"></div>
-                <div class="col-xs-8">
-                    <h5>Column names of selected Data-set</h5>
-                    <table class="mdl-data-table mdl-js-data-table">
-                        <thead>
-                        <tr>
-                            <th class="mdl-data-table__cell--non-numeric">Column Name</th>
-                            <th>DataType</th>
-                            <th>Select</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <section class="column-data">
+                <h5>Column names of selected Data-set</h5>
+                <table class="mdl-data-table mdl-js-data-table">
+                    <thead>
+                    <tr>
+                        <th class="mdl-data-table__cell--non-numeric">Column Name</th>
+                        <th>DataType</th>
+                        <th>Select</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </section>
         </div>
-    </section>
+        <section class="text-input">
+            <form action="#">
+                <div class="row">
+                    <div class="col-xs-10">
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <input class="mdl-textfield__input" type="text" id="sample3">
+                            <label class="mdl-textfield__label" for="sample3">Plot a...</label>
+                        </div>
+                    </div>
+                    <div class="col-xs-2">
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">
+                            Show graph
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+        <section class="graph-container row">
+            <div class="plot col-xs-12"></div>
+        </section>
+    </div>
 </main>
 </body>
 </html>

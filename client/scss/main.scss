@@ -73,30 +73,61 @@ form button[type="submit"] {
   vertical-align: middle;
 }
 
-.header {
-    background-color: #2e80a9;
-    height: 20%;
-    text-align: center;
+.text-input {
+  background-color: #2e80a9;
+  text-align: center;
+  padding: 10px;
+  .mdl-textfield {
+    width: 100%;
+    margin-left: 60px;
+    padding-right: 20px;
+  }
+  .col-xs-2 {
+    margin-top: 14px;
+  }
 }
 
-.text-input {
-    margin :20px;
-    .mdl-textfield
-    {
-        width: 100%;
-    }
+.mdl-layout__drawer.is-visible {
+  width: 33%;
+}
+
+.mdl-layout__obfuscator.is-visible {
+  opacity: 0 !important;
+}
+
+.mdl-layout__drawer-button {
+  color: black !important;
+}
+
+.dataset-selection {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.column-data {
+  text-align: center;
+  table {
+    margin-left: 19%;
+  }
 }
 
 .graph-container {
-    height: 500px;
-    padding: 25px;
-    .plot {
-        background-color: lightgray;
-    }
-    .dock {
-    text-align: center;
-        table {
-        margin-left: 8%;
-        }
-    }
+  height: 600px;
+  padding: 35px;
+  .plot {
+    background-color: lightgray;
+  }
+}
+
+.mdl-layout__drawer, .is-visible ~ .text-input {
+  width: 69%;
+  right: 0px;
+  position: absolute;
+}
+
+.mdl-layout__drawer, .is-visible ~ .graph-container {
+  width: 67%;
+  right: 0;
+  position: absolute;
+  top: 13%;
 }
