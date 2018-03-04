@@ -10,8 +10,8 @@
     "test": "npm run test:server && npm run test:client",
     "test:client": "karma start ./client/test/karma.conf.js --single-run",
     "test:server": "mocha ./server/test/**/*.js --recursive --exit",
-    "migrate": "knex migrate:latest",
-    "rollback": "knex migrate:rollback",
+    "migrate": "knex migrate:latest --knexfile ./server/knexfile.js",
+    "rollback": "knex migrate:rollback --knexfile ./server/knexfile.js",
     "watch": "gulp"
   },
   "dependencies": {
@@ -33,6 +33,7 @@
     "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify": "^3.0.0",
     "knex": "^0.14.4",
+    "lodash": "^4.17.5",
     "morgan": "^1.7.0",
     "nodemailer": "^4.6.0",
     "papaparse": "^4.3.7",
