@@ -8,16 +8,10 @@ notifications:
 cache:
   directories:
     - "node_modules"
-# default install: npm install
-# default script: npm test
-#before_deploy: "echo 'Deployment started'"
-#deploy:
-#  provider: azure_web_apps
-#  site: azure_deployment_sitename       # If AZURE_WA_SITE isn't set
-#  slot: azure_deployment_slotname       # (optional) If AZURE_WA_SLOT isn't set
-#  verbose: true                         # deployment progress and logs
-#  on: develop                           # all_branches: true
-#after_deploy: "echo 'Deployment finished'"
+deploy:
+  provider: azure_web_apps
+  on: develop
+  verbose: true
 
 #karma
 #before_script:
