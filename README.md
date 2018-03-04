@@ -29,7 +29,10 @@ checkout this repository
 │   │   └── bookshelf.js        # Bookshelf configuration
 │   ├── controllers/            # Express controllers
 │   ├── data/
+│   │   └── core_dataset.csv    # Dataset to plot
 │   │   └── commands.json       # NLP command specification
+│   ├── migrations/
+│   │   └── enployees.js        # migration that creates the database table
 │   ├── migrations  
 │   │   └── employees.js        # first migration file 
 │   └── test/
