@@ -25,7 +25,7 @@ function findCommand(dataset, input) {
 exports.handleInput = function (req, res) {
     // TODO validate dataset agains available datasets
     req.assert('dataset', 'A dataset must be selected').notEmpty();
-    req.assert('input', 'A plot command must be provides').notEmpty();
+    req.assert('input', 'A plot command must be provided').notEmpty();
 
     let errors = req.validationErrors();
 

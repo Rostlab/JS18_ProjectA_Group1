@@ -1,17 +1,12 @@
+let bookshelf = require('../config/bookshelf');
+
 /**
  * GET /API/datasets
  */
 exports.getDatasets = function (req, res) {
-    // TODO load real datasets
-    let datasets = [
-        {
-            table_name: "human_resources__core_dataset",
-            display_name: "Employees",
-            description: "The core human resource dataset",
-            file: "./data/core_dataset.csv"
-        }
-    ];
-    res.send({datasets: datasets});
+    bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll().then((datasets) => {
+        res.send({datasets: datasets});
+    });
 };
 
 /**
@@ -19,7 +14,7 @@ exports.getDatasets = function (req, res) {
  */
 
 exports.getColumns = function (req, res) {
-    // TODO validate dataset agains available datasets
+    // TODO validate dataset against available datasets
     req.assert('dataset', 'A dataset must be selected').notEmpty();
 
     let errors = req.validationErrors();
@@ -41,7 +36,7 @@ exports.getColumns = function (req, res) {
  */
 
 exports.getExamples = function (req, res) {
-    // TODO validate dataset agains available datasets
+    // TODO validate dataset against available datasets
     req.assert('dataset', 'A dataset must be selected').notEmpty();
 
     let errors = req.validationErrors();
