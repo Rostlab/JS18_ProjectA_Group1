@@ -1,10 +1,15 @@
 let bookshelf = require('../config/bookshelf');
+let commands = require('../data/commands.json');
+
+function getDatasets() {
+    return bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll()
+}
 
 /**
  * GET /API/datasets
  */
 exports.getDatasets = function (req, res) {
-    bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll().then((datasets) => {
+    getDatasets().then((datasets) => {
         res.send({datasets: datasets});
     });
 };
@@ -14,20 +19,21 @@ exports.getDatasets = function (req, res) {
  */
 
 exports.getColumns = function (req, res) {
-    // TODO validate dataset against available datasets
-    req.assert('dataset', 'A dataset must be selected').notEmpty();
+    getDatasets().then((datasets) => {
+        req.assert('dataset', 'A dataset must be selected').notEmpty();
+        req.assert('dataset', 'The dataset does not exist').custom(value => datasets.some((dataset) => dataset.attributes.table_name === value));
 
-    let errors = req.validationErrors();
+        let errors = req.validationErrors();
 
-    if (errors) {
-        return res.status(400).send(errors);
-    }
+        if (errors) {
+            return res.status(400).send(errors);
+        }
 
-    let dataset = req.body.dataset;
-    let columns = [];
-    //TODO load columns for dataset
-
-    res.send({dataset: dataset, columns: columns});
+        let dataset = req.body.dataset;
+        bookshelf.knex(dataset).columnInfo().then((info) => {
+            res.send({dataset: dataset, columns: info});
+        });
+    });
 };
 
 
@@ -36,18 +42,32 @@ exports.getColumns = function (req, res) {
  */
 
 exports.getExamples = function (req, res) {
-    // TODO validate dataset against available datasets
-    req.assert('dataset', 'A dataset must be selected').notEmpty();
+    getDatasets().then((datasets) => {
+        req.assert('dataset', 'A dataset must be selected').notEmpty();
+        req.assert('dataset', 'The dataset does not exist').custom(value => datasets.some((dataset) => dataset.attributes.table_name === value));
 
-    let errors = req.validationErrors();
+        let errors = req.validationErrors();
 
-    if (errors) {
-        return res.status(400).send(errors);
-    }
+        if (errors) {
+            return res.status(400).send(errors);
+        }
 
-    let dataset = req.body.dataset;
-    let examples = [];
-    //TODO load examples for dataset
+        let dataset = req.body.dataset;
+        let examples = [];
 
-    res.send({dataset: dataset, examples: examples});
+        // find matching commands
+        commands.forEach((command) => {
+            command.tests.forEach((test) => {
+                if(test.dataset === dataset) {
+                    // send example to client
+                    examples.push({
+                        input: test.input,
+                        dataset: test.dataset
+                    })
+                }
+            })
+        });
+
+        res.send({dataset: dataset, examples: examples});
+    });
 };
