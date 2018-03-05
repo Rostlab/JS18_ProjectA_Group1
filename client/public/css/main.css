@@ -1,5 +1,4 @@
 /*! normalize.css v4.1.1 | MIT License | github.com/necolas/normalize.css */
-
 /**
  * 1. Change the default font family in all browsers (opinionated).
  * 2. Prevent adjustments of font size after orientation changes in IE and iOS.
@@ -1173,5 +1172,23 @@ form button[type="submit"] {
   #query-textfield input {
     border-bottom: 1px solid #fff; }
 
+#command-loading {
+  display: none; }
+
 .mdl-layout__drawer-button {
   display: none !important; }
+
+.getmdl-select {
+  width: auto;
+  margin-top: 8px; }
+  .getmdl-select .mdl-textfield__label {
+    padding-left: 16px; }
+  .getmdl-select .mdl-textfield__input {
+    padding-left: 16px;
+    padding-bottom: 10px; }
+  .getmdl-select .mdl-icon-toggle__label {
+    margin-top: -40px;
+    padding-right: 16px; }
+
+.mdl-tabs {
+  margin-top: -20px; }

@@ -147,6 +147,32 @@ form button[type="submit"] {
   }
 }
 
+#command-loading {
+  display: none;
+}
+
 .mdl-layout__drawer-button {
   display: none !important;
+}
+
+.getmdl-select {
+  width: auto;
+  margin-top: 8px;
+
+  .mdl-textfield__label {
+    padding-left: 16px;
+  }
+
+  .mdl-textfield__input {
+    padding-left: 16px;
+    padding-bottom: 10px;
+  }
+  .mdl-icon-toggle__label {
+    margin-top: -40px;
+    padding-right: 16px;
+  }
+}
+
+.mdl-tabs {
+  margin-top: -20px;
 }

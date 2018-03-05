@@ -1,16 +1,42 @@
-function generateGraph(dataset, input) {
+function loadJSON(endpoint, type, body, callback, error) {
     let xhttp = new XMLHttpRequest();
-    xhttp.open("POST", window.location.origin + "/API/nlp", true);
+    xhttp.open(type, window.location.origin + "/API/" + endpoint, true);
     xhttp.setRequestHeader("Content-type", "application/json");
-    xhttp.send(JSON.stringify({dataset: dataset, input: input}));
+    xhttp.send(JSON.stringify(body));
     xhttp.onreadystatechange = function () {
         if (xhttp.readyState === 4 && xhttp.status === 200) {
             let response = JSON.parse(xhttp.responseText);
-            Plotly.plot('graph', response.data);
+            callback(response.data)
+        } else {
+            error()
         }
     }
 }
 
+function generateGraph(dataset, input) {
+    setLoading(true);
+    loadJSON("nlp", "POST", {dataset: dataset, input: input}, (response) => {
+        Plotly.newPlot('graph', response);
+        setLoading(false)
+    }, () => {
+        // TODO handle error
+        setLoading(false)
+    });
+}
+
+function setLoading(loading) {
+    let command_textfield = document.getElementById("command-textfield");
+    command_textfield.disabled = loading;
+    let command_button = document.getElementById("command-button");
+    let command_loading = document.getElementById("command-loading");
+    if (loading) {
+        command_button.style.display = "none";
+        command_loading.style.display = "block";
+    } else {
+        command_button.style.display = "block";
+        command_loading.style.display = "none";
+    }
+}
 
 window.onload = function () {
 
@@ -22,8 +48,16 @@ window.onload = function () {
 
     }, false);
 
-    // TODO replace with input field
-    generateGraph("employee", "Plot histogram of employee’s age.");
+    let command_textfield = document.getElementById("command-textfield");
+    command_textfield.addEventListener("keyup", function (event) {
+        if (event.key === "Enter") {
+            generateGraph("test", command_textfield.value)
+        }
+    });
+    let command_button = document.getElementById("command-button");
+    command_button.addEventListener("click", function (event) {
+        generateGraph("test", command_textfield.value)
+    });
 
 };
 
