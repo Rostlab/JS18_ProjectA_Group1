@@ -21,7 +21,7 @@ exports.getDatasets = function (req, res) {
 exports.getColumns = function (req, res) {
     getDatasets().then((datasets) => {
         req.assert('dataset', 'A dataset must be selected').notEmpty();
-        req.assert('dataset', 'The dataset does not exist').custom(value => datasets.some((dataset) => dataset.attributes.table_name === value));
+        req.assert('dataset', 'The dataset does not exist').custom((req_dataset) => datasets.some((tmp_dataset) => tmp_dataset.attributes.table_name === req_dataset));
 
         let errors = req.validationErrors();
 
@@ -44,7 +44,7 @@ exports.getColumns = function (req, res) {
 exports.getExamples = function (req, res) {
     getDatasets().then((datasets) => {
         req.assert('dataset', 'A dataset must be selected').notEmpty();
-        req.assert('dataset', 'The dataset does not exist').custom(value => datasets.some((dataset) => dataset.attributes.table_name === value));
+        req.assert('dataset', 'The dataset does not exist').custom((req_dataset) => datasets.some((tmp_dataset) => tmp_dataset.attributes.table_name === req_dataset));
 
         let errors = req.validationErrors();
 
@@ -58,7 +58,7 @@ exports.getExamples = function (req, res) {
         // find matching commands
         commands.forEach((command) => {
             command.tests.forEach((test) => {
-                if(test.dataset === dataset) {
+                if (test.dataset === dataset) {
                     // send example to client
                     examples.push({
                         input: test.input,
