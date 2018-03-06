@@ -1,4 +1,5 @@
 /*! normalize.css v4.1.1 | MIT License | github.com/necolas/normalize.css */
+
 /**
  * 1. Change the default font family in all browsers (opinionated).
  * 2. Prevent adjustments of font size after orientation changes in IE and iOS.
@@ -1114,3 +1115,52 @@ form button[type="submit"] {
   width: 30px;
   height: 30px;
   vertical-align: middle; }
+
+.text-input {
+  background-color: #2e80a9;
+  text-align: center;
+  padding: 10px; }
+  .text-input .mdl-textfield {
+    width: 100%;
+    margin-left: 60px;
+    padding-right: 20px; }
+  .text-input .col-xs-2 {
+    margin-top: 14px; }
+
+.mdl-layout__drawer.is-visible {
+  width: 33%; }
+
+.mdl-layout__obfuscator.is-visible {
+  display: none; }
+
+.mdl-layout__drawer-button {
+  color: black !important; }
+
+.dataset-selection {
+  text-align: center;
+  margin-top: 30px; }
+
+.column-data {
+  text-align: center; }
+  .column-data table {
+    margin-left: 19%; }
+
+.graph-container {
+  height: 600px;
+  padding: 35px; }
+  .graph-container .plot {
+    background-color: lightgray; }
+
+.mdl-layout__drawer, .is-visible ~ .text-input {
+  width: 66%;
+  right: 0px;
+  position: absolute; }
+
+.mdl-layout__drawer, .is-visible ~ .graph-container {
+  width: 67%;
+  right: 0;
+  position: absolute;
+  top: 13%; }
+
+.mdl-layout__drawer, .is-visible ~ .mdl-layout__drawer-button {
+  left: 33%; }
