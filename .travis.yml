@@ -10,7 +10,7 @@ cache:
     - "node_modules"
 deploy:
   provider: azure_web_apps
-  on: develop
+  on: feature/5/azure
   verbose: true
 
 #karma
