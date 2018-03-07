@@ -14,7 +14,7 @@
     "tests": [
       {
         "input": "Plot a histogram of age",
-        "dataset": "Employees",
+        "dataset": "human_resources__core_dataset",
         "function": "get_data_for_histogram",
         "parameters": [
           {
