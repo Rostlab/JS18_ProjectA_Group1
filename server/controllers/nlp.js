@@ -10,7 +10,7 @@ let functions = {
         let column = parameters[0];
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => callback(
             [{
-                x: data.map((value) => value.attributes[parameters[0]]),
+                x: data.map((value) => value.attributes[column]),
                 type: 'histogram'
             }]
         ))
