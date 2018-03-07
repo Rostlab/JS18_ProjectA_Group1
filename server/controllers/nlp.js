@@ -8,8 +8,11 @@ function getDatasets() {
 let functions = {
     plotHistogramOfColumn: function (dataset, parameters, callback) {
         let column = parameters[0];
+
+        // SELECT <column> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => callback(
             [{
+                // map [{<columnName>: <columnValue}, ...] to [<columnValue>, ...]
                 x: data.map((value) => value.attributes[column]),
                 type: 'histogram'
             }]
