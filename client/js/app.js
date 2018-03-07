@@ -51,12 +51,12 @@ window.onload = function () {
     let command_textfield = document.getElementById("command-textfield");
     command_textfield.addEventListener("keyup", function (event) {
         if (event.key === "Enter") {
-            generateGraph("test", command_textfield.value)
+            generateGraph("human_resources__core_dataset", command_textfield.value)
         }
     });
     let command_button = document.getElementById("command-button");
     command_button.addEventListener("click", function (event) {
-        generateGraph("test", command_textfield.value)
+        generateGraph("human_resources__core_dataset", command_textfield.value)
     });
 
 };

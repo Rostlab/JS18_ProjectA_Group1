@@ -1,10 +1,19 @@
+let bookshelf = require('../config/bookshelf');
+let commands = require('../data/commands.json');
+
+function getDatasets() {
+    return bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll()
+}
+
 let functions = {
-    plotHistogramOfColumn: function (parameters) {
-        // TODO query real data
-        return [{
-            x: [1, 2, 3, 4, 5],
-            type: 'histogram'
-        }]
+    plotHistogramOfColumn: function (dataset, parameters, callback) {
+        let column = parameters[0];
+        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => callback(
+            [{
+                x: data.map((value) => value.attributes[parameters[0]]),
+                type: 'histogram'
+            }]
+        ))
     }
 };
 
@@ -21,22 +30,26 @@ function findCommand(dataset, input) {
 /**
  * POST /API/nlp
  */
-
 exports.handleInput = function (req, res) {
-    // TODO validate dataset agains available datasets
-    req.assert('dataset', 'A dataset must be selected').notEmpty();
-    req.assert('input', 'A plot command must be provided').notEmpty();
+    getDatasets().then(datasets => {
+        req.assert('input', 'A plot command must be provided').notEmpty();
+        req.assert('dataset', 'A dataset must be selected').notEmpty();
+        req.assert('dataset', 'The dataset does not exist').custom(req_dataset => datasets.some(tmp_dataset => tmp_dataset.attributes.table_name === req_dataset));
 
-    let errors = req.validationErrors();
+        let errors = req.validationErrors();
 
-    if (errors) {
-        return res.status(400).send(errors);
-    }
+        if (errors) {
+            return res.status(400).send(errors);
+        }
 
-    // Use NLP to find the right command
-    let command = findCommand(req.body.dataset, req.body.input);
-    // Query the needed data and transform them into the dataformat for plotly.js
-    let data = functions[command.function](command.parameters);
-    // Send the data back to the client
-    res.send({data: data});
+        let dataset = req.body.dataset;
+
+        // Use NLP to find the right command
+        let command = findCommand(dataset, req.body.input);
+        // Query the needed data and transform them into the dataformat for plotly.js
+        functions[command.function](dataset, command.parameters, data =>
+            // Send the data back to the client
+            res.send({data: data})
+        );
+    })
 };

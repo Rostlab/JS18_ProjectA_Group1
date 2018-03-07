@@ -9,7 +9,7 @@ function getDatasets() {
  * GET /API/datasets
  */
 exports.getDatasets = function (req, res) {
-    getDatasets().then((datasets) => {
+    getDatasets().then(datasets => {
         res.send({datasets: datasets});
     });
 };
@@ -17,11 +17,10 @@ exports.getDatasets = function (req, res) {
 /**
  * POST /API/columns
  */
-
 exports.getColumns = function (req, res) {
-    getDatasets().then((datasets) => {
+    getDatasets().then(datasets => {
         req.assert('dataset', 'A dataset must be selected').notEmpty();
-        req.assert('dataset', 'The dataset does not exist').custom((req_dataset) => datasets.some((tmp_dataset) => tmp_dataset.attributes.table_name === req_dataset));
+        req.assert('dataset', 'The dataset does not exist').custom(req_dataset => datasets.some(tmp_dataset => tmp_dataset.attributes.table_name === req_dataset));
 
         let errors = req.validationErrors();
 
@@ -30,9 +29,9 @@ exports.getColumns = function (req, res) {
         }
 
         let dataset = req.body.dataset;
-        bookshelf.knex(dataset).columnInfo().then((info) => {
-            res.send({dataset: dataset, columns: info});
-        });
+        bookshelf.knex(dataset).columnInfo().then(info =>
+            res.send({dataset: dataset, columns: info})
+        );
     });
 };
 
@@ -40,11 +39,10 @@ exports.getColumns = function (req, res) {
 /**
  * POST /API/examples
  */
-
 exports.getExamples = function (req, res) {
     getDatasets().then((datasets) => {
         req.assert('dataset', 'A dataset must be selected').notEmpty();
-        req.assert('dataset', 'The dataset does not exist').custom((req_dataset) => datasets.some((tmp_dataset) => tmp_dataset.attributes.table_name === req_dataset));
+        req.assert('dataset', 'The dataset does not exist').custom(req_dataset => datasets.some(tmp_dataset => tmp_dataset.attributes.table_name === req_dataset));
 
         let errors = req.validationErrors();
 
@@ -56,8 +54,8 @@ exports.getExamples = function (req, res) {
         let examples = [];
 
         // find matching commands
-        commands.forEach((command) => {
-            command.tests.forEach((test) => {
+        commands.forEach(command => {
+            command.tests.forEach(test => {
                 if (test.dataset === dataset) {
                     // send example to client
                     examples.push({
