@@ -11,8 +11,8 @@ exports.up = function (knex, Promise) {
     return Promise.resolve()
         .then(() => createGenericDataset(knex))
         .then(() => createHumanResourcesDataCore(knex))
-        .then(() => insertDataHumanResourcesDataCore(knex))
         .then(() => registerHumanResourcesDataCore(knex))
+        .then(() => insertDataHumanResourcesDataCore(knex))
 }
 
 exports.down = function (knex, Promise) {
@@ -74,8 +74,8 @@ function deleteHumanResourcesDataCore(knex) {
 function registerHumanResourcesDataCore(knex) {
     console.log("Register " + tableName_human_resource__core_dataset)
     var Dataset = bookshelf.Model.extend({
-        tableName: tableName_generic_dataset,
-        idAttribute: identifier_generic_dataset
+        tableName: 'generic_dataset',
+        idAttribute: 'table_name'
     });
 
     var entryToSave = new Dataset({

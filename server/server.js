@@ -10,8 +10,8 @@ var bookshelf = require('./config/bookshelf');
 bookshelf.migrate();
 
 // Controllers
-var publicController = require('./controllers/public');
-var nlpController = require('./controllers/nlp');
+var contactController = require('./controllers/contact');
+
 
 var app = express();
 
@@ -24,10 +24,7 @@ app.use(expressValidator());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../client/public')));
 
-app.get('/API/datasets', publicController.getDatasets);
-app.post('/API/columns', publicController.getColumns);
-app.post('/API/examples', publicController.getExamples);
-app.post('/API/nlp', nlpController.handleInput);
+app.post('/contact', contactController.contactPost);
 
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
@@ -46,7 +43,8 @@ if (app.get('env') === 'production') {
 }
 
 app.listen(app.get('port'), function () {
-    console.log('Express server listening http://localhost:' + app.get('port'));
+    console.log('Express server listening on port ' + app.get('port'));
 });
 
 module.exports = app;
+
