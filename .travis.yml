@@ -8,8 +8,6 @@ notifications:
 cache:
   directories:
     - "node_modules"
-services:
-  - postgresql
 addons:
   postgresql: "9.6"
 before_script:
