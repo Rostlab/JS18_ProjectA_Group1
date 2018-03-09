@@ -13,7 +13,7 @@ exports.up = function (knex, Promise) {
         .then(() => createHumanResourcesDataCore(knex))
         .then(() => insertDataHumanResourcesDataCore(knex))
         .then(() => registerHumanResourcesDataCore(knex))
-}
+};
 
 exports.down = function (knex, Promise) {
 
@@ -40,7 +40,7 @@ function deleteGenericDataset(knex) {
 }
 
 function createHumanResourcesDataCore(knex) {
-    console.log("Create " + tableName_generic_dataset)
+    console.log("Create " + tableName_human_resource__core_dataset)
     return knex.schema.createTable(tableName_human_resource__core_dataset, table => {
         table.string('employee_name');
         table.integer(identifier_human_resources__core_dataset).primary();
@@ -73,18 +73,17 @@ function deleteHumanResourcesDataCore(knex) {
 
 function registerHumanResourcesDataCore(knex) {
     console.log("Register " + tableName_human_resource__core_dataset)
-    var Dataset = bookshelf.Model.extend({
+    var DataSet = bookshelf.Model.extend({
         tableName: tableName_generic_dataset,
         idAttribute: identifier_generic_dataset
     });
 
-    var entryToSave = new Dataset({
+    new DataSet({
         table_name: tableName_human_resource__core_dataset,
         display_name: 'Employees',
         description: 'The core human resource dataset',
         file: './data/core_dataset.csv'
-    });
-    entryToSave.save(null, {method: 'insert'});
+    }).save(null, {method: 'insert'});
 }
 
 
@@ -100,47 +99,46 @@ function insertDataHumanResourcesDataCore(knex) {
         idAttribute: identifier_human_resources__core_dataset
     });
 
-    fs.readFile('./data/core_dataset.csv', "utf8", function read(err, data) {
-        if (err) throw err;
-        papaparse.parse(data, {
-            header: true,
-            beforeFirstChunk: function (chunk) {
-                //delete the last line ",,,,,,,,"
-                chunk = chunk.replace(/\r?\n?[^\r\n]*$/, "").replace(/\r?\n?[^\r\n]*$/, "");
-                //tranform everything to small letters and add _ instead of spaces
-                var rows = chunk.split(/\r\n|\r|\n/);
-                var headings = rows[0].toLowerCase();
-                headings = headings.split(' ').join('_');
-                rows[0] = headings;
-                //change all the dates to the right format
-                // for(var i = 1; i < rows.length; i++){
-                //     columnValues = rows[i].split(",");
-                //     for(var j = 0; j < columnValues.length; j++){
-                //         var dateParts = columnValues[j].split("/");
-                //         if(dateParts.length>2){
-                //             var swap = dateParts[1];
-                //             dateParts[1] = dateParts [0];
-                //             dateParts[0] = swap;
-                //             var dateObject = dateParts.join("/");
-                //             columnValues[j] = dateObject;
-                //         }
-                //     }
-                //     columnValues.join(",");
-                //     rows[i] = columnValues;
-                // }
-                return rows.join("\r\n");
+    let data = fs.readFileSync('./data/core_dataset.csv', "utf8");
+    papaparse.parse(data, {
+        header: true,
+        beforeFirstChunk: function (chunk) {
+            //delete the last line ",,,,,,,,"
+            chunk = chunk.replace(/\r?\n?[^\r\n]*$/, "").replace(/\r?\n?[^\r\n]*$/, "");
+            //tranform everything to small letters and add _ instead of spaces
+            var rows = chunk.split(/\r\n|\r|\n/);
+            var headings = rows[0].toLowerCase();
+            headings = headings.split(' ').join('_');
+            rows[0] = headings;
+            //change all the dates to the right format
+            // for(var i = 1; i < rows.length; i++){
+            //     columnValues = rows[i].split(",");
+            //     for(var j = 0; j < columnValues.length; j++){
+            //         var dateParts = columnValues[j].split("/");
+            //         if(dateParts.length>2){
+            //             var swap = dateParts[1];
+            //             dateParts[1] = dateParts [0];
+            //             dateParts[0] = swap;
+            //             var dateObject = dateParts.join("/");
+            //             columnValues[j] = dateObject;
+            //         }
+            //     }
+            //     columnValues.join(",");
+            //     rows[i] = columnValues;
+            // }
+            return rows.join("\r\n");
 
-            },
-            complete: function (results) {
-                parsedData = results.data;
-                var entryToSave;
-                _.forEach(parsedData, function (itemToSave) {
-                    entryToSave = new Employee(itemToSave);
-                    entryToSave.save(null, {method: 'insert'});
-                });
-            }
-        });
-        // Or put the next step in a function and invoke it
+        },
+        complete: function (results) {
+            parsedData = results.data;
+            var entryToSave;
+            _.forEach(parsedData, function (itemToSave) {
+                entryToSave = new Employee(itemToSave);
+                entryToSave.save(null, {method: 'insert'});
+            });
+        }
     });
+    // Or put the next step in a function and invoke it
+
     console.log("Insert data into " + tableName_human_resource__core_dataset + " finished")
 }
