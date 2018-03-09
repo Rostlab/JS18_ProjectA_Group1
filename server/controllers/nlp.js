@@ -122,8 +122,7 @@ function extractConnector(state) {
 let searchFunction = [
     extractColumn,
     extractChartType,
-    extractOperation,
-    extractDataset
+    extractOperation
 ];
 
 
