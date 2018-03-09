@@ -15,7 +15,7 @@ before_script:
   - psql -c "CREATE USER group1 WITH PASSWORD 'password';" -U postgres
   - psql -c "GRANT ALL PRIVILEGES ON DATABASE group1 TO group1;"
 script:
-  - npm migrate
+  - npm run migrate
   - npm test
 env:
   global:
