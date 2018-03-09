@@ -110,22 +110,6 @@ function insertDataHumanResourcesDataCore(knex) {
             var headings = rows[0].toLowerCase();
             headings = headings.split(' ').join('_');
             rows[0] = headings;
-            //change all the dates to the right format
-            // for(var i = 1; i < rows.length; i++){
-            //     columnValues = rows[i].split(",");
-            //     for(var j = 0; j < columnValues.length; j++){
-            //         var dateParts = columnValues[j].split("/");
-            //         if(dateParts.length>2){
-            //             var swap = dateParts[1];
-            //             dateParts[1] = dateParts [0];
-            //             dateParts[0] = swap;
-            //             var dateObject = dateParts.join("/");
-            //             columnValues[j] = dateObject;
-            //         }
-            //     }
-            //     columnValues.join(",");
-            //     rows[i] = columnValues;
-            // }
             return rows.join("\r\n");
 
         },
