@@ -22,6 +22,36 @@ let functions = {
             }]
         ))
     },
+
+    plotLineChartOfColumn: function (dataset, parameters, callback) {
+        let column = parameters[0];
+
+        // SELECT <column> FROM <dataset>
+        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => callback(
+            [{
+                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                x: data.map((value) => value.attributes[column]),
+                type: 'scatter'
+            }]
+        ))
+    },
+    plotScatterOfTwoColumns: function (dataset, parameters, callback) {
+        let column1 = parameters[0];
+        let column2 = parameters[1];
+
+        // SELECT <column> FROM <dataset>
+        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => {
+            callback(
+                [{
+                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                    x: data.map((value) => value.attributes[column1]),
+                    y: data.map((value) => value.attributes[column2]),
+                    mode: 'markers',
+                    type: 'scatter'
+                }]
+            )
+        });
+    },
     plotPieChartOfColumn: function (dataset, parameters, callback) {
         let column = parameters[0];
         // SELECT <column> FROM <dataset>
