@@ -1,6 +1,29 @@
 [
   {
     "parameters":
+    {
+      "chartType" : "histogram",
+      "numberColumns": 2
+    },
+    "function": "plotHistogramOfTwoColumns",
+    "functionParameters" : ["Column", "Column"],
+    "tests": [
+      {
+        "input": "Plot a scatter plot of two columns",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotScatterOfTwoColumns",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
+      }
+    ]
+  },
+
+  {
+    "parameters":
       {
         "chartType" : "histogram",
         "numberColumns": 1
@@ -89,7 +112,6 @@
       }
     ]
   }
-
 
 
 

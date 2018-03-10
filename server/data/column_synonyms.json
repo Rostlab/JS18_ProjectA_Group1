@@ -1,0 +1,22 @@
+[
+  {
+    "columnName": "maritaldesc",
+  "synomyms": ["marriage state", "marriage description"]
+  },
+  {
+    "columnName": "citizendesc",
+    "synomyms": ["citizen description", "citizen"]
+  },
+  {
+    "columnName": "racedesc",
+    "synomyms": ["race", "race description"]
+  },
+  {
+    "columnName": "hispanic/latino",
+    "synomyms": ["hispanic", "latino"]
+  }
+
+
+
+
+]
