@@ -11,7 +11,7 @@
       {
         "input": "Plot a histogram of age",
         "dataset": "human_resources__core_dataset",
-        "function": "get_data_for_histogram",
+        "function": "plotHistogramOfColumn",
         "parameters": [
           {
             "type": "COLUMN",
@@ -29,18 +29,68 @@
         "numberColumns": 1
       },
     "function": "plotPieChartOfColumn",
-    "functionParameters" : ["Column"]
+    "functionParameters" : ["Column"],
+    "tests": [
+      {
+        "input": "Plot a histogram of age",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotPieChartOfColumn",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
+      }
+    ]
   },
 
   {
     "parameters":
     {
-      "chartType" : "pie chart",
+      "chartType" : "line chart",
       "numberColumns": 1
     },
-    "function": "plotPieChartOfColumn",
-    "functionParameters" : ["Column"]
+    "function": "plotLineChartOfColumn",
+    "functionParameters" : ["Column"],
+    "tests": [
+      {
+        "input": "Plot a histogram of age",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotLineChartOfColumn",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "parameters":
+    {
+      "chartType" : "scatter plot",
+      "numberColumns": 2
+    },
+    "function": "plotScatterOfTwoColumns",
+    "functionParameters" : ["Column", "Column"],
+    "tests": [
+      {
+        "input": "Plot a scatter plot of two columns",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotScatterOfTwoColumns",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
+      }
+    ]
   }
+
+
 
 
 ]
