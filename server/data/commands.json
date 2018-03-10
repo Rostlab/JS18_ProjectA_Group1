@@ -1,16 +1,12 @@
 [
   {
-    "hotwords": [
-      "histogram"
-    ],
-    "parameters": [
+    "parameters":
       {
-        "type": "COLUMN",
-        "TODO operations": "",
-        "TODO column type?": ""
-      }
-    ],
-    "function": "get_data_for_histogram",
+        "chartType" : "histogram",
+        "numberColumns": 1
+      },
+    "function": "plotHistogramOfColumn",
+    "functionParameters" : ["Column"],
     "tests": [
       {
         "input": "Plot a histogram of age",
@@ -24,5 +20,27 @@
         ]
       }
     ]
+  },
+
+  {
+    "parameters":
+      {
+        "chartType" : "pie chart",
+        "numberColumns": 1
+      },
+    "function": "plotPieChartOfColumn",
+    "functionParameters" : ["Column"]
+  },
+
+  {
+    "parameters":
+    {
+      "chartType" : "pie chart",
+      "numberColumns": 1
+    },
+    "function": "plotPieChartOfColumn",
+    "functionParameters" : ["Column"]
   }
+
+
 ]

@@ -24,15 +24,31 @@ let functions = {
     },
     plotPieChartOfColumn: function (dataset, parameters, callback) {
         let column = parameters[0];
-
         // SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => callback(
-            [{
-                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                x: data.map((value) => value.attributes[column]),
-                type: 'pie'
-            }]
-        ))
+        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
+            var entries = data.map((value) => value.attributes[column]);
+            var values = [];
+            var labels = [];
+            _.forEach(entries, function (entry) {
+                if(!_.includes(labels, entry)){
+                    labels.push(entry);
+                    values.push(1);
+                } else {
+                    var index = labels.indexOf(entry);
+                    values[index]++;
+                }
+            })
+            callback(
+                [{
+                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...
+                    values: values,
+                    labels: labels,
+                    type: 'pie'
+                }]
+            )
+        })
+
+
     },
 };
 
@@ -173,18 +189,49 @@ exports.handleInput = function (req, res) {
             layer: 0,
             currentToken: 0,
             callback: state => {
-
                 let bestMatch = {
-                    function: 'plotHistogramOfColumn',
+                    function: 'plotPieChartOfColumn',
                     parameters: []
                 };
+                var numberMatches;
+                var numberColumns;
+                var columnsArray;
+                var bestMatched = {
+                    numberMatches: 0,
+                    function: "",
+                    functionParameter: []
+                };
+                _.forEach(commands, function (command) {
+                    numberMatches = 0;
+                    numberColumns = 0;
+                    columnsArray = [];
+                    _.forEach(state.tokens, function (token) {
+                        if (token.type === "Column") {
+                            numberColumns++;
+                            columnsArray.push(token.value);
+                        } else if(token.type === "ChartType"){
+                            if(token.value === command.parameters.chartType){
+                                numberMatches++;
+                            }
+                        }
+                    });
+                    if(numberColumns === command.parameters.numberColumns){
+                        numberMatches++;
+                    }
+                    if(numberMatches > bestMatched.numberMatches){
+                        bestMatched.numberMatches = numberMatches;
+                        bestMatched.function = command.function;
+                        _.forEach(command.functionParameters, function(param, index){
+                            if(param === "Column"){
+                                bestMatched.functionParameter.push(columnsArray[index]);
+                            }
+                        });
 
-                _.forEach(state.tokens, function (token) {
-                    if (token.type === "Column") {
-                        bestMatch.parameters.push(token.value);
                     }
                 });
-                functions[bestMatch.function](dataset, bestMatch.parameters, data =>
+
+
+                functions[bestMatched.function](dataset, bestMatched.functionParameter, data =>
                     // Send the data back to the client
                     res.send({data: data})
                 )
