@@ -15,21 +15,6 @@ function loadJSON(endpoint, type, body, callback, error) {
     };
 }
 
-function loadDatasets(endpoint, type, callback, error) {
-    var xhttp = new XMLHttpRequest();
-    xhttp.open(type, window.location.origin + "/API/" + endpoint, true);
-    xhttp.setRequestHeader("Content-type", "application/json");
-    xhttp.send();
-    xhttp.onreadystatechange = function () {
-        if (xhttp.readyState === 4 && xhttp.status === 200) {
-            var response = JSON.parse(xhttp.responseText);
-            callback(response.datasets);
-        } else {
-            error();
-        }
-    };
-}
-
 function generateGraph(dataset, input) {
     setLoading(true);
     loadJSON("nlp", "POST", { dataset: dataset, input: input }, function (response) {
@@ -137,7 +122,8 @@ function onDatasetSelected() {
     getAdditionalData(getCurrentDataset());
 }
 
-function loadDatasetSuccess(datasets) {
+function loadDatasetSuccess(response) {
+    var datasets = response.datasets;
     var ul = document.getElementById("dataset-list");
     datasets.forEach(function (dataset) {
         var li = document.createElement("li");
@@ -155,7 +141,7 @@ function loadDatasetSuccess(datasets) {
 }
 
 function loadDockData() {
-    loadDatasets("datasets", "GET", loadDatasetSuccess, function () {
+    loadJSON("datasets", "GET", undefined, loadDatasetSuccess, function () {
         // TODO handle error
         setLoading(false);
     });
