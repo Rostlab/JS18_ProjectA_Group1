@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
 var bookshelf = require('./config/bookshelf');
 var swaggerUi = require('swagger-ui-express');
+
 bookshelf.migrate();
 
 // Controllers
@@ -23,7 +24,6 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(expressValidator());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../client/public')));
-
 
 //Swagger initialization
 var swaggerDocument = require('./docs/api-docs.json');
