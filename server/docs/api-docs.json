@@ -118,7 +118,6 @@
           "public"
         ],
         "summary": "Get examples sentences for specified dataset",
-        "description": "",
         "operationId": "getExamples",
         "consumes": [
           "application/json"
