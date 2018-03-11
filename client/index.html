@@ -27,8 +27,7 @@
             <input type="hidden" value="" name="dataset">
             <i class="mdl-icon-toggle__label material-icons">keyboard_arrow_down</i>
             <label for="dataset" class="mdl-textfield__label">Dataset</label>
-            <ul for="dataset" class="mdl-menu mdl-menu--bottom-left mdl-js-menu" id="dataset-list">
-                <li class="mdl-menu__item" data-val="human_resources__core_dataset" data-selected="true">Employees</li>
+            <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu" id="dataset-list">
             </ul>
         </div>
         <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
@@ -36,12 +35,28 @@
                 <a href="#columns" class="mdl-tabs__tab is-active">Columns</a>
                 <a href="#examples" class="mdl-tabs__tab">Examples</a>
             </div>
-
             <div class="mdl-tabs__panel is-active" id="columns">
-                column description
+                <table class="mdl-data-table mdl-js-data-table">
+                    <thead class="mdl-data-table__cell--non-numeric">
+                    <tr>
+                        <th class="mdl-data-table__cell--non-numeric">Column Name</th>
+                        <th class="mdl-data-table__cell--non-numeric">Type</th>
+                    </tr>
+                    </thead>
+                    <tbody id="column_body" class="mdl-data-table__cell--non-numeric">
+                    </tbody>
+                </table>
             </div>
             <div class="mdl-tabs__panel" id="examples">
-                example commands
+                <table class="mdl-data-table mdl-js-data-table">
+                    <thead class="mdl-data-table__cell--non-numeric">
+                    <tr>
+                        <th class="mdl-data-table__cell--non-numeric">Example sentences</th>
+                    </tr>
+                    </thead>
+                    <tbody id="example_body" class="mdl-data-table__cell--non-numeric">
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
