@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
 var bookshelf = require('./config/bookshelf');
-
+var swaggerUi = require('swagger-ui-express');
 bookshelf.migrate();
 
 // Controllers
@@ -24,6 +24,12 @@ app.use(expressValidator());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../client/public')));
 
+
+//Swagger initialization
+var swaggerDocument = require('./docs/api-docs.json');
+app.use('/API/documentation', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+//Endpoints
 app.get('/API/datasets', publicController.getDatasets);
 app.post('/API/columns', publicController.getColumns);
 app.post('/API/examples', publicController.getExamples);
@@ -31,10 +37,6 @@ app.post('/API/nlp', nlpController.handleInput);
 
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '../client/public', 'index.html'));
-});
-
-app.get('*', function (req, res) {
-    res.redirect('/#' + req.originalUrl);
 });
 
 // Production error handler
