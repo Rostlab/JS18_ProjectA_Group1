@@ -1,14 +1,12 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "Swagger documentation for NLP-drawing-application",
+    "description": "Swagger documentation for NLP-Graph API",
     "version": "1.0.0",
-    "title": "Swagger NLP-Drawing API",
-    "termsOfService": "",
-    "contact": {
-      "email": ""
-    },
+    "title": "NLP-Graph",
     "license": {
+      "name": "GNU GENERAL PUBLIC - Version 3.0",
+      "url": "https://github.com/Rostlab/JS18_ProjectA_Group1/blob/develop/LICENSE"
     }
   },
   "basePath": "/API",
@@ -37,7 +35,6 @@
           "public"
         ],
         "summary": "Get the available columns for a supported dataset",
-        "description": "",
         "operationId": "getColumns",
         "consumes": [
           "application/json"
@@ -265,7 +262,8 @@
       "type": "object",
       "properties": {
         "table_name": {
-          "type": "string"
+          "type": "string",
+          "description": "This is the identifier of each dataset and therefore must be used to reference a dataset in the enpoints."
         },
         "display_name": {
           "type": "string"
