@@ -4,6 +4,14 @@ let natural = require('natural');
 var config = require('../knexfile');
 var knex = require('knex')(config);
 var _ = require('lodash');
+var columnSynonyms = require('../data/column_synonyms');
+
+let static = {
+    column: "Column",
+    operation: "Operation",
+    chartType: "ChartType"
+
+}
 
 function getDatasets() {
     return bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll()
@@ -18,6 +26,24 @@ let functions = {
             [{
                 // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
                 x: data.map((value) => value.attributes[column]),
+                type: 'histogram'
+            }]
+        ))
+    },
+    plotHistogramOfTwoColumns: function (dataset, parameters, callback) {
+        let column1 = parameters[0];
+        let column2 = parameters[1];
+
+        // SELECT <column1, column2> FROM <dataset>
+        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => callback(
+            [{
+                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                x: data.map((value) => value.attributes[column1]),
+                type: 'histogram'
+            },
+            {
+                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                x: data.map((value) => value.attributes[column2]),
                 type: 'histogram'
             }]
         ))
@@ -39,7 +65,7 @@ let functions = {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
-        // SELECT <column> FROM <dataset>
+        // SELECT <column1, column2> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => {
             callback(
                 [{
@@ -91,7 +117,7 @@ function extractOperation(state) {
 
     if (result) {
         // this layer matches for this token
-        state.tokens[state.currentToken] = {type: "Operation", value: currentToken}
+        state.tokens[state.currentToken] = {type: static.operation, value: currentToken}
         // this layer matches for this token
         state.currentToken++;
         state.layer = 0;
@@ -104,6 +130,7 @@ function extractOperation(state) {
 
 function extractColumn(state) {
     knex('human_resources__core_dataset').columnInfo().then(function (columnInfo) {
+
         var currentToken = state.tokens[state.currentToken]
         var result = _.find(columnInfo, function (o, i) {
             return i === currentToken;
@@ -111,15 +138,61 @@ function extractColumn(state) {
 
         if (result) {
             // this layer matches for this token
-            state.tokens[state.currentToken] = {type: "Column", value: currentToken}
+            state.tokens[state.currentToken] = {type: static.column, value: currentToken}
             state.currentToken++;
             state.layer = 0;
             findCommand(state);
         } else {
+            _.forEach(columnSynonyms, function (column) {
+                if(_.includes(column.synomyms, currentToken)){
+                    result = column.columnName;
+                    return false;
+                }
+            });
+
+            if(result){
+                state.tokens[state.currentToken] = {type: static.column, value: result}
+                state.currentToken++;
+                state.layer = 0;
+                findCommand(state);
+            }else{
+                var found = false;
+                _.forEach(columnSynonyms, function (column) {
+                    result = _.filter(column.synomyms, function (o) {
+                        var firstWord = o.replace(/ .*/, '');
+                        return firstWord === currentToken;
+                    });
+                    if(result.length > 0){
+
+                        //look if the second matches
+                        _.forEach(result, function (res) {
+                            var words = res.split(' ');
+                            if (words[1] === state.tokens[state.currentToken + 1]) {
+                                //replace the currentToken
+                                state.tokens[state.currentToken] = {type: static.column, value: column.columnName}
+                                state.tokens.splice(state.currentToken + 1, 1);
+                                state.currentToken++;
+                                state.layer = 0;
+                                findCommand(state);
+                                found = true;
+                            }
+                        });
+
+                    }
+                });
+                if(!found){
+                    nextActionAfterNotMatched(state);
+                }
+                //matchTwoWords(columnSynonyms, state);
+            }
             // this layer does not match
-            nextActionAfterNotMatched(state);
+
         }
     });
+}
+
+function matchTwoWords(wordsToMatch, state){
+
 }
 
 function extractChartType(state) {
@@ -130,7 +203,7 @@ function extractChartType(state) {
 
     if (result) {
         // this layer matches for this token
-        state.tokens[state.currentToken] = {type: "ChartType", value: currentToken}
+        state.tokens[state.currentToken] = {type: static.chartType, value: currentToken}
         state.currentToken++;
         state.layer = 0;
         findCommand(state);
@@ -145,7 +218,7 @@ function extractChartType(state) {
             var words = result.split(' ');
             if (words[1] === state.tokens[state.currentToken + 1]) {
                 //replace the currentToken
-                state.tokens[state.currentToken] = {type: "ChartType", value: result}
+                state.tokens[state.currentToken] = {type: static.chartType, value: result}
                 state.tokens.splice(state.currentToken + 1, 1);
                 state.currentToken++;
                 state.layer = 0;
@@ -166,9 +239,10 @@ function extractConnector(state) {
 }
 
 let searchFunction = [
-    extractColumn,
+    extractOperation,
     extractChartType,
-    extractOperation
+    extractColumn
+
 ];
 
 
@@ -218,54 +292,9 @@ exports.handleInput = function (req, res) {
             tokens: tokenizedInput,
             layer: 0,
             currentToken: 0,
-            callback: state => {
-                let bestMatch = {
-                    function: 'plotPieChartOfColumn',
-                    parameters: []
-                };
-                var numberMatches;
-                var numberColumns;
-                var columnsArray;
-                var bestMatched = {
-                    numberMatches: 0,
-                    function: "",
-                    functionParameter: []
-                };
-                _.forEach(commands, function (command) {
-                    numberMatches = 0;
-                    numberColumns = 0;
-                    columnsArray = [];
-                    _.forEach(state.tokens, function (token) {
-                        if (token.type === "Column") {
-                            numberColumns++;
-                            columnsArray.push(token.value);
-                        } else if(token.type === "ChartType"){
-                            if(token.value === command.parameters.chartType){
-                                numberMatches++;
-                            }
-                        }
-                    });
-                    if(numberColumns === command.parameters.numberColumns){
-                        numberMatches++;
-                    }
-                    if(numberMatches > bestMatched.numberMatches){
-                        bestMatched.numberMatches = numberMatches;
-                        bestMatched.function = command.function;
-                        _.forEach(command.functionParameters, function(param, index){
-                            if(param === "Column"){
-                                bestMatched.functionParameter.push(columnsArray[index]);
-                            }
-                        });
-
-                    }
-                });
-
-
-                functions[bestMatched.function](dataset, bestMatched.functionParameter, data =>
-                    // Send the data back to the client
-                    res.send({data: data})
-                )
-            }
+            callback: callbackFunction,
+            dataset: dataset,
+            callbackParameters: [req, res]
         };
 
         findCommand(initState);
@@ -281,3 +310,49 @@ exports.handleInput = function (req, res) {
 
     })
 };
+
+function callbackFunction(state){
+    var numberMatches;
+    var numberColumns;
+    var columnsArray;
+    var dataset = state.callbackParameters[0].body.dataset;
+    var bestMatched = {
+        numberMatches: 0,
+        function: "",
+        functionParameter: []
+    };
+    _.forEach(commands, function (command) {
+        numberMatches = 0;
+        numberColumns = 0;
+        columnsArray = [];
+        _.forEach(state.tokens, function (token) {
+            if (token.type === static.column) {
+                numberColumns++;
+                columnsArray.push(token.value);
+            } else if(token.type === static.chartType){
+                if(token.value === command.parameters.chartType){
+                    numberMatches++;
+                }
+            }
+        });
+        if(numberColumns === command.parameters.numberColumns){
+            numberMatches++;
+        }
+        if(numberMatches > bestMatched.numberMatches){
+            bestMatched.numberMatches = numberMatches;
+            bestMatched.function = command.function;
+            _.forEach(command.functionParameters, function(param, index){
+                if(param === static.column){
+                    bestMatched.functionParameter.push(columnsArray[index]);
+                }
+            });
+
+        }
+    });
+
+
+    functions[bestMatched.function](dataset, bestMatched.functionParameter, data =>
+        // Send the data back to the client
+        state.callbackParameters[1].send({data: data})
+    )
+}
