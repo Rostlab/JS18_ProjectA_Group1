@@ -2,7 +2,7 @@ language: node_js
 node_js:
   - "8.1"     #Azure web app compability
 notifications:
-  on_success: change
+  on_success: never
   on_failure: always
   slack: js2018sose:Xavb1Q1dBIeFGCjiBOS1nb4c
 cache:

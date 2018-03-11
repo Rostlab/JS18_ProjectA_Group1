@@ -1,4 +1,4 @@
-# JS18_ProjectA_Group1
+# JS18_ProjectA_Group1 [![Build Status](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1.svg?branch=develop)](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1)
 
 ## This file contains the following items:
 ### project description
