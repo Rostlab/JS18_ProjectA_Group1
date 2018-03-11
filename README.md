@@ -116,4 +116,6 @@ $ npm run test
 # automatically build the css while development
 $ npm run watch
 ```
-### Where to find a demo version
+### Links
+- [Public demo](https://js2018-group1.azurewebsites.net)
+- [API documentation](https://js2018-group1.azurewebsites.net/API/documentation)
