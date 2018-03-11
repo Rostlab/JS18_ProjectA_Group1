@@ -1,6 +1,9 @@
-describe('ContactCtrl', function() {
+let request = require('supertest');
+let server = require('../../server');
 
-  it('should be true', function() {
+describe('application', function() {
+
+  it('Load Test', function() {
     expect(true).to.be.ok;
   });
 });

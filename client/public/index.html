@@ -22,11 +22,12 @@
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
     <div class="mdl-layout__drawer" id="drawer">
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
+        <div id="dataset-select"
+             class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
             <input type="text" value="" class="mdl-textfield__input" id="dataset" readonly>
-            <input type="hidden" value="" name="dataset">
+            <input type="hidden" value="" name="dataset" id="dataset-selected">
             <i class="mdl-icon-toggle__label material-icons">keyboard_arrow_down</i>
-            <label for="dataset" class="mdl-textfield__label">Dataset</label>
+            <label class="mdl-textfield__label">Dataset</label>
             <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu" id="dataset-list">
             </ul>
         </div>
