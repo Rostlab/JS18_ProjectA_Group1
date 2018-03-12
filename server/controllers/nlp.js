@@ -138,37 +138,37 @@ function nextAction(matched, state) {
 function extractOperation(state) {
     let possibleOperations = ["plot", "make", "draw", "select"];
     let currentToken = state.tokens[state.currentToken];
-    let tokenMatched = _.includes(possibleOperations, currentToken);
+    let conditionMatched = _.includes(possibleOperations, currentToken);
 
-    if (tokenMatched) {
+    if (conditionMatched) {
         // this layer matches for this token
         state.tokens[state.currentToken] = {type: staticWords.operation, value: currentToken};
     }
-    nextAction(tokenMatched, state);
+    nextAction(conditionMatched, state);
 }
 
 function extractColumn(state) {
     knex('human_resources__core_dataset').columnInfo().then(function (columnInfo) {
         let currentToken = state.tokens[state.currentToken];
-        let matched = false;
-        let tokenMatched  = _.find(columnInfo, function (o, i) {
+        let conditionMatched = false;
+        let tokenMatched = _.find(columnInfo, function (o, i) {
             return i === currentToken;
         });
-        if (tokenMatched ) {
+        if (tokenMatched) {
             // this layer matches for this token
             state.tokens[state.currentToken] = {type: staticWords.column, value: currentToken};
-            matched = true;
+            conditionMatched = true;
         } else {
             //look for synonyms
             _.forEach(columnSynonyms, function (column) {
                 if(_.includes(column.synomyms, currentToken)){
-                    tokenMatched  = column.columnName;
+                    tokenMatched = column.columnName;
                     return false;
                 }
             });
-            if(tokenMatched ){
-                state.tokens[state.currentToken] = {type: staticWords.column, value: tokenMatched };
-                matched = true;
+            if(tokenMatched){
+                state.tokens[state.currentToken] = {type: staticWords.column, value: tokenMatched};
+                conditionMatched = true;
             }else{
                 _.forEach(columnSynonyms, function (column) {
                     let firstTokenMatched  = _.filter(column.synomyms, function (o) {
@@ -183,45 +183,45 @@ function extractColumn(state) {
                                 //replace the currentToken
                                 state.tokens[state.currentToken] = {type: staticWords.column, value: column.columnName};
                                 state.tokens.splice(state.currentToken + 1, 1);
-                                matched = true;
+                                conditionMatched = true;
                             }
                         });
                     }
                 });
             }
         }
-        nextAction(matched, state);
+        nextAction(conditionMatched, state);
     });
 }
 
 function extractChartType(state) {
     let currentToken = state.tokens[state.currentToken];
     let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
-    let matched = false;
-    let tokenMatched  = _.includes(possibleTypes, currentToken);
+    let conditionMatched = false;
+    let tokenMatched = _.includes(possibleTypes, currentToken);
 
-    if (tokenMatched ) {
+    if (tokenMatched) {
         // this layer matches for this token on single word
         state.tokens[state.currentToken] = {type: staticWords.chartType, value: currentToken};
-        matched = true;
+        conditionMatched = true;
     } else {
         //search if the first word of a Type matches
-        tokenMatched  = _.find(possibleTypes, function (o) {
+        tokenMatched = _.find(possibleTypes, function (o) {
             let firstWord = o.replace(/ .*/, '');
             return firstWord === currentToken;
         });
-        if (tokenMatched ) {
+        if (tokenMatched) {
             //look if the second matches
-            let words = tokenMatched .split(' ');
+            let words = tokenMatched.split(' ');
             if (words[1] === state.tokens[state.currentToken + 1]) {
                 //replace the currentToken
-                state.tokens[state.currentToken] = {type: staticWords.chartType, value: tokenMatched };
+                state.tokens[state.currentToken] = {type: staticWords.chartType, value: tokenMatched};
                 state.tokens.splice(state.currentToken + 1, 1);
-                matched = true;
+                conditionMatched = true;
             }
         }
     }
-    nextAction(matched, state);
+    nextAction(conditionMatched, state);
 }
 
 /**
