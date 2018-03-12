@@ -1,0 +1,303 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Swagger documentation for NLP-Graph API",
+    "version": "1.0.0",
+    "title": "NLP-Graph",
+    "license": {
+      "name": "GNU GENERAL PUBLIC - Version 3.0",
+      "url": "https://github.com/Rostlab/JS18_ProjectA_Group1/blob/develop/LICENSE"
+    }
+  },
+  "basePath": "/API",
+  "tags": [
+    {
+      "name": "public",
+      "description": "Get generic data about/from the system"
+    },
+    {
+      "name": "nlp",
+      "description": "Extracts information from input and returns transformed data for the plotly API",
+      "externalDocs": {
+        "description": "See",
+        "url": "https://plot.ly/javascript/"
+      }
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/columns": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Get the available columns for a supported dataset",
+        "operationId": "getColumns",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The datasets table_name of which the columns should be returned",
+            "required": true,
+            "type": "object",
+            "schema": {
+              "example": {
+                "dataset": "human_resources__core_dataset"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "dataset": {
+                  "type": "string"
+                },
+                "columns": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Column"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error on validating the request parameters",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          }
+        }
+      }
+    },
+    "/datasets": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Find supported datasets",
+        "description": "Get all datasets, that are defined on the server.",
+        "operationId": "getDatasets",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "datasets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Dataset"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/examples": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Get examples sentences for specified dataset",
+        "operationId": "getExamples",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The datasets table_name of which the examples should be returned",
+            "required": true,
+            "type": "object",
+            "schema": {
+              "example": {
+                "dataset": "human_resources__core_dataset"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "dataset": {
+                  "type": "string"
+                },
+                "examples": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Example"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error on validating the request parameters",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          }
+        }
+      }
+    },
+    "/nlp": {
+      "post": {
+        "tags": [
+          "nlp"
+        ],
+        "summary": "Extract information from input to draw graph",
+        "description": "Returns a chart type and the data in a format suitable for plotly API to draw a graph",
+        "operationId": "nlp",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "type": "object",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "input": {
+                  "description": "Input sentence that should generate the graph",
+                  "type": "string"
+                },
+                "dataset": {
+                  "description": "The datasets table_name of which the columns should be returned",
+                  "type": "string"
+                }
+              },
+              "example": {
+                "dataset": "human_resources__core_dataset",
+                "input": "Plot histogram of employee’s age."
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "decription": "Complete dataformat for plotly to plot graphs",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error on validating the request parameters",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Column": {
+      "type": "object",
+      "properties": {
+        "column_name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "synonyms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Example": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string"
+        },
+        "dataset": {
+          "type": "string"
+        }
+      }
+    },
+    "Dataset": {
+      "type": "object",
+      "properties": {
+        "table_name": {
+          "type": "string",
+          "description": "This is the identifier of each dataset and therefore must be used to reference a dataset in the enpoints."
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        }
+      }
+    },
+    "ValidationError": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string"
+        },
+        "param": {
+          "description": "The request parameter on which the validation failed",
+          "type": "string"
+        },
+        "msg": {
+          "description": "The validation error message",
+          "type": "string"
+        },
+        "value": {
+          "description": "The request parameter value on which the validation failed",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about nlp-graph",
+    "url": "https://github.com/Rostlab/JS18_ProjectA_Group1"
+  }
+}
