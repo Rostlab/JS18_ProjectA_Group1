@@ -34,7 +34,7 @@ let functions = {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
-        // SELECT <column1, column2> FROM <dataset>
+        // SELECT <column1>, <column2> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => callback(
             [{
                 // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
@@ -65,7 +65,7 @@ let functions = {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
-        // SELECT <column1, column2> FROM <dataset>
+        // SELECT <column1>, <column2>  FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => {
             callback(
                 [{
@@ -108,160 +108,128 @@ let functions = {
     },
 };
 
-
-function extractOperation(state) {
-    let possibleOperations = ["plot", "make", "draw", "select"];
-    var currentToken = state.tokens[state.currentToken];
-
-    var result = _.includes(possibleOperations, currentToken);
-
-    if (result) {
-        // this layer matches for this token
-        state.tokens[state.currentToken] = {type: static.operation, value: currentToken}
-        // this layer matches for this token
-        state.currentToken++;
-        state.layer = 0;
-        findCommand(state);
-    } else {
-        // this layer does not match
-        nextActionAfterNotMatched(state);
-    }
-}
-
-function extractColumn(state) {
-    knex('human_resources__core_dataset').columnInfo().then(function (columnInfo) {
-
-        var currentToken = state.tokens[state.currentToken]
-        var result = _.find(columnInfo, function (o, i) {
-            return i === currentToken;
-        });
-
-        if (result) {
-            // this layer matches for this token
-            state.tokens[state.currentToken] = {type: static.column, value: currentToken}
-            state.currentToken++;
-            state.layer = 0;
-            findCommand(state);
-        } else {
-            _.forEach(columnSynonyms, function (column) {
-                if(_.includes(column.synomyms, currentToken)){
-                    result = column.columnName;
-                    return false;
-                }
-            });
-
-            if(result){
-                state.tokens[state.currentToken] = {type: static.column, value: result}
-                state.currentToken++;
-                state.layer = 0;
-                findCommand(state);
-            }else{
-                var found = false;
-                _.forEach(columnSynonyms, function (column) {
-                    result = _.filter(column.synomyms, function (o) {
-                        var firstWord = o.replace(/ .*/, '');
-                        return firstWord === currentToken;
-                    });
-                    if(result.length > 0){
-
-                        //look if the second matches
-                        _.forEach(result, function (res) {
-                            var words = res.split(' ');
-                            if (words[1] === state.tokens[state.currentToken + 1]) {
-                                //replace the currentToken
-                                state.tokens[state.currentToken] = {type: static.column, value: column.columnName}
-                                state.tokens.splice(state.currentToken + 1, 1);
-                                state.currentToken++;
-                                state.layer = 0;
-                                findCommand(state);
-                                found = true;
-                            }
-                        });
-
-                    }
-                });
-                if(!found){
-                    nextActionAfterNotMatched(state);
-                }
-                //matchTwoWords(columnSynonyms, state);
-            }
-            // this layer does not match
-
-        }
-    });
-}
-
-function matchTwoWords(wordsToMatch, state){
-
-}
-
-function extractChartType(state) {
-    var currentToken = state.tokens[state.currentToken]
-    let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
-
-    var result = _.includes(possibleTypes, currentToken);
-
-    if (result) {
-        // this layer matches for this token
-        state.tokens[state.currentToken] = {type: static.chartType, value: currentToken}
-        state.currentToken++;
-        state.layer = 0;
-        findCommand(state);
-    } else {
-        //search if the first word of a Type matches
-        result = _.find(possibleTypes, function (o) {
-            var firstWord = o.replace(/ .*/, '');
-            return firstWord === currentToken;
-        });
-        if (result) {
-            //look if the second matches
-            var words = result.split(' ');
-            if (words[1] === state.tokens[state.currentToken + 1]) {
-                //replace the currentToken
-                state.tokens[state.currentToken] = {type: static.chartType, value: result}
-                state.tokens.splice(state.currentToken + 1, 1);
-                state.currentToken++;
-                state.layer = 0;
-                findCommand(state);
-            } else {
-                //this layer does not match
-                nextActionAfterNotMatched(state);
-            }
-        } else {
-            // this layer does not match
-            nextActionAfterNotMatched(state);
-        }
-    }
-}
-
-function extractConnector(state) {
-
-}
-
 let searchFunction = [
     extractOperation,
     extractChartType,
     extractColumn
-
 ];
-
 
 function findCommand(state) {
     if (state.currentToken < state.tokens.length && state.layer < searchFunction.length) {
         searchFunction[state.layer](state);
     } else {
-        state.callback(state)
+        state.callback(state);
     }
 }
 
-function nextActionAfterNotMatched(state) {
-    if (state.layer < searchFunction.length - 1) {
-        state.layer++;
+function nextAction(matched, state) {
+    if(matched) {
+        state.currentToken++;
+        state.layer = 0;
     } else {
-        state.layer = 0
-        state.currentToken++
+        if (state.layer < searchFunction.length - 1) {
+            state.layer++;
+        } else {
+            state.layer = 0;
+            state.currentToken++;
+        }
     }
     findCommand(state);
+}
+
+
+
+function extractOperation(state) {
+    let possibleOperations = ["plot", "make", "draw", "select"];
+    let currentToken = state.tokens[state.currentToken];
+    let tokenMatched  = _.includes(possibleOperations, currentToken);
+
+    if (tokenMatched ) {
+        // this layer matches for this token
+        state.tokens[state.currentToken] = {type: static.operation, value: currentToken};
+    }
+    nextAction(tokenMatched, state);
+}
+
+function extractColumn(state) {
+    knex('human_resources__core_dataset').columnInfo().then(function (columnInfo) {
+        let currentToken = state.tokens[state.currentToken];
+        let matched = false;
+        let tokenMatched  = _.find(columnInfo, function (o, i) {
+            return i === currentToken;
+        });
+        if (tokenMatched ) {
+            // this layer matches for this token
+            state.tokens[state.currentToken] = {type: static.column, value: currentToken};
+            matched = true;
+        } else {
+            //look for synonyms
+            _.forEach(columnSynonyms, function (column) {
+                if(_.includes(column.synomyms, currentToken)){
+                    tokenMatched  = column.columnName;
+                    return false;
+                }
+            });
+            if(tokenMatched ){
+                state.tokens[state.currentToken] = {type: static.column, value: tokenMatched }
+                matched = true;
+            }else{
+                _.forEach(columnSynonyms, function (column) {
+                    var firstTokenMatched  = _.filter(column.synomyms, function (o) {
+                        var firstWord = o.replace(/ .*/, '');
+                        return firstWord === currentToken;
+                    });
+                    if(firstTokenMatched .length > 0){
+                        //look if the second matches
+                        _.forEach(firstTokenMatched , function (item) {
+                            var words = item.split(' ');
+                            if (words[1] === state.tokens[state.currentToken + 1]) {
+                                //replace the currentToken
+                                state.tokens[state.currentToken] = {type: static.column, value: column.columnName}
+                                state.tokens.splice(state.currentToken + 1, 1);
+                                matched = true;
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        nextAction(matched, state);
+    });
+}
+
+function extractChartType(state) {
+    var currentToken = state.tokens[state.currentToken]
+    let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
+    let matched = false;
+    var tokenMatched  = _.includes(possibleTypes, currentToken);
+
+    if (tokenMatched ) {
+        // this layer matches for this token on single word
+        state.tokens[state.currentToken] = {type: static.chartType, value: currentToken}
+        matched = true;
+    } else {
+        //search if the first word of a Type matches
+        tokenMatched  = _.find(possibleTypes, function (o) {
+            var firstWord = o.replace(/ .*/, '');
+            return firstWord === currentToken;
+        });
+        if (tokenMatched ) {
+            //look if the second matches
+            var words = tokenMatched .split(' ');
+            if (words[1] === state.tokens[state.currentToken + 1]) {
+                //replace the currentToken
+                state.tokens[state.currentToken] = {type: static.chartType, value: tokenMatched }
+                state.tokens.splice(state.currentToken + 1, 1);
+                matched = true;
+            }
+        }
+    }
+    nextAction(matched, state);
+}
+
+function extractConnector(state) {
+
 }
 
 
@@ -292,30 +260,23 @@ exports.handleInput = function (req, res) {
             tokens: tokenizedInput,
             layer: 0,
             currentToken: 0,
-            callback: callbackFunction,
-            dataset: dataset,
-            callbackParameters: [req, res]
+            callback: state => {
+                callbackFunction(state, res)},
+            dataset: dataset
         };
 
         findCommand(initState);
 
-        // Use NLP to find the right command
-        /*findCommand(dataset, req.body.input, command =>
-            functions[command.function](dataset, command.parameters, data =>
-                // Send the data back to the client
-                res.send({data: data})
-            )
-        );*/
         // Query the needed data and transform them into the dataformat for plotly.js
 
     })
 };
 
-function callbackFunction(state){
+function callbackFunction(state, res){
     var numberMatches;
     var numberColumns;
     var columnsArray;
-    var dataset = state.callbackParameters[0].body.dataset;
+    var dataset = state.dataset;
     var bestMatched = {
         numberMatches: 0,
         function: "",
@@ -353,6 +314,6 @@ function callbackFunction(state){
 
     functions[bestMatched.function](dataset, bestMatched.functionParameter, data =>
         // Send the data back to the client
-        state.callbackParameters[1].send({data: data})
+        res.send({data: data})
     )
 }
