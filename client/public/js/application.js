@@ -137,7 +137,7 @@ function loadDatasetSuccess(response) {
     };
     ul.firstElementChild.dataset.selected = true;
     getmdlSelect.init('#dataset-select');
-    getAdditionalData(ul.firstElementChild.dataset.val);
+    getAdditionalData(getCurrentDataset());
 }
 
 function loadDockData() {
