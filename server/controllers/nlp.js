@@ -120,19 +120,12 @@ function findCommand(state) {
     }
 }
 
-function nextAction(matched, state) {
-    if(matched) {
-        state.currentToken++;
-        state.layer = 0;
+function findCommand(state) {
+    if (state.currentToken < state.tokens.length && state.layer < searchFunction.length) {
+        searchFunction[state.layer](state);
     } else {
-        if (state.layer < searchFunction.length - 1) {
-            state.layer++;
-        } else {
-            state.layer = 0;
-            state.currentToken++;
-        }
+        state.callback(state);
     }
-    findCommand(state);
 }
 
 function extractOperation(state) {
