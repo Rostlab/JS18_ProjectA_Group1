@@ -10,7 +10,6 @@ let static = {
     column: "Column",
     operation: "Operation",
     chartType: "ChartType"
-
 }
 
 function getDatasets() {
@@ -48,7 +47,6 @@ let functions = {
             }]
         ))
     },
-
     plotLineChartOfColumn: function (dataset, parameters, callback) {
         let column = parameters[0];
 
@@ -136,8 +134,6 @@ function nextAction(matched, state) {
     }
     findCommand(state);
 }
-
-
 
 function extractOperation(state) {
     let possibleOperations = ["plot", "make", "draw", "select"];
@@ -228,11 +224,6 @@ function extractChartType(state) {
     nextAction(matched, state);
 }
 
-function extractConnector(state) {
-
-}
-
-
 /**
  * POST /API/nlp
  */
@@ -255,13 +246,12 @@ exports.handleInput = function (req, res) {
         var tokenizer = new natural.WordTokenizer();
         let tokenizedInput = tokenizer.tokenize(lowerCaseInput);
 
-
         let initState = {
             tokens: tokenizedInput,
             layer: 0,
             currentToken: 0,
             callback: state => {
-                callbackFunction(state, res)},
+                findDataTransformationFunction(state, res)},
             dataset: dataset
         };
 
@@ -272,7 +262,7 @@ exports.handleInput = function (req, res) {
     })
 };
 
-function callbackFunction(state, res){
+function findDataTransformationFunction(state, res){
     var numberMatches;
     var numberColumns;
     var columnsArray;
@@ -310,7 +300,6 @@ function callbackFunction(state, res){
 
         }
     });
-
 
     functions[bestMatched.function](dataset, bestMatched.functionParameter, data =>
         // Send the data back to the client
