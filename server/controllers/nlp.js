@@ -1,16 +1,16 @@
 let bookshelf = require('../config/bookshelf');
 let commands = require('../data/commands.json');
 let natural = require('natural');
-var config = require('../knexfile');
-var knex = require('knex')(config);
-var _ = require('lodash');
-var columnSynonyms = require('../data/column_synonyms');
+let config = require('../knexfile');
+let knex = require('knex')(config);
+let _ = require('lodash');
+let columnSynonyms = require('../data/column_synonyms');
 
-let static = {
+let staticWords = {
     column: "Column",
     operation: "Operation",
     chartType: "ChartType"
-}
+};
 
 function getDatasets() {
     return bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll()
@@ -80,18 +80,18 @@ let functions = {
         let column = parameters[0];
         // SELECT <column> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
-            var entries = data.map((value) => value.attributes[column]);
-            var values = [];
-            var labels = [];
+            let entries = data.map((value) => value.attributes[column]);
+            let values = [];
+            let labels = [];
             _.forEach(entries, function (entry) {
                 if(!_.includes(labels, entry)){
                     labels.push(entry);
                     values.push(1);
                 } else {
-                    var index = labels.indexOf(entry);
+                    let index = labels.indexOf(entry);
                     values[index]++;
                 }
-            })
+            });
             callback(
                 [{
                     // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...
@@ -138,11 +138,11 @@ function nextAction(matched, state) {
 function extractOperation(state) {
     let possibleOperations = ["plot", "make", "draw", "select"];
     let currentToken = state.tokens[state.currentToken];
-    let tokenMatched  = _.includes(possibleOperations, currentToken);
+    let tokenMatched = _.includes(possibleOperations, currentToken);
 
-    if (tokenMatched ) {
+    if (tokenMatched) {
         // this layer matches for this token
-        state.tokens[state.currentToken] = {type: static.operation, value: currentToken};
+        state.tokens[state.currentToken] = {type: staticWords.operation, value: currentToken};
     }
     nextAction(tokenMatched, state);
 }
@@ -156,7 +156,7 @@ function extractColumn(state) {
         });
         if (tokenMatched ) {
             // this layer matches for this token
-            state.tokens[state.currentToken] = {type: static.column, value: currentToken};
+            state.tokens[state.currentToken] = {type: staticWords.column, value: currentToken};
             matched = true;
         } else {
             //look for synonyms
@@ -167,21 +167,21 @@ function extractColumn(state) {
                 }
             });
             if(tokenMatched ){
-                state.tokens[state.currentToken] = {type: static.column, value: tokenMatched }
+                state.tokens[state.currentToken] = {type: staticWords.column, value: tokenMatched };
                 matched = true;
             }else{
                 _.forEach(columnSynonyms, function (column) {
-                    var firstTokenMatched  = _.filter(column.synomyms, function (o) {
-                        var firstWord = o.replace(/ .*/, '');
+                    let firstTokenMatched  = _.filter(column.synomyms, function (o) {
+                        let firstWord = o.replace(/ .*/, '');
                         return firstWord === currentToken;
                     });
                     if(firstTokenMatched .length > 0){
                         //look if the second matches
                         _.forEach(firstTokenMatched , function (item) {
-                            var words = item.split(' ');
+                            let words = item.split(' ');
                             if (words[1] === state.tokens[state.currentToken + 1]) {
                                 //replace the currentToken
-                                state.tokens[state.currentToken] = {type: static.column, value: column.columnName}
+                                state.tokens[state.currentToken] = {type: staticWords.column, value: column.columnName};
                                 state.tokens.splice(state.currentToken + 1, 1);
                                 matched = true;
                             }
@@ -195,27 +195,27 @@ function extractColumn(state) {
 }
 
 function extractChartType(state) {
-    var currentToken = state.tokens[state.currentToken]
+    let currentToken = state.tokens[state.currentToken];
     let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
     let matched = false;
-    var tokenMatched  = _.includes(possibleTypes, currentToken);
+    let tokenMatched  = _.includes(possibleTypes, currentToken);
 
     if (tokenMatched ) {
         // this layer matches for this token on single word
-        state.tokens[state.currentToken] = {type: static.chartType, value: currentToken}
+        state.tokens[state.currentToken] = {type: staticWords.chartType, value: currentToken};
         matched = true;
     } else {
         //search if the first word of a Type matches
         tokenMatched  = _.find(possibleTypes, function (o) {
-            var firstWord = o.replace(/ .*/, '');
+            let firstWord = o.replace(/ .*/, '');
             return firstWord === currentToken;
         });
         if (tokenMatched ) {
             //look if the second matches
-            var words = tokenMatched .split(' ');
+            let words = tokenMatched .split(' ');
             if (words[1] === state.tokens[state.currentToken + 1]) {
                 //replace the currentToken
-                state.tokens[state.currentToken] = {type: static.chartType, value: tokenMatched }
+                state.tokens[state.currentToken] = {type: staticWords.chartType, value: tokenMatched };
                 state.tokens.splice(state.currentToken + 1, 1);
                 matched = true;
             }
@@ -243,7 +243,7 @@ exports.handleInput = function (req, res) {
 
         let lowerCaseInput = req.body.input.toLowerCase();
 
-        var tokenizer = new natural.WordTokenizer();
+        let tokenizer = new natural.WordTokenizer();
         let tokenizedInput = tokenizer.tokenize(lowerCaseInput);
 
         let initState = {
@@ -263,11 +263,11 @@ exports.handleInput = function (req, res) {
 };
 
 function findDataTransformationFunction(state, res){
-    var numberMatches;
-    var numberColumns;
-    var columnsArray;
-    var dataset = state.dataset;
-    var bestMatched = {
+    let numberMatches;
+    let numberColumns;
+    let columnsArray;
+    let dataset = state.dataset;
+    let bestMatched = {
         numberMatches: 0,
         function: "",
         functionParameter: []
@@ -277,10 +277,10 @@ function findDataTransformationFunction(state, res){
         numberColumns = 0;
         columnsArray = [];
         _.forEach(state.tokens, function (token) {
-            if (token.type === static.column) {
+            if (token.type === staticWords.column) {
                 numberColumns++;
                 columnsArray.push(token.value);
-            } else if(token.type === static.chartType){
+            } else if(token.type === staticWords.chartType){
                 if(token.value === command.parameters.chartType){
                     numberMatches++;
                 }
@@ -293,7 +293,7 @@ function findDataTransformationFunction(state, res){
             bestMatched.numberMatches = numberMatches;
             bestMatched.function = command.function;
             _.forEach(command.functionParameters, function(param, index){
-                if(param === static.column){
+                if(param === staticWords.column){
                     bestMatched.functionParameter.push(columnsArray[index]);
                 }
             });
