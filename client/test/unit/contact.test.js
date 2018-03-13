@@ -1,6 +1,6 @@
-describe('ContactCtrl', function() {
+describe('application', function() {
 
-  it('should be true', function() {
+  it('Load Test', function() {
     expect(true).to.be.ok;
   });
 });

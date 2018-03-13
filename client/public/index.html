@@ -22,13 +22,13 @@
 <body>
 <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
     <div class="mdl-layout__drawer" id="drawer">
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
+        <div id="dataset-select"
+             class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
             <input type="text" value="" class="mdl-textfield__input" id="dataset" readonly>
-            <input type="hidden" value="" name="dataset">
+            <input type="hidden" value="" name="dataset" id="dataset-selected">
             <i class="mdl-icon-toggle__label material-icons">keyboard_arrow_down</i>
-            <label for="dataset" class="mdl-textfield__label">Dataset</label>
-            <ul for="dataset" class="mdl-menu mdl-menu--bottom-left mdl-js-menu" id="dataset-list">
-                <li class="mdl-menu__item" data-val="human_resources__core_dataset" data-selected="true">Employees</li>
+            <label class="mdl-textfield__label">Dataset</label>
+            <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu" id="dataset-list">
             </ul>
         </div>
         <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
@@ -36,12 +36,28 @@
                 <a href="#columns" class="mdl-tabs__tab is-active">Columns</a>
                 <a href="#examples" class="mdl-tabs__tab">Examples</a>
             </div>
-
             <div class="mdl-tabs__panel is-active" id="columns">
-                column description
+                <table class="mdl-data-table mdl-js-data-table">
+                    <thead class="mdl-data-table__cell--non-numeric">
+                    <tr>
+                        <th class="mdl-data-table__cell--non-numeric">Column Name</th>
+                        <th class="mdl-data-table__cell--non-numeric">Type</th>
+                    </tr>
+                    </thead>
+                    <tbody id="column_body" class="mdl-data-table__cell--non-numeric">
+                    </tbody>
+                </table>
             </div>
             <div class="mdl-tabs__panel" id="examples">
-                example commands
+                <table class="mdl-data-table mdl-js-data-table">
+                    <thead class="mdl-data-table__cell--non-numeric">
+                    <tr>
+                        <th class="mdl-data-table__cell--non-numeric">Example sentences</th>
+                    </tr>
+                    </thead>
+                    <tbody id="example_body" class="mdl-data-table__cell--non-numeric">
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
