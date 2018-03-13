@@ -87,3 +87,19 @@ $header_width: 400px;
 .mdl-tabs {
   margin-top: -20px;
 }
+
+.mdl-data-table {
+  overflow-y: scroll;
+  height: 84vh;
+  display: block;
+  white-space: normal;
+}
+
+td:first-letter {
+  text-transform: capitalize;
+}
+
+thead, tbody {
+  display: table;
+  width: 100%;
+}

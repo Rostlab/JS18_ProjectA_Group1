@@ -1,4 +1,4 @@
-# JS18_ProjectA_Group1
+# JS18_ProjectA_Group1 [![Build Status](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1.svg?branch=develop)](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1)
 
 ## This file contains the following items:
 ### project description
@@ -116,4 +116,6 @@ $ npm run test
 # automatically build the css while development
 $ npm run watch
 ```
-### Where to find a demo version
+### Links
+- [Public demo](https://js2018-group1.azurewebsites.net)
+- [API documentation](https://js2018-group1.azurewebsites.net/API/documentation)
