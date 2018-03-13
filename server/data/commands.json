@@ -1,21 +1,108 @@
 [
   {
-    "hotwords": [
-      "histogram"
-    ],
-    "parameters": [
+    "parameters":
+    {
+      "chartType" : "histogram",
+      "numberColumns": 2
+    },
+    "function": "plotHistogramOfTwoColumns",
+    "functionParameters" : ["Column", "Column"],
+    "tests": [
       {
-        "type": "COLUMN",
-        "TODO operations": "",
-        "TODO column type?": ""
+        "input": "Plot a scatter plot of two columns",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotScatterOfTwoColumns",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
       }
-    ],
-    "function": "get_data_for_histogram",
+    ]
+  },
+
+  {
+    "parameters":
+      {
+        "chartType" : "histogram",
+        "numberColumns": 1
+      },
+    "function": "plotHistogramOfColumn",
+    "functionParameters" : ["Column"],
     "tests": [
       {
         "input": "Plot a histogram of age",
         "dataset": "human_resources__core_dataset",
-        "function": "get_data_for_histogram",
+        "function": "plotHistogramOfColumn",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
+      }
+    ]
+  },
+
+  {
+    "parameters":
+      {
+        "chartType" : "pie chart",
+        "numberColumns": 1
+      },
+    "function": "plotPieChartOfColumn",
+    "functionParameters" : ["Column"],
+    "tests": [
+      {
+        "input": "Plot a histogram of age",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotPieChartOfColumn",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
+      }
+    ]
+  },
+
+  {
+    "parameters":
+    {
+      "chartType" : "line chart",
+      "numberColumns": 1
+    },
+    "function": "plotLineChartOfColumn",
+    "functionParameters" : ["Column"],
+    "tests": [
+      {
+        "input": "Plot a histogram of age",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotLineChartOfColumn",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "parameters":
+    {
+      "chartType" : "scatter plot",
+      "numberColumns": 2
+    },
+    "function": "plotScatterOfTwoColumns",
+    "functionParameters" : ["Column", "Column"],
+    "tests": [
+      {
+        "input": "Plot a scatter plot of two columns",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotScatterOfTwoColumns",
         "parameters": [
           {
             "type": "COLUMN",
@@ -25,4 +112,7 @@
       }
     ]
   }
+
+
+
 ]
