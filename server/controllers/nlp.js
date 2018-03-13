@@ -40,11 +40,11 @@ let functions = {
                 x: data.map((value) => value.attributes[column1]),
                 type: 'histogram'
             },
-            {
-                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                x: data.map((value) => value.attributes[column2]),
-                type: 'histogram'
-            }]
+                {
+                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                    x: data.map((value) => value.attributes[column2]),
+                    type: 'histogram'
+                }]
         ))
     },
     plotLineChartOfColumn: function (dataset, parameters, callback) {
@@ -84,7 +84,7 @@ let functions = {
             let values = [];
             let labels = [];
             _.forEach(entries, function (entry) {
-                if(!_.includes(labels, entry)){
+                if (!_.includes(labels, entry)) {
                     labels.push(entry);
                     values.push(1);
                 } else {
@@ -112,27 +112,22 @@ let searchFunction = [
     extractColumn
 ];
 
+function nextAction(matched, state) {
+    if (matched || state.layer >= searchFunction.length - 1) {
+        state.currentToken++;
+        state.layer = 0;
+    } else {
+        state.layer++;
+    }
+    findCommand(state);
+}
+
 function findCommand(state) {
     if (state.currentToken < state.tokens.length && state.layer < searchFunction.length) {
         searchFunction[state.layer](state);
     } else {
         state.callback(state);
     }
-}
-
-function nextAction(matched, state) {
-    if(matched) {
-        state.currentToken++;
-        state.layer = 0;
-    } else {
-        if (state.layer < searchFunction.length - 1) {
-            state.layer++;
-        } else {
-            state.layer = 0;
-            state.currentToken++;
-        }
-    }
-    findCommand(state);
 }
 
 function extractOperation(state) {
@@ -161,23 +156,23 @@ function extractColumn(state) {
         } else {
             //look for synonyms
             _.forEach(columnSynonyms, function (column) {
-                if(_.includes(column.synomyms, currentToken)){
+                if (_.includes(column.synomyms, currentToken)) {
                     tokenMatched = column.columnName;
                     return false;
                 }
             });
-            if(tokenMatched){
+            if (tokenMatched) {
                 state.tokens[state.currentToken] = {type: staticWords.column, value: tokenMatched};
                 conditionMatched = true;
-            }else{
+            } else {
                 _.forEach(columnSynonyms, function (column) {
-                    let firstTokenMatched  = _.filter(column.synomyms, function (o) {
+                    let firstTokenMatched = _.filter(column.synomyms, function (o) {
                         let firstWord = o.replace(/ .*/, '');
                         return firstWord === currentToken;
                     });
-                    if(firstTokenMatched .length > 0){
+                    if (firstTokenMatched.length > 0) {
                         //look if the second matches
-                        _.forEach(firstTokenMatched , function (item) {
+                        _.forEach(firstTokenMatched, function (item) {
                             let words = item.split(' ');
                             if (words[1] === state.tokens[state.currentToken + 1]) {
                                 //replace the currentToken
@@ -251,7 +246,8 @@ exports.handleInput = function (req, res) {
             layer: 0,
             currentToken: 0,
             callback: state => {
-                findDataTransformationFunction(state, res)},
+                findDataTransformationFunction(state, res)
+            },
             dataset: dataset
         };
 
@@ -262,7 +258,7 @@ exports.handleInput = function (req, res) {
     })
 };
 
-function findDataTransformationFunction(state, res){
+function findDataTransformationFunction(state, res) {
     let numberMatches;
     let numberColumns;
     let columnsArray;
@@ -280,20 +276,20 @@ function findDataTransformationFunction(state, res){
             if (token.type === staticWords.column) {
                 numberColumns++;
                 columnsArray.push(token.value);
-            } else if(token.type === staticWords.chartType){
-                if(token.value === command.parameters.chartType){
+            } else if (token.type === staticWords.chartType) {
+                if (token.value === command.parameters.chartType) {
                     numberMatches++;
                 }
             }
         });
-        if(numberColumns === command.parameters.numberColumns){
+        if (numberColumns === command.parameters.numberColumns) {
             numberMatches++;
         }
-        if(numberMatches > bestMatched.numberMatches){
+        if (numberMatches > bestMatched.numberMatches) {
             bestMatched.numberMatches = numberMatches;
             bestMatched.function = command.function;
-            _.forEach(command.functionParameters, function(param, index){
-                if(param === staticWords.column){
+            _.forEach(command.functionParameters, function (param, index) {
+                if (param === staticWords.column) {
                     bestMatched.functionParameter.push(columnsArray[index]);
                 }
             });
