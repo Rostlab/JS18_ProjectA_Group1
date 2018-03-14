@@ -6,11 +6,14 @@ let knex = require('knex')(config);
 let _ = require('lodash');
 let columnSynonyms = require('../data/column_synonyms');
 
+
 let staticWords = {
     column: "Column",
     operation: "Operation",
     chartType: "ChartType"
 };
+
+let maxDistance = 5;
 
 function getDatasets() {
     return bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll()
@@ -112,18 +115,27 @@ let searchFunction = [
     extractColumn
 ];
 
-function nextAction(matched, state) {
-    if (matched || state.layer >= searchFunction.length - 1) {
+function nextAction(state, lookahead) {
+    if (state.tokenHolders[state.currentToken].distance <= maxDistance) {
+        //matched
+        if (lookahead) {
+            state.tokenHolders.splice(state.currentToken + 1, 1);
+        }
+        state.currentToken++;
+        state.layer = 0;
+    } else if (state.layer >= searchFunction.length - 1) {
+        //no more clasification function to call
         state.currentToken++;
         state.layer = 0;
     } else {
+        //call next classification function
         state.layer++;
     }
     findCommand(state);
 }
 
 function findCommand(state) {
-    if (state.currentToken < state.tokens.length && state.layer < searchFunction.length) {
+    if (state.currentToken < state.tokenHolders.length && state.layer < searchFunction.length) {
         searchFunction[state.layer](state);
     } else {
         state.callback(state);
@@ -132,92 +144,89 @@ function findCommand(state) {
 
 function extractOperation(state) {
     let possibleOperations = ["plot", "make", "draw", "select"];
-    let currentToken = state.tokens[state.currentToken];
-    let conditionMatched = _.includes(possibleOperations, currentToken);
-
-    if (conditionMatched) {
-        // this layer matches for this token
-        state.tokens[state.currentToken] = {type: staticWords.operation, value: currentToken};
-    }
-    nextAction(conditionMatched, state);
+    classifyToken(state, staticWords.operation, possibleOperations, false);
 }
 
 function extractColumn(state) {
     knex('human_resources__core_dataset').columnInfo().then(function (columnInfo) {
-        let currentToken = state.tokens[state.currentToken];
-        let conditionMatched = false;
-        let tokenMatched = _.find(columnInfo, function (o, i) {
-            return i === currentToken;
-        });
-        if (tokenMatched) {
-            // this layer matches for this token
-            state.tokens[state.currentToken] = {type: staticWords.column, value: currentToken};
-            conditionMatched = true;
-        } else {
-            //look for synonyms
-            _.forEach(columnSynonyms, function (column) {
-                if (_.includes(column.synomyms, currentToken)) {
-                    tokenMatched = column.columnName;
-                    return false;
-                }
-            });
-            if (tokenMatched) {
-                state.tokens[state.currentToken] = {type: staticWords.column, value: tokenMatched};
-                conditionMatched = true;
-            } else {
-                _.forEach(columnSynonyms, function (column) {
-                    let firstTokenMatched = _.filter(column.synomyms, function (o) {
-                        let firstWord = o.replace(/ .*/, '');
-                        return firstWord === currentToken;
-                    });
-                    if (firstTokenMatched.length > 0) {
-                        //look if the second matches
-                        _.forEach(firstTokenMatched, function (item) {
-                            let words = item.split(' ');
-                            if (words[1] === state.tokens[state.currentToken + 1]) {
-                                //replace the currentToken
-                                state.tokens[state.currentToken] = {type: staticWords.column, value: column.columnName};
-                                state.tokens.splice(state.currentToken + 1, 1);
-                                conditionMatched = true;
-                            }
-                        });
-                    }
-                });
-            }
-        }
-        nextAction(conditionMatched, state);
+
+        let columnNames = Object.getOwnPropertyNames(columnInfo);
+        let possibleColumns = columnNames.concat(columnSynonyms.map(syn => {
+            return syn.columnName
+        }));
+        classifyToken(state, staticWords.column, possibleColumns, true);
     });
 }
 
 function extractChartType(state) {
-    let currentToken = state.tokens[state.currentToken];
     let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
-    let conditionMatched = false;
-    let tokenMatched = _.includes(possibleTypes, currentToken);
+    classifyToken(state, staticWords.chartType, possibleTypes, true);
+}
 
-    if (tokenMatched) {
-        // this layer matches for this token on single word
-        state.tokens[state.currentToken] = {type: staticWords.chartType, value: currentToken};
-        conditionMatched = true;
-    } else {
-        //search if the first word of a Type matches
-        tokenMatched = _.find(possibleTypes, function (o) {
-            let firstWord = o.replace(/ .*/, '');
-            return firstWord === currentToken;
-        });
-        if (tokenMatched) {
-            //look if the second matches
-            let words = tokenMatched.split(' ');
-            if (words[1] === state.tokens[state.currentToken + 1]) {
-                //replace the currentToken
-                state.tokens[state.currentToken] = {type: staticWords.chartType, value: tokenMatched};
-                state.tokens.splice(state.currentToken + 1, 1);
-                conditionMatched = true;
-            }
+//state: current state
+//type: classification category (chartType, column, operation ...)
+//valueRange: possible values of the category
+//lookahead: false if no lookahead should be performed
+function classifyToken(state, type, valueRange, lookahead) {
+    let tokenHolder = state.tokenHolders[state.currentToken];
+    let performedLookahead = false;
+    let tokenMatched = getMostLikelyMatch(tokenHolder.token, valueRange);
+    if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
+        // this layer matches for this token
+        state.tokenHolders[state.currentToken] = {
+            token: tokenMatched.token,
+            type: type,
+            matchedValue: tokenMatched.type,
+            distance: tokenMatched.distance
+        };
+    } else if (lookahead && state.currentToken <= state.tokenHolders.length - 2) {
+        performedLookahead = true;
+        let nextTokenHolder = state.tokenHolders[state.currentToken + 1];
+        tokenMatched = getMostLikelyMatch(tokenHolder.token + " " + nextTokenHolder.token, valueRange);
+        if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
+            //replace the currentToken
+            state.tokenHolders[state.currentToken] = {
+                token: tokenMatched.token,
+                type: type,
+                matchedValue: tokenMatched.type,
+                distance: tokenMatched.distance
+            };
         }
     }
-    nextAction(conditionMatched, state);
+    nextAction(state, performedLookahead);
 }
+
+function getMostLikelyMatch(token, possibleTypes) {
+    let ratedTypeAffiliation = [];
+    possibleTypes.forEach((type) => {
+        let distance = getLevenshteinDistance(token, type)
+        ratedTypeAffiliation.push({
+            "type": type,
+            "distance": distance,
+            "token": token
+        });
+    })
+
+    let minDistance = Math.min.apply(Math, ratedTypeAffiliation.map(ratedType => {
+        return ratedType.distance;
+    }));
+
+    let mostLikelyMatch = ratedTypeAffiliation.find((ratedType) => ratedType.distance == minDistance);
+    //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
+    return mostLikelyMatch;
+}
+
+
+function getLevenshteinDistance(token, label) {
+    let weight = 5 / (token.length / 2);
+    let distance = natural.LevenshteinDistance(token, label, {
+        insertion_cost: 2 * weight,
+        deletion_cost: 2 * weight,
+        substitution_cost: weight
+    });
+    return distance;
+}
+
 
 /**
  * POST /API/nlp
@@ -241,8 +250,17 @@ exports.handleInput = function (req, res) {
         let tokenizer = new natural.WordTokenizer();
         let tokenizedInput = tokenizer.tokenize(lowerCaseInput);
 
+        let tokenHolders = tokenizedInput.map(token => {
+            return {
+                token: token,
+                type: null,
+                matchedValue: null,
+                distance: maxDistance + 1
+            };
+        })
+
         let initState = {
-            tokens: tokenizedInput,
+            tokenHolders: tokenHolders,
             layer: 0,
             currentToken: 0,
             callback: state => {
@@ -272,12 +290,12 @@ function findDataTransformationFunction(state, res) {
         numberMatches = 0;
         numberColumns = 0;
         columnsArray = [];
-        _.forEach(state.tokens, function (token) {
-            if (token.type === staticWords.column) {
+        _.forEach(state.tokenHolders, function (tokenHolder) {
+            if (tokenHolder.type === staticWords.column) {
                 numberColumns++;
-                columnsArray.push(token.value);
-            } else if (token.type === staticWords.chartType) {
-                if (token.value === command.parameters.chartType) {
+                columnsArray.push(tokenHolder.matchedValue);
+            } else if (tokenHolder.type === staticWords.chartType) {
+                if (tokenHolder.matchedValue === command.parameters.chartType) {
                     numberMatches++;
                 }
             }
