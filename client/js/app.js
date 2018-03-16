@@ -77,7 +77,7 @@ function getCurrentDataset() {
 function onExampleSelected(example) {
     let dataset = getCurrentDataset();
     document.getElementById('command-textfield').value = example.textContent;
-    document.getElementById('query-textfield').setAttribute("class", "is-dirty");
+    document.getElementById('query-textfield').setAttribute("class", "mdl-textfield mdl-js-textfield mdl-textfield--floating-label is-upgraded is-dirty");
     document.getElementById("command-button").click();
 }
 
