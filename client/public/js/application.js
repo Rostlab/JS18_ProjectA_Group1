@@ -18,7 +18,7 @@ function loadJSON(endpoint, type, body, callback, error) {
 function generateGraph(dataset, input) {
     setLoading(true);
     loadJSON("nlp", "POST", { dataset: dataset, input: input }, function (response) {
-        Plotly.newPlot('graph', response.data);
+        Plotly.newPlot('graph', response.data, response.layout);
         setLoading(false);
     }, function () {
         // TODO handle error
