@@ -1,5 +1,7 @@
 let request = require('supertest');
+let assert = require('assert');
 let server = require('../../server');
+let nlp = require('../../controllers/nlp.js')
 
 describe('GET /', function () {
     it('should render ok', function (done) {
@@ -71,3 +73,13 @@ describe('POST /API/nlp', function () {
             .expect(200, done);
     });
 });
+
+describe('teeest', function () {
+    it('should render ok', function () {
+        let fkt = nlp.functions["plotHistogramOfColumn"];
+        fkt("human_resources__core_dataset", ["age"], (data) => {
+            assert.equal(data[0].x[0], 32);
+        });
+    });
+});
+
