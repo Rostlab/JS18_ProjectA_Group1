@@ -141,25 +141,39 @@ function findCommand(state) {
     }
 }
 
+function createLabelSynonymStructure(possibleTypes) {
+    return possibleTypes.map(type => {
+            return {
+                label: type,
+                sysnonyms: []
+            }
+        }
+    );
+}
+
 function extractOperation(state) {
     let possibleOperations = ["plot", "make", "draw", "select"];
-    classifyToken(state, staticWords.operation, possibleOperations, false);
+    let operationsWithSynonyms = createLabelSynonymStructure(possibleOperations);
+    possibleOperations.classifyToken(state, staticWords.operation, operationsWithSynonyms, false);
 }
 
 function extractColumn(state) {
     knex('human_resources__core_dataset').columnInfo().then(function (columnInfo) {
 
         let columnNames = Object.getOwnPropertyNames(columnInfo);
-        let possibleColumns = columnNames.concat(columnSynonyms.map(syn => {
-            return syn.columnName
-        }));
-        classifyToken(state, staticWords.column, possibleColumns, true);
+        let columnsWithSynonyms = createLabelSynonymStructure(columnNames);
+        columnSynonyms.forEach(syn => {
+            let column = columnsWithSynonyms.find(cS => cS.label == syn.column_name);
+            syn.synonyms = column.synonyms;
+        });
+        classifyToken(state, staticWords.column, columnsWithSynonyms, true);
     });
 }
 
 function extractChartType(state) {
     let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
-    classifyToken(state, staticWords.chartType, possibleTypes, true);
+    let chartTypesWithSynonyms = createLabelSynonymStructure(possibleTypes);
+    classifyToken(state, staticWords.chartType, chartTypesWithSynonyms, true);
 }
 
 //state: current state
@@ -198,9 +212,18 @@ function classifyToken(state, type, valueRange, lookahead) {
 function getMostLikelyMatch(token, possibleTypes) {
     let ratedTypeAffiliation = [];
     possibleTypes.forEach((type) => {
-        let distance = getLevenshteinDistance(token, type)
+        let distance;
+        if (type.synonyms && type.synonyms.length != 0) {
+            let labelVariation = [];
+            labelVariation [0] = type.label;
+            labelVariation.concat(type.synonyms);
+            let bestSynonym = getMostLikelyMatch(token, createLabelSynonymStructure(labelVariation));
+            distance = bestSynonym.distance;
+        } else {
+            distance = getLevenshteinDistance(token, type.label);
+        }
         ratedTypeAffiliation.push({
-            "type": type,
+            "type": type.label,
             "distance": distance,
             "token": token
         });
@@ -211,7 +234,7 @@ function getMostLikelyMatch(token, possibleTypes) {
     }));
 
     let mostLikelyMatch = ratedTypeAffiliation.find((ratedType) => ratedType.distance == minDistance);
-    //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
+    console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
     return mostLikelyMatch;
 }
 
