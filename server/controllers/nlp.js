@@ -145,7 +145,7 @@ function createLabelSynonymStructure(possibleTypes) {
     return possibleTypes.map(type => {
             return {
                 label: type,
-                sysnonyms: []
+                synonyms: []
             }
         }
     );
@@ -154,7 +154,7 @@ function createLabelSynonymStructure(possibleTypes) {
 function extractOperation(state) {
     let possibleOperations = ["plot", "make", "draw", "select"];
     let operationsWithSynonyms = createLabelSynonymStructure(possibleOperations);
-    possibleOperations.classifyToken(state, staticWords.operation, operationsWithSynonyms, false);
+    classifyToken(state, staticWords.operation, operationsWithSynonyms, false);
 }
 
 function extractColumn(state) {
@@ -164,7 +164,7 @@ function extractColumn(state) {
         let columnsWithSynonyms = createLabelSynonymStructure(columnNames);
         columnSynonyms.forEach(syn => {
             let column = columnsWithSynonyms.find(cS => cS.label == syn.column_name);
-            syn.synonyms = column.synonyms;
+            column.synonyms = syn.synonyms;
         });
         classifyToken(state, staticWords.column, columnsWithSynonyms, true);
     });
@@ -178,7 +178,7 @@ function extractChartType(state) {
 
 //state: current state
 //type: classification category (chartType, column, operation ...)
-//valueRange: possible values of the category
+//valueRange: possible values of the category in a object with properties "label" and "synonyms"
 //lookahead: false if no lookahead should be performed
 function classifyToken(state, type, valueRange, lookahead) {
     let tokenHolder = state.tokenHolders[state.currentToken];
@@ -214,9 +214,10 @@ function getMostLikelyMatch(token, possibleTypes) {
     possibleTypes.forEach((type) => {
         let distance;
         if (type.synonyms && type.synonyms.length != 0) {
+            //get best fitting synonym
             let labelVariation = [];
             labelVariation [0] = type.label;
-            labelVariation.concat(type.synonyms);
+            labelVariation = labelVariation.concat(type.synonyms);
             let bestSynonym = getMostLikelyMatch(token, createLabelSynonymStructure(labelVariation));
             distance = bestSynonym.distance;
         } else {
@@ -234,7 +235,7 @@ function getMostLikelyMatch(token, possibleTypes) {
     }));
 
     let mostLikelyMatch = ratedTypeAffiliation.find((ratedType) => ratedType.distance == minDistance);
-    console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
+    //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
     return mostLikelyMatch;
 }
 
