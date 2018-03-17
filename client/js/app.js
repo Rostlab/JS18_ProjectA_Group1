@@ -38,29 +38,30 @@ function setLoading(loading) {
     }
 }
 
-function createColumnEntry(column, columns, table) {
+function createColumnEntry(column, table) {
     let tr = document.createElement("tr");
     let td1 = document.createElement("td");
     td1.setAttribute("class", "mdl-data-table__cell--non-numeric");
-    td1.append(column.replace(/_/g, " "));
+    let columnName = column.column_name;
+    if (column.synonyms.length > 0) {
+        columnName += " (" + column.synonyms.join(", ") + ")";
+    }
+    td1.append(columnName.replace(/_/g, " "));
     tr.appendChild(td1);
     let td2 = document.createElement("td");
     td2.setAttribute("class", "mdl-data-table__cell--non-numeric");
-    td2.append(columns[column].type);
+    td2.append(column.type);
     tr.appendChild(td2);
     table.appendChild(tr);
 }
 
 function createColumnList(response) {
     let columns = response.columns;
-    let keys = Object.keys(columns);
     let table = document.getElementById('column_body');
     while (table.firstChild) {
         table.removeChild(table.firstChild);
     }
-    keys.forEach(key => {
-        createColumnEntry(key, columns, table);
-    });
+    columns.forEach(column => createColumnEntry(column, table));
 }
 
 function getColumnData(dataset) {
@@ -75,9 +76,8 @@ function getCurrentDataset() {
 }
 
 function onExampleSelected(example) {
-    let dataset = getCurrentDataset();
     document.getElementById('command-textfield').value = example.textContent;
-    document.getElementById('query-textfield').setAttribute("class", "is-dirty");
+    document.getElementById('query-textfield').setAttribute("class", "mdl-textfield mdl-js-textfield mdl-textfield--floating-label is-upgraded is-dirty");
     document.getElementById("command-button").click();
 }
 
@@ -121,7 +121,7 @@ function onDatasetSelected() {
 }
 
 function loadDatasetSuccess(response) {
-    var datasets = response.datasets
+    let datasets = response.datasets;
     let ul = document.getElementById("dataset-list");
     datasets.forEach(dataset => {
         let li = document.createElement("li");
@@ -147,7 +147,7 @@ function loadDockData() {
 
 window.onload = function () {
     setLoading(true);
-    document.getElementById('menu-button').addEventListener('click', function () {
+    document.getElementById('menu-button').addEventListener('click', () => {
         document.querySelector('.mdl-layout__drawer').classList.toggle('is-expanded');
         setTimeout(function () {
             Plotly.Plots.resize('graph');
@@ -156,13 +156,13 @@ window.onload = function () {
     }, false);
     loadDockData();
     let command_textfield = document.getElementById("command-textfield");
-    command_textfield.addEventListener("keyup", function (event) {
+    command_textfield.addEventListener("keyup", (event) => {
         if (event.key === "Enter") {
             generateGraph(getCurrentDataset(), command_textfield.value)
         }
     });
     let command_button = document.getElementById("command-button");
-    command_button.addEventListener("click", function (event) {
+    command_button.addEventListener("click", () => {
         generateGraph(getCurrentDataset(), command_textfield.value)
     });
     setLoading(false);
