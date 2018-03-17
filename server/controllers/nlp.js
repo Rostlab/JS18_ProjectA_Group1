@@ -282,7 +282,7 @@ exports.handleInput = function (req, res) {
         })
 
         let initState = {
-            tokens: tokenizedInput,
+            tokenHolders: tokenHolders,
             layer: 0,
             currentToken: 0,
             callback: state => {
@@ -312,12 +312,12 @@ function findDataTransformationFunction(state, res) {
         numberMatches = 0;
         numberColumns = 0;
         columnsArray = [];
-        _.forEach(state.tokens, function (token) {
-            if (token.type === staticWords.column) {
+        _.forEach(state.tokenHolders, function (tokenHolder) {
+            if (tokenHolder.type === staticWords.column) {
                 numberColumns++;
-                columnsArray.push(token.value);
-            } else if (token.type === staticWords.chartType) {
-                if (token.value === command.parameters.chartType) {
+                columnsArray.push(tokenHolder.matchedValue);
+            } else if (tokenHolder.type === staticWords.chartType) {
+                if (tokenHolder.matchedValue === command.parameters.chartType) {
                     numberMatches++;
                 }
             }
