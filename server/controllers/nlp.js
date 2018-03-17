@@ -60,7 +60,7 @@ let functions = {
                     type: 'histogram'
                 }],
         {
-            title: 'Histogram of ' + column1 + ' ' + column2,
+            title: 'Histogram of ' + column1 + ' and ' + column2,
             xaxis: {
                 title: column1 + ' ' + column2,
             },
