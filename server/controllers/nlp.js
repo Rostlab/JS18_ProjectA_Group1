@@ -200,8 +200,8 @@ function extractColumn(state) {
         } else {
             //look for synonyms
             _.forEach(columnSynonyms, function (column) {
-                if (_.includes(column.synomyms, currentToken)) {
-                    tokenMatched = column.columnName;
+                if (_.includes(column.synonyms, currentToken)) {
+                    tokenMatched = column.column_name;
                     return false;
                 }
             });
@@ -210,7 +210,7 @@ function extractColumn(state) {
                 conditionMatched = true;
             } else {
                 _.forEach(columnSynonyms, function (column) {
-                    let firstTokenMatched = _.filter(column.synomyms, function (o) {
+                    let firstTokenMatched = _.filter(column.synonyms, function (o) {
                         let firstWord = o.replace(/ .*/, '');
                         return firstWord === currentToken;
                     });
@@ -220,7 +220,7 @@ function extractColumn(state) {
                             let words = item.split(' ');
                             if (words[1] === state.tokens[state.currentToken + 1]) {
                                 //replace the currentToken
-                                state.tokens[state.currentToken] = {type: staticWords.column, value: column.columnName};
+                                state.tokens[state.currentToken] = {type: staticWords.column, value: column.column_name};
                                 state.tokens.splice(state.currentToken + 1, 1);
                                 conditionMatched = true;
                             }

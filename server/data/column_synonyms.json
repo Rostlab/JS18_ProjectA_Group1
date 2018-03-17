@@ -1,22 +1,30 @@
 [
   {
-    "columnName": "maritaldesc",
-  "synomyms": ["marriage state", "marriage description"]
+    "column_name": "maritaldesc",
+    "synonyms": [
+      "marriage state",
+      "marriage description"
+    ]
   },
   {
-    "columnName": "citizendesc",
-    "synomyms": ["citizen description", "citizen"]
+    "column_name": "citizendesc",
+    "synonyms": [
+      "citizen description",
+      "citizen"
+    ]
   },
   {
-    "columnName": "racedesc",
-    "synomyms": ["race", "race description"]
+    "column_name": "racedesc",
+    "synonyms": [
+      "race",
+      "race description"
+    ]
   },
   {
-    "columnName": "hispanic/latino",
-    "synomyms": ["hispanic", "latino"]
+    "column_name": "hispanic/latino",
+    "synonyms": [
+      "hispanic",
+      "latino"
+    ]
   }
-
-
-
-
 ]
