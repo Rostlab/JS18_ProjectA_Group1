@@ -4,51 +4,10 @@ let _ = require('lodash');
 let natural = require('natural');
 let columnSynonyms = require('../data/column_synonyms');
 let plot_functions = require('./plot-functions.js');
-let classification = require('./classification.js');
+const Classifier = require('./classification.js');
 
 function getDatasets() {
     return bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll()
-}
-
-let searchFunction = [
-    classification.extractOperation,
-    classification.extractChartType,
-    classification.extractColumn
-];
-
-/**
- * decides upon the next action,
- * either accept the current classification of a token and move to the next token,
- * or try other layers to find a classification for a token
- * or move to the next token because there are no classification functions left
- * @param state current state of classification of the whole state
- * @param lookahead ture if a lookahead was used in the classification
- */
-function nextAction(state, lookahead) {
-    if (state.tokenHolders[state.currentToken].distance <= classification.maxDistance) {
-        //matched
-        if (lookahead) {
-            state.tokenHolders.splice(state.currentToken + 1, 1);
-        }
-        state.currentToken++;
-        state.layer = 0;
-    } else if (state.layer >= searchFunction.length - 1) {
-        //no more clasification function to call
-        state.currentToken++;
-        state.layer = 0;
-    } else {
-        //call next classification function
-        state.layer++;
-    }
-    findCommand(state);
-}
-
-function findCommand(state) {
-    if (state.currentToken < state.tokenHolders.length && state.layer < searchFunction.length) {
-        searchFunction[state.layer](state, nextAction);
-    } else {
-        state.callback(state);
-    }
 }
 
 /**
@@ -78,7 +37,7 @@ exports.handleInput = function (req, res) {
                 token: token,
                 type: null,
                 matchedValue: null,
-                distance: classification.maxDistance + 1
+                distance: Classifier.maxDistance + 1
             };
         })
 
@@ -86,13 +45,11 @@ exports.handleInput = function (req, res) {
             tokenHolders: tokenHolders,
             layer: 0,
             currentToken: 0,
-            callback: state => {
-                findDataTransformationFunction(state, res)
-            },
             dataset: dataset
         };
 
-        findCommand(initState);
+        let c = new Classifier(initState, state => findDataTransformationFunction(state, res));
+        c.findCommand();
 
         // Query the needed data and transform them into the dataformat for plotly.js
 
@@ -114,10 +71,10 @@ function findDataTransformationFunction(state, res) {
         numberColumns = 0;
         columnsArray = [];
         _.forEach(state.tokenHolders, function (tokenHolder) {
-            if (tokenHolder.type === classification.staticWords.column) {
+            if (tokenHolder.type === Classifier.staticWords.column) {
                 numberColumns++;
                 columnsArray.push(tokenHolder.matchedValue);
-            } else if (tokenHolder.type === classification.staticWords.chartType) {
+            } else if (tokenHolder.type === Classifier.staticWords.chartType) {
                 if (tokenHolder.matchedValue === command.parameters.chartType) {
                     numberMatches++;
                 }
@@ -130,7 +87,7 @@ function findDataTransformationFunction(state, res) {
             bestMatched.numberMatches = numberMatches;
             bestMatched.function = command.function;
             _.forEach(command.functionParameters, function (param, index) {
-                if (param === classification.staticWords.column) {
+                if (param === Classifier.staticWords.column) {
                     bestMatched.functionParameter.push(columnsArray[index]);
                 }
             });
@@ -138,7 +95,7 @@ function findDataTransformationFunction(state, res) {
         }
     });
 
-    plot_functions.functions[bestMatched.function](dataset, bestMatched.functionParameter, (data, layout) =>
+    plot_functions[bestMatched.function](dataset, bestMatched.functionParameter, (data, layout) =>
         // Send the data back to the client
         res.send({data: data, layout: layout})
     )

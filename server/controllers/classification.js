@@ -2,105 +2,152 @@ let natural = require('natural');
 let config = require('../knexfile');
 let knex = require('knex')(config);
 
-let classification = {};
+class Classifier {
 
-classification.maxDistance = 5;
+    constructor(state, callback) {
+        this.state = state;
+        this.callback = callback;
+        this.searchFunction = [
+            this.extractOperation,
+            this.extractChartType,
+            this.extractColumn
+        ]
+    }
 
-classification.staticWords = {
-    column: "Column",
-    operation: "Operation",
-    chartType: "ChartType"
-};
+    extractOperation() {
+        let possibleOperations = ["plot", "make", "draw", "select"];
+        this.classifyToken(Classifier.staticWords.operation, possibleOperations, false);
+    }
 
-classification.extractOperation = function (state, callback) {
-    let possibleOperations = ["plot", "make", "draw", "select"];
-    classifyToken(state, classification.staticWords.operation, possibleOperations, false, callback);
-};
+    extractColumn() {
+        var self = this;
+        knex(this.state.dataset).columnInfo().then(function (columnInfo) {
+            let columnNames = Object.getOwnPropertyNames(columnInfo);
+            self.classifyToken(Classifier.staticWords.column, columnNames, true);
+        });
+    }
 
-classification.extractColumn = function extractColumn(state, callback) {
-    knex(state.dataset).columnInfo().then(function (columnInfo) {
+    extractChartType() {
+        let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
+        this.classifyToken(Classifier.staticWords.chartType, possibleTypes, true);
+    }
 
-        let columnNames = Object.getOwnPropertyNames(columnInfo);
-        classifyToken(state, classification.staticWords.column, columnNames, true, callback);
-    });
-}
+    findCommand() {
+        if (this.state.currentToken < this.state.tokenHolders.length && this.state.layer < this.searchFunction.length) {
+            this.searchFunction[this.state.layer].bind(this)();
+        } else {
+            this.callback(this.state);
+        }
+    }
 
-classification.extractChartType = function extractChartType(state, callback) {
-    let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
-    classifyToken(state, classification.staticWords.chartType, possibleTypes, true, callback);
-}
+    /**
+     * decides upon the next action,
+     * either accept the current classification of a token and move to the next token,
+     * or try other layers to find a classification for a token
+     * or move to the next token because there are no classification functions left
+     * @param state current state of classification of the whole state
+     * @param lookahead ture if a lookahead was used in the classification
+     */
+    nextAction(lookahead) {
+        if (this.state.tokenHolders[this.state.currentToken].distance <= Classifier.maxDistance) {
+            //matched
+            if (lookahead) {
+                this.state.tokenHolders.splice(this.state.currentToken + 1, 1);
+            }
+            this.state.currentToken++;
+            this.state.layer = 0;
+        } else if (this.state.layer >= this.searchFunction.length - 1) {
+            //no more clasification function to call
+            this.state.currentToken++;
+            this.state.layer = 0;
+        }
+        else {
+            //call next classification function
+            this.state.layer++;
+        }
+        this.findCommand(this.state);
+    }
 
-/**
- * classifies a token with levenshtein distance
- * @param state current state
- * @param type classification category (chartType, column, operation ...)
- * @param valueRange possible values of the category
- * @param lookahead false if no lookahead should be performed
- */
-classifyToken = function classifyToken(state, type, valueRange, lookahead, callback) {
-    let tokenHolder = state.tokenHolders[state.currentToken];
-    let performedLookahead = false;
-    let tokenMatched = getMostLikelyMatch(tokenHolder.token, valueRange);
-    if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
-        // this layer matches for this token
-        state.tokenHolders[state.currentToken] = {
-            token: tokenMatched.token,
-            type: type,
-            matchedValue: tokenMatched.type,
-            distance: tokenMatched.distance
-        };
-    } else if (lookahead && state.currentToken <= state.tokenHolders.length - 2) {
-        let nextTokenHolder = state.tokenHolders[state.currentToken + 1];
-        tokenMatched = getMostLikelyMatch(tokenHolder.token + " " + nextTokenHolder.token, valueRange);
+    /**
+     * classifies a token with levenshtein distance
+     * @param state current state
+     * @param type classification category (chartType, column, operation ...)
+     * @param valueRange possible values of the category
+     * @param lookahead false if no lookahead should be performed
+     */
+    classifyToken(type, valueRange, lookahead) {
+        let tokenHolder = this.state.tokenHolders[this.state.currentToken];
+        let performedLookahead = false;
+        let tokenMatched = this.getMostLikelyMatch(tokenHolder.token, valueRange);
         if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
-            performedLookahead = true;
-            //replace the currentToken
-            state.tokenHolders[state.currentToken] = {
+            // this layer matches for this token
+            this.state.tokenHolders[this.state.currentToken] = {
                 token: tokenMatched.token,
                 type: type,
                 matchedValue: tokenMatched.type,
                 distance: tokenMatched.distance
             };
+        } else if (lookahead && this.state.currentToken <= this.state.tokenHolders.length - 2) {
+            let nextTokenHolder = this.state.tokenHolders[this.state.currentToken + 1];
+            tokenMatched = this.getMostLikelyMatch(tokenHolder.token + " " + nextTokenHolder.token, valueRange);
+            if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
+                performedLookahead = true;
+                //replace the currentToken
+                this.state.tokenHolders[this.state.currentToken] = {
+                    token: tokenMatched.token,
+                    type: type,
+                    matchedValue: tokenMatched.type,
+                    distance: tokenMatched.distance
+                };
+            }
         }
+        this.nextAction(performedLookahead);
     }
-    callback(state, performedLookahead);
-}
 
-/**
- * gets the most likely match for a token out of an array of values
- * @param token token to match
- * @param possibleTypes possible values which it could match
- * @returns {*}
- */
-function getMostLikelyMatch(token, possibleTypes) {
-    let ratedTypeAffiliation = [];
-    possibleTypes.forEach((type) => {
-        let distance = getLevenshteinDistance(token, type)
-        ratedTypeAffiliation.push({
-            "type": type,
-            "distance": distance,
-            "token": token
+    /**
+     * gets the most likely match for a token out of an array of values
+     * @param token token to match
+     * @param possibleTypes possible values which it could match
+     * @returns {*}
+     */
+    getMostLikelyMatch(token, possibleTypes) {
+        let ratedTypeAffiliation = [];
+        possibleTypes.forEach((type) => {
+            let distance = this.getLevenshteinDistance(token, type)
+            ratedTypeAffiliation.push({
+                "type": type,
+                "distance": distance,
+                "token": token
+            });
+        })
+
+        let minDistance = Math.min.apply(Math, ratedTypeAffiliation.map(ratedType => {
+            return ratedType.distance;
+        }));
+
+        let mostLikelyMatch = ratedTypeAffiliation.find((ratedType) => ratedType.distance == minDistance);
+        //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
+        return mostLikelyMatch;
+    }
+
+
+    getLevenshteinDistance(token, label) {
+        let weight = 5 / (token.length / 2);
+        let distance = natural.LevenshteinDistance(token, label, {
+            insertion_cost: 2 * weight,
+            deletion_cost: 2 * weight,
+            substitution_cost: weight
         });
-    })
-
-    let minDistance = Math.min.apply(Math, ratedTypeAffiliation.map(ratedType => {
-        return ratedType.distance;
-    }));
-
-    let mostLikelyMatch = ratedTypeAffiliation.find((ratedType) => ratedType.distance == minDistance);
-    //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
-    return mostLikelyMatch;
+        return distance;
+    }
 }
 
+Classifier.staticWords = {
+    column: "Column",
+    operation: "Operation",
+    chartType: "ChartType"
+};
 
-function getLevenshteinDistance(token, label) {
-    let weight = 5 / (token.length / 2);
-    let distance = natural.LevenshteinDistance(token, label, {
-        insertion_cost: 2 * weight,
-        deletion_cost: 2 * weight,
-        substitution_cost: weight
-    });
-    return distance;
-}
+Classifier.maxDistance = 5;
 
-module.exports = classification;
+module.exports = Classifier;
