@@ -23,13 +23,27 @@ let functions = {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => callback(
-            [{
-                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                x: data.map((value) => value.attributes[column]),
-                type: 'histogram'
-            }]
-        ))
+        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
+            //var synonym = _.find(columnSynonyms, {'columnName': column}).synomyms[0];
+            callback(
+                [{
+                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                    x: data.map((value) => value.attributes[column]),
+                    type: 'histogram'
+                }],
+                {
+                    title: 'Histogram of ' + column,
+                    xaxis: {
+                        title: column,
+                    },
+                    yaxis: {
+                        title: "Count",
+                    }
+                }
+            )
+        })
+
+
     },
     plotHistogramOfTwoColumns: function (dataset, parameters, callback) {
         let column1 = parameters[0];
@@ -46,7 +60,16 @@ let functions = {
                     // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
                     x: data.map((value) => value.attributes[column2]),
                     type: 'histogram'
-                }]
+                }],
+        {
+            title: 'Histogram of ' + column1 + ' and ' + column2,
+            xaxis: {
+                title: column1 + ' ' + column2,
+            },
+            yaxis: {
+                title: "Count",
+            }
+        }
         ))
     },
     plotLineChartOfColumn: function (dataset, parameters, callback) {
@@ -58,7 +81,16 @@ let functions = {
                 // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
                 x: data.map((value) => value.attributes[column]),
                 type: 'scatter'
-            }]
+            }],
+            {
+                title: 'Line chart of ' + column,
+                xaxis: {
+                    title: column,
+                },
+                yaxis: {
+                    title: "Count",
+                }
+            }
         ))
     },
     plotScatterOfTwoColumns: function (dataset, parameters, callback) {
@@ -74,7 +106,16 @@ let functions = {
                     y: data.map((value) => value.attributes[column2]),
                     mode: 'markers',
                     type: 'scatter'
-                }]
+                }],
+                {
+                    title: 'Scatter plot of ' + column1 + ' and ' + column2,
+                    xaxis: {
+                        title: column1,
+                    },
+                    yaxis: {
+                        title: column2,
+                    }
+                }
             )
         });
     },
@@ -100,7 +141,10 @@ let functions = {
                     values: values,
                     labels: labels,
                     type: 'pie'
-                }]
+                }],
+                {
+                    title: 'Pie Chart of ' + column,
+                }
             )
         })
 
@@ -314,8 +358,8 @@ function findDataTransformationFunction(state, res) {
         }
     });
 
-    functions[bestMatched.function](dataset, bestMatched.functionParameter, data =>
+    functions[bestMatched.function](dataset, bestMatched.functionParameter, (data, layout) =>
         // Send the data back to the client
-        res.send({data: data})
+        res.send({data: data, layout: layout})
     )
 }
