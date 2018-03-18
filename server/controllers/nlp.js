@@ -1,165 +1,31 @@
 let bookshelf = require('../config/bookshelf');
 let commands = require('../data/commands.json');
-let natural = require('natural');
-let config = require('../knexfile');
-let knex = require('knex')(config);
 let _ = require('lodash');
+let natural = require('natural');
 let columnSynonyms = require('../data/column_synonyms');
-
-let staticWords = {
-    column: "Column",
-    operation: "Operation",
-    chartType: "ChartType"
-};
-
-let maxDistance = 5;
+let plot_functions = require('./plot-functions.js');
+let classification = require('./classification.js');
 
 function getDatasets() {
     return bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll()
 }
 
-let functions = {
-    plotHistogramOfColumn: function (dataset, parameters, callback) {
-        let column = parameters[0];
-
-        // SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
-            //var synonym = _.find(columnSynonyms, {'columnName': column}).synomyms[0];
-            callback(
-                [{
-                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((value) => value.attributes[column]),
-                    type: 'histogram'
-                }],
-                {
-                    title: 'Histogram of ' + column,
-                    xaxis: {
-                        title: column,
-                    },
-                    yaxis: {
-                        title: "Count",
-                    }
-                }
-            )
-        })
-
-
-    },
-    plotHistogramOfTwoColumns: function (dataset, parameters, callback) {
-        let column1 = parameters[0];
-        let column2 = parameters[1];
-
-        // SELECT <column1>, <column2> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => callback(
-            [{
-                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                x: data.map((value) => value.attributes[column1]),
-                type: 'histogram'
-            },
-                {
-                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((value) => value.attributes[column2]),
-                    type: 'histogram'
-                }],
-        {
-            title: 'Histogram of ' + column1 + ' and ' + column2,
-            xaxis: {
-                title: column1 + ' ' + column2,
-            },
-            yaxis: {
-                title: "Count",
-            }
-        }
-        ))
-    },
-    plotLineChartOfColumn: function (dataset, parameters, callback) {
-        let column = parameters[0];
-
-        // SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => callback(
-            [{
-                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                x: data.map((value) => value.attributes[column]),
-                type: 'scatter'
-            }],
-            {
-                title: 'Line chart of ' + column,
-                xaxis: {
-                    title: column,
-                },
-                yaxis: {
-                    title: "Count",
-                }
-            }
-        ))
-    },
-    plotScatterOfTwoColumns: function (dataset, parameters, callback) {
-        let column1 = parameters[0];
-        let column2 = parameters[1];
-
-        // SELECT <column1>, <column2>  FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => {
-            callback(
-                [{
-                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((value) => value.attributes[column1]),
-                    y: data.map((value) => value.attributes[column2]),
-                    mode: 'markers',
-                    type: 'scatter'
-                }],
-                {
-                    title: 'Scatter plot of ' + column1 + ' and ' + column2,
-                    xaxis: {
-                        title: column1,
-                    },
-                    yaxis: {
-                        title: column2,
-                    }
-                }
-            )
-        });
-    },
-    plotPieChartOfColumn: function (dataset, parameters, callback) {
-        let column = parameters[0];
-        // SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
-            let entries = data.map((value) => value.attributes[column]);
-            let values = [];
-            let labels = [];
-            _.forEach(entries, function (entry) {
-                if (!_.includes(labels, entry)) {
-                    labels.push(entry);
-                    values.push(1);
-                } else {
-                    let index = labels.indexOf(entry);
-                    values[index]++;
-                }
-            });
-            callback(
-                [{
-                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...
-                    values: values,
-                    labels: labels,
-                    type: 'pie'
-                }],
-                {
-                    title: 'Pie Chart of ' + column,
-                }
-            )
-        })
-
-
-    },
-};
-
 let searchFunction = [
-    extractOperation,
-    extractChartType,
-    extractColumn
+    classification.extractOperation,
+    classification.extractChartType,
+    classification.extractColumn
 ];
 
+/**
+ * decides upon the next action,
+ * either accept the current classification of a token and move to the next token,
+ * or try other layers to find a classification for a token
+ * or move to the next token because there are no classification functions left
+ * @param state current state of classification of the whole state
+ * @param lookahead ture if a lookahead was used in the classification
+ */
 function nextAction(state, lookahead) {
-    if (state.tokenHolders[state.currentToken].distance <= maxDistance) {
+    if (state.tokenHolders[state.currentToken].distance <= classification.maxDistance) {
         //matched
         if (lookahead) {
             state.tokenHolders.splice(state.currentToken + 1, 1);
@@ -179,97 +45,11 @@ function nextAction(state, lookahead) {
 
 function findCommand(state) {
     if (state.currentToken < state.tokenHolders.length && state.layer < searchFunction.length) {
-        searchFunction[state.layer](state);
+        searchFunction[state.layer](state, nextAction);
     } else {
         state.callback(state);
     }
 }
-
-function extractOperation(state) {
-    let possibleOperations = ["plot", "make", "draw", "select"];
-    classifyToken(state, staticWords.operation, possibleOperations, false);
-}
-
-function extractColumn(state) {
-    knex('human_resources__core_dataset').columnInfo().then(function (columnInfo) {
-
-        let columnNames = Object.getOwnPropertyNames(columnInfo);
-        classifyToken(state, staticWords.column, columnNames, true);
-    });
-}
-
-function extractChartType(state) {
-    let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
-    classifyToken(state, staticWords.chartType, possibleTypes, true);
-}
-
-/**
- * classifies a token with levenshtein distance
- * @param state current state
- * @param type classification category (chartType, column, operation ...)
- * @param valueRange possible values of the category
- * @param lookahead false if no lookahead should be performed
- */
-function classifyToken(state, type, valueRange, lookahead) {
-    let tokenHolder = state.tokenHolders[state.currentToken];
-    let performedLookahead = false;
-    let tokenMatched = getMostLikelyMatch(tokenHolder.token, valueRange);
-    if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
-        // this layer matches for this token
-        state.tokenHolders[state.currentToken] = {
-            token: tokenMatched.token,
-            type: type,
-            matchedValue: tokenMatched.type,
-            distance: tokenMatched.distance
-        };
-    } else if (lookahead && state.currentToken <= state.tokenHolders.length - 2) {
-        performedLookahead = true;
-        let nextTokenHolder = state.tokenHolders[state.currentToken + 1];
-        tokenMatched = getMostLikelyMatch(tokenHolder.token + " " + nextTokenHolder.token, valueRange);
-        if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
-            //replace the currentToken
-            state.tokenHolders[state.currentToken] = {
-                token: tokenMatched.token,
-                type: type,
-                matchedValue: tokenMatched.type,
-                distance: tokenMatched.distance
-            };
-        }
-    }
-    nextAction(state, performedLookahead);
-}
-
-function getMostLikelyMatch(token, possibleTypes) {
-    let ratedTypeAffiliation = [];
-    possibleTypes.forEach((type) => {
-        let distance = getLevenshteinDistance(token, type)
-        ratedTypeAffiliation.push({
-            "type": type,
-            "distance": distance,
-            "token": token
-        });
-    })
-
-    let minDistance = Math.min.apply(Math, ratedTypeAffiliation.map(ratedType => {
-        return ratedType.distance;
-    }));
-
-    let mostLikelyMatch = ratedTypeAffiliation.find((ratedType) => ratedType.distance == minDistance);
-    //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
-    return mostLikelyMatch;
-}
-
-
-function getLevenshteinDistance(token, label) {
-    let weight = 5 / (token.length / 2);
-    let distance = natural.LevenshteinDistance(token, label, {
-        insertion_cost: 2 * weight,
-        deletion_cost: 2 * weight,
-        substitution_cost: weight
-    });
-    return distance;
-}
-
 
 /**
  * POST /API/nlp
@@ -298,7 +78,7 @@ exports.handleInput = function (req, res) {
                 token: token,
                 type: null,
                 matchedValue: null,
-                distance: maxDistance + 1
+                distance: classification.maxDistance + 1
             };
         })
 
@@ -334,10 +114,10 @@ function findDataTransformationFunction(state, res) {
         numberColumns = 0;
         columnsArray = [];
         _.forEach(state.tokenHolders, function (tokenHolder) {
-            if (tokenHolder.type === staticWords.column) {
+            if (tokenHolder.type === classification.staticWords.column) {
                 numberColumns++;
                 columnsArray.push(tokenHolder.matchedValue);
-            } else if (tokenHolder.type === staticWords.chartType) {
+            } else if (tokenHolder.type === classification.staticWords.chartType) {
                 if (tokenHolder.matchedValue === command.parameters.chartType) {
                     numberMatches++;
                 }
@@ -350,7 +130,7 @@ function findDataTransformationFunction(state, res) {
             bestMatched.numberMatches = numberMatches;
             bestMatched.function = command.function;
             _.forEach(command.functionParameters, function (param, index) {
-                if (param === staticWords.column) {
+                if (param === classification.staticWords.column) {
                     bestMatched.functionParameter.push(columnsArray[index]);
                 }
             });
@@ -358,7 +138,7 @@ function findDataTransformationFunction(state, res) {
         }
     });
 
-    functions[bestMatched.function](dataset, bestMatched.functionParameter, (data, layout) =>
+    plot_functions.functions[bestMatched.function](dataset, bestMatched.functionParameter, (data, layout) =>
         // Send the data back to the client
         res.send({data: data, layout: layout})
     )
