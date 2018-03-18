@@ -150,10 +150,7 @@ function extractColumn(state) {
     knex('human_resources__core_dataset').columnInfo().then(function (columnInfo) {
 
         let columnNames = Object.getOwnPropertyNames(columnInfo);
-        let possibleColumns = columnNames.concat(columnSynonyms.map(syn => {
-            return syn.column_name;
-        }));
-        classifyToken(state, staticWords.column, possibleColumns, true);
+        classifyToken(state, staticWords.column, columnNames, true);
     });
 }
 
@@ -162,10 +159,13 @@ function extractChartType(state) {
     classifyToken(state, staticWords.chartType, possibleTypes, true);
 }
 
-//state: current state
-//type: classification category (chartType, column, operation ...)
-//valueRange: possible values of the category
-//lookahead: false if no lookahead should be performed
+/**
+ * classifies a token with levenshtein distance
+ * @param state current state
+ * @param type classification category (chartType, column, operation ...)
+ * @param valueRange possible values of the category
+ * @param lookahead false if no lookahead should be performed
+ */
 function classifyToken(state, type, valueRange, lookahead) {
     let tokenHolder = state.tokenHolders[state.currentToken];
     let performedLookahead = false;
