@@ -74,12 +74,33 @@ describe('POST /API/nlp', function () {
     });
 });
 
-describe('teeest', function () {
-    it('should render ok', function () {
+describe('Test Transformation Functions', function () {
+    it('should render ok', function (done) {
         let fkt = nlp.functions["plotHistogramOfColumn"];
         fkt("human_resources__core_dataset", ["age"], (data) => {
-            assert.equal(data[0].x[0], 32);
+            if(data[0].x[0] === 32){
+                done();
+            }
+        });
+    });
+    it('should render ok', function (done) {
+        let fkt = nlp.functions["plotPieChartOfColumn"];
+        fkt("human_resources__core_dataset", ["racedesc"], (data) => {
+            if(data[0].labels[0] === "Black or African American"){
+                if(data[0].values[0] === 54){
+                    done();
+                }
+            } else {
+                done();
+            }
+        });
+    });
+    it('should render ok', function (done) {
+        let fkt = nlp.functions["plotScatterOfTwoColumns"];
+        fkt("human_resources__core_dataset", ["racedesc", "age"], (data) => {
+            if(data[0].type === "scatter" && data[0].x[0] === "Black or African American" && data[0].y[0] === 32){
+                done();
+            }
         });
     });
 });
-
