@@ -17,7 +17,7 @@ function getDatasets() {
 }
 
 let functions = {
-    plotHistogramOfColumn: function (dataset, parameters, callback) {
+    plotHistogramOfColumn: function (dataset, parameters, callback, error) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -27,9 +27,11 @@ let functions = {
                 x: data.map((value) => value.attributes[column]),
                 type: 'histogram'
             }]
-        ))
+        )).catch(err =>
+            error(err)
+        );
     },
-    plotHistogramOfTwoColumns: function (dataset, parameters, callback) {
+    plotHistogramOfTwoColumns: function (dataset, parameters, callback, error) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -45,9 +47,11 @@ let functions = {
                     x: data.map((value) => value.attributes[column2]),
                     type: 'histogram'
                 }]
-        ))
+        )).catch(err =>
+            error(err)
+        );
     },
-    plotLineChartOfColumn: function (dataset, parameters, callback) {
+    plotLineChartOfColumn: function (dataset, parameters, callback, error) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -57,9 +61,11 @@ let functions = {
                 x: data.map((value) => value.attributes[column]),
                 type: 'scatter'
             }]
-        ))
+        )).catch(err => {
+            res.json({error: err.message});
+        });
     },
-    plotScatterOfTwoColumns: function (dataset, parameters, callback) {
+    plotScatterOfTwoColumns: function (dataset, parameters, callback, error) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -74,9 +80,11 @@ let functions = {
                     type: 'scatter'
                 }]
             )
+        }).catch(err => {
+            error(err)
         });
     },
-    plotPieChartOfColumn: function (dataset, parameters, callback) {
+    plotPieChartOfColumn: function (dataset, parameters, callback, error) {
         let column = parameters[0];
         // SELECT <column> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
@@ -100,9 +108,9 @@ let functions = {
                     type: 'pie'
                 }]
             )
-        })
-
-
+        }).catch(err => {
+            error(err)
+        });
     },
 };
 
@@ -176,7 +184,10 @@ function extractColumn(state) {
                             let words = item.split(' ');
                             if (words[1] === state.tokens[state.currentToken + 1]) {
                                 //replace the currentToken
-                                state.tokens[state.currentToken] = {type: staticWords.column, value: column.column_name};
+                                state.tokens[state.currentToken] = {
+                                    type: staticWords.column,
+                                    value: column.column_name
+                                };
                                 state.tokens.splice(state.currentToken + 1, 1);
                                 conditionMatched = true;
                             }
@@ -259,6 +270,8 @@ exports.handleInput = function (req, res) {
 };
 
 function findDataTransformationFunction(state, res) {
+    let error = false;
+    let errorMessage = ''
     let numberMatches;
     let numberColumns;
     let columnsArray;
@@ -288,17 +301,26 @@ function findDataTransformationFunction(state, res) {
         if (numberMatches > bestMatched.numberMatches) {
             bestMatched.numberMatches = numberMatches;
             bestMatched.function = command.function;
-            _.forEach(command.functionParameters, function (param, index) {
-                if (param === staticWords.column) {
-                    bestMatched.functionParameter.push(columnsArray[index]);
-                }
-            });
-
+            if (columnsArray.length > 0) {
+                _.forEach(command.functionParameters, function (param, index) {
+                    if (param === staticWords.column) {
+                        bestMatched.functionParameter.push(columnsArray[index]);
+                    }
+                });
+            }
         }
     });
-
+    // error handling
+    if (bestMatched.functionParameter.length === 0) {
+        error = true;
+        errorMessage = 'A column must be provided'
+    }
+    if (error) {
+        return res.status(417).send({error: errorMessage});
+    }
     functions[bestMatched.function](dataset, bestMatched.functionParameter, data =>
         // Send the data back to the client
-        res.send({data: data})
+        res.send({data: data}), err =>
+        res.status(500).send({error: err})
     )
 }

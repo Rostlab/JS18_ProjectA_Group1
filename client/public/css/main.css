@@ -77,3 +77,7 @@ td:first-letter {
 thead, tbody {
   display: table;
   width: 100%; }
+
+#error {
+  padding: 30px 0 0 50px;
+  color: red; }
