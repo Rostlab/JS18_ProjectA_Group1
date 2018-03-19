@@ -3,6 +3,7 @@ let identifier_human_resources__core_dataset = 'employee_number';
 let tableName_generic_dataset = 'generic_dataset';
 let identifier_generic_dataset = 'table_name';
 let bookshelf = require('../config/bookshelf');
+let fs = require('fs');
 
 exports.up = function (knex, Promise) {
 
@@ -14,10 +15,14 @@ exports.up = function (knex, Promise) {
         .then(() => parseDataFromCsv(knex, './data/core_dataset.csv'))
         .then(parseResult => insertData(knex, tableName_human_resource__core_dataset, parseResult.data))
         .then(() => insertData(knex, tableName_generic_dataset, [
-            {table_name: tableName_human_resource__core_dataset,
-            display_name: 'Employees',
-            description: 'The core human resource dataset',
-            file: './data/core_dataset.csv'}]))
+            {
+                table_name: tableName_human_resource__core_dataset,
+                display_name: 'Employees',
+                description: 'The core human resource dataset',
+                file: './data/core_dataset.csv'
+            }]))
+        .then(() => knex(tableName_human_resource__core_dataset).columnInfo())
+        .then((columnInfo) => generateValueFiles(knex, columnInfo, tableName_human_resource__core_dataset));
 };
 
 exports.down = function (knex, Promise) {
@@ -25,6 +30,8 @@ exports.down = function (knex, Promise) {
     console.log("Rollback")
 
     return Promise.resolve()
+        .then(() => knex(tableName_human_resource__core_dataset).columnInfo())
+        .then((columnInfo) => deleteValueFiles(knex, columnInfo, tableName_human_resource__core_dataset))
         .then(() => deleteHumanResourcesDataCore(knex))
         .then(() => deleteGenericDataset(knex));
 };
@@ -56,7 +63,7 @@ function createHumanResourcesDataCore(knex) {
         table.string('sex');
         table.string('maritaldesc');
         table.string('citizendesc');
-        table.boolean('hispanic/latino');
+        table.boolean('hispanic_latino');
         table.string('racedesc');
         table.date('date_of_hire');
         table.string('reason_for_term');
@@ -81,7 +88,6 @@ function parseDataFromCsv(knex, fileLocation) {
     console.log("Parse data from " + fileLocation)
 
     let papaparse = require('papaparse');
-    let fs = require('fs');
 
     let data = fs.readFileSync(fileLocation, "utf8");
     let parseResult = papaparse.parse(data, {
@@ -93,6 +99,7 @@ function parseDataFromCsv(knex, fileLocation) {
             let rows = chunk.split(/\r\n|\r|\n/);
             let headings = rows[0].toLowerCase();
             headings = headings.split(' ').join('_');
+            headings = headings.replace('/', '_');
             rows[0] = headings;
             return rows.join("\r\n");
         }
@@ -101,7 +108,32 @@ function parseDataFromCsv(knex, fileLocation) {
     return parseResult;
 }
 
-function insertData(knex, tableName, data){
+function insertData(knex, tableName, data) {
     console.log("Insert Data into " + tableName);
     return knex(tableName).insert(data);
+}
+
+function generateValueFiles(knex, columnInfo, dataset) {
+    let columnNames = Object.getOwnPropertyNames(columnInfo);
+    columnNames.forEach(cInfo => {
+        knex.distinct(cInfo).select().from(dataset).then(list => {
+            var columnValues = JSON.stringify(list);
+            fs.writeFile("./data/columns/" + cInfo + ".json", columnValues, 'utf8', function (err) {
+                if (err) {
+                    return console.log(err);
+                }
+                console.log("The file " + cInfo + " was created");
+            });
+        });
+    })
+}
+
+function deleteValueFiles(knex, columnInfo, dataset) {
+    let columnNames = Object.getOwnPropertyNames(columnInfo);
+    columnNames.forEach(cInfo => {
+        fs.unlink("./data/columns/" + cInfo + ".json", (err) => {
+            if (err) throw err;
+            console.log('path/file.txt was deleted');
+        });
+    })
 }
