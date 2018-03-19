@@ -5,6 +5,8 @@ let identifier_generic_dataset = 'table_name';
 let bookshelf = require('../config/bookshelf');
 let fs = require('fs');
 
+var col_types = ["character varying", "date"];
+
 exports.up = function (knex, Promise) {
 
     console.log("Migrate")
@@ -31,7 +33,7 @@ exports.down = function (knex, Promise) {
 
     return Promise.resolve()
         .then(() => knex(tableName_human_resource__core_dataset).columnInfo())
-        .then((columnInfo) => deleteValueFiles(knex, columnInfo, tableName_human_resource__core_dataset))
+        .then((columnInfo) => deleteValueFiles(knex, columnInfo))
         .then(() => deleteHumanResourcesDataCore(knex))
         .then(() => deleteGenericDataset(knex));
 };
@@ -116,24 +118,30 @@ function insertData(knex, tableName, data) {
 function generateValueFiles(knex, columnInfo, dataset) {
     let columnNames = Object.getOwnPropertyNames(columnInfo);
     columnNames.forEach(cInfo => {
-        knex.distinct(cInfo).select().from(dataset).then(list => {
-            var columnValues = JSON.stringify(list);
-            fs.writeFile("./data/columns/" + cInfo + ".json", columnValues, 'utf8', function (err) {
-                if (err) {
-                    return console.log(err);
-                }
-                console.log("The file " + cInfo + " was created");
+        var colType = columnInfo[cInfo].type;
+        if (col_types.includes(colType)) {
+            knex.distinct(cInfo).select().from(dataset).then(list => {
+                var columnValues = JSON.stringify(list);
+                fs.writeFile("./data/columns/" + cInfo + ".json", columnValues, 'utf8', function (err) {
+                    if (err) {
+                        return console.log(err);
+                    }
+                    console.log("The file " + cInfo + " was created");
+                });
             });
-        });
-    })
+        }
+    }, columnInfo)
 }
 
-function deleteValueFiles(knex, columnInfo, dataset) {
+function deleteValueFiles(knex, columnInfo) {
     let columnNames = Object.getOwnPropertyNames(columnInfo);
     columnNames.forEach(cInfo => {
-        fs.unlink("./data/columns/" + cInfo + ".json", (err) => {
-            if (err) throw err;
-            console.log('path/file.txt was deleted');
-        });
-    })
+        var colType = columnInfo[cInfo].type;
+        if (col_types.includes(colType)) {
+            fs.unlink("./data/columns/" + cInfo + ".json", (err) => {
+                if (err) throw err;
+                console.log("/data/columns/" + cInfo + ".json was deleted");
+            });
+        }
+    }, columnInfo)
 }
