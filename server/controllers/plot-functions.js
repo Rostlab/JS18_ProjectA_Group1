@@ -1,9 +1,9 @@
 let bookshelf = require('../config/bookshelf');
 let _ = require('lodash');
 
-var plot_functions = {
+let plot_functions = {
 
-    plotHistogramOfColumn(dataset, parameters, callback) {
+    plotHistogramOfColumn(dataset, parameters, data, callback) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -28,7 +28,7 @@ var plot_functions = {
         });
     },
 
-    plotHistogramOfTwoColumns(dataset, parameters, callback) {
+    plotHistogramOfTwoColumns(dataset, parameters, data, callback) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -56,7 +56,7 @@ var plot_functions = {
         ));
     },
 
-    plotLineChartOfColumn(dataset, parameters, callback) {
+    plotLineChartOfColumn(dataset, parameters, data, callback) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -78,7 +78,7 @@ var plot_functions = {
         ));
     },
 
-    plotScatterOfTwoColumns(dataset, parameters, callback) {
+    plotScatterOfTwoColumns(dataset, parameters, data, callback) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -105,7 +105,7 @@ var plot_functions = {
         });
     },
 
-    plotPieChartOfColumn(dataset, parameters, callback) {
+    plotPieChartOfColumn(dataset, parameters, data, callback) {
         let column = parameters[0];
         // SELECT <column> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
@@ -133,6 +133,6 @@ var plot_functions = {
             )
         });
     }
-}
+};
 
 module.exports = plot_functions;

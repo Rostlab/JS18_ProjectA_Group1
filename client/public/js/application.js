@@ -1,5 +1,7 @@
 "use strict";
 
+var plotHistory = [];
+
 function loadJSON(endpoint, type, body, callback, error) {
     var xhttp = new XMLHttpRequest();
     xhttp.open(type, window.location.origin + "/API/" + endpoint, true);
@@ -17,8 +19,9 @@ function loadJSON(endpoint, type, body, callback, error) {
 
 function generateGraph(dataset, input) {
     setLoading(true);
-    loadJSON("nlp", "POST", { dataset: dataset, input: input }, function (response) {
-        Plotly.newPlot('graph', response.data, response.layout);
+    loadJSON("nlp", "POST", { dataset: dataset, input: input, history: plotHistory }, function (response) {
+        Plotly.newPlot('graph', response.plotly);
+        plotHistory = response.history;
         setLoading(false);
     }, function () {
         // TODO handle error

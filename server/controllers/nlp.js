@@ -26,6 +26,7 @@ exports.handleInput = function (req, res) {
         }
 
         let dataset = req.body.dataset;
+        let history = req.body.history;
 
         let lowerCaseInput = req.body.input.toLowerCase();
 
@@ -40,31 +41,61 @@ exports.handleInput = function (req, res) {
         }));
 
         let initState = {
+            input: req.body.input,
             tokenHolders: tokenHolders,
             layer: 0,
             currentToken: 0,
             dataset: dataset
         };
 
-        let c = new Classifier(initState, state => findDataTransformationFunction(state, res));
+        let c = new Classifier(initState, state => findDataTransformationFunction(state, matchedFunction => {
+            if(!matchedFunction.isTransformation) {
+                history = []
+            }
+            history.push({
+                function: matchedFunction.function,
+                functionParameters: matchedFunction.functionParameters,
+                input: matchedFunction.input
+            });
+
+            executeFunctions(history, dataset).then(data => {
+                res.send({plotly: data, history: history});
+            })
+        }));
         c.findCommand();
     })
 };
+
+async function executeFunctions(history, dataset) {
+    let currentData = {};
+    for (let currentFunction of history) {
+        await new Promise(resolve => {
+            plot_functions[currentFunction.function](dataset, currentFunction.functionParameters, currentData, (data, layout) => {
+                currentData = {data: data, layout: layout};
+                resolve()
+            })
+        });
+    }
+    return currentData
+}
 
 /**
  * Query the needed data and transform them i nto the dataformat for plotly.js
  * @param state containing the classified input
  * @param res response object
  */
-function findDataTransformationFunction(state, res) {
+function findDataTransformationFunction(state, callback) {
     let numberMatches;
     let numberColumns;
     let columnsArray;
     let dataset = state.dataset;
     let bestMatched = {
+        input: state.input,
         numberMatches: 0,
         function: "",
-        functionParameter: []
+        functionParameters: [],
+        // TODO
+        isTransformation: false
     };
     _.forEach(commands, function (command) {
         numberMatches = 0;
@@ -86,17 +117,15 @@ function findDataTransformationFunction(state, res) {
         if (numberMatches > bestMatched.numberMatches) {
             bestMatched.numberMatches = numberMatches;
             bestMatched.function = command.function;
+            bestMatched.functionParameters = [];
             _.forEach(command.functionParameters, (param, index) => {
                 if (param === Classifier.staticWords.column) {
-                    bestMatched.functionParameter.push(columnsArray[index]);
+                    bestMatched.functionParameters.push(columnsArray[index]);
                 }
             });
 
         }
     });
 
-    plot_functions[bestMatched.function](dataset, bestMatched.functionParameter, (data, layout) =>
-        // Send the data back to the client
-        res.send({data: data, layout: layout})
-    )
+    callback(bestMatched)
 }
