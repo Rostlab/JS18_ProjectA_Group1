@@ -121,9 +121,7 @@ class Classifier {
             });
         })
 
-        let minDistance = Math.min.apply(Math, ratedTypeAffiliation.map(ratedType => {
-            return ratedType.distance;
-        }));
+        let minDistance = Math.min.apply(Math, ratedTypeAffiliation.map(ratedType => ratedType.distance));
 
         let mostLikelyMatch = ratedTypeAffiliation.find((ratedType) => ratedType.distance == minDistance);
         //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)

@@ -3,8 +3,8 @@ let commands = require('../data/commands.json');
 let _ = require('lodash');
 let natural = require('natural');
 let columnSynonyms = require('../data/column_synonyms');
-let plot_functions = require('./plot-functions.js');
-const Classifier = require('./classification.js');
+const plot_functions = require('./plot-functions.js');
+const Classifier = require('./classifier.js');
 
 function getDatasets() {
     return bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll()
@@ -32,14 +32,12 @@ exports.handleInput = function (req, res) {
         let tokenizer = new natural.WordTokenizer();
         let tokenizedInput = tokenizer.tokenize(lowerCaseInput);
 
-        let tokenHolders = tokenizedInput.map(token => {
-            return {
-                token: token,
-                type: null,
-                matchedValue: null,
-                distance: Classifier.maxDistance + 1
-            };
-        })
+        let tokenHolders = tokenizedInput.map(token => ({
+            token: token,
+            type: null,
+            matchedValue: null,
+            distance: Classifier.maxDistance + 1
+        }));
 
         let initState = {
             tokenHolders: tokenHolders,
@@ -51,11 +49,15 @@ exports.handleInput = function (req, res) {
         let c = new Classifier(initState, state => findDataTransformationFunction(state, res));
         c.findCommand();
 
-        // Query the needed data and transform them into the dataformat for plotly.js
 
     })
 };
 
+/**
+ * Query the needed data and transform them i nto the dataformat for plotly.js
+ * @param state containing the classified input
+ * @param res response object
+ */
 function findDataTransformationFunction(state, res) {
     let numberMatches;
     let numberColumns;
@@ -86,7 +88,7 @@ function findDataTransformationFunction(state, res) {
         if (numberMatches > bestMatched.numberMatches) {
             bestMatched.numberMatches = numberMatches;
             bestMatched.function = command.function;
-            _.forEach(command.functionParameters, function (param, index) {
+            _.forEach(command.functionParameters, (param, index) => {
                 if (param === Classifier.staticWords.column) {
                     bestMatched.functionParameter.push(columnsArray[index]);
                 }
