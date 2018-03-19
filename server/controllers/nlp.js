@@ -48,8 +48,6 @@ exports.handleInput = function (req, res) {
 
         let c = new Classifier(initState, state => findDataTransformationFunction(state, res));
         c.findCommand();
-
-
     })
 };
 
