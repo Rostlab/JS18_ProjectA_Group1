@@ -100,5 +100,3 @@ function findDataTransformationFunction(state, res) {
         res.send({data: data, layout: layout})
     )
 }
-
-module.exports.functions = functions;
