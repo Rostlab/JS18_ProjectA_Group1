@@ -27,7 +27,7 @@ function generateGraph(dataset, input) {
     if (error.innerHTML !== '')
         error.innerHTML = '';
     loadJSON("nlp", "POST", {dataset: dataset, input: input}, (response) => {
-        Plotly.newPlot('graph', response.data);
+        Plotly.newPlot('graph', response.data, response.layout);
         setLoading(false)
     }, (errorText) => {
         // TODO handle error
