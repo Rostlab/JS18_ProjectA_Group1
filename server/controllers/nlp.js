@@ -57,6 +57,8 @@ exports.handleInput = function (req, res) {
  * @param res response object
  */
 function findDataTransformationFunction(state, res) {
+    let error = false;
+    let errorMessage = '';
     let numberMatches;
     let numberColumns;
     let columnsArray;
@@ -83,7 +85,7 @@ function findDataTransformationFunction(state, res) {
         if (numberColumns === command.parameters.numberColumns) {
             numberMatches++;
         }
-        if (numberMatches > bestMatched.numberMatches) {
+        if (numberMatches > bestMatched.numberMatches && columnsArray.length > 0) {
             bestMatched.numberMatches = numberMatches;
             bestMatched.function = command.function;
             _.forEach(command.functionParameters, (param, index) => {
@@ -94,9 +96,18 @@ function findDataTransformationFunction(state, res) {
 
         }
     });
+    // error handling
+    if (bestMatched.functionParameter.length === 0) {
+        error = true;
+        errorMessage = 'A column must be provided'
+    }
+    if (error) {
+        return res.status(417).send({error: errorMessage});
+    }
 
     plot_functions[bestMatched.function](dataset, bestMatched.functionParameter, (data, layout) =>
         // Send the data back to the client
-        res.send({data: data, layout: layout})
+        res.send({data: data, layout: layout}), err =>
+        res.status(500).send({error: err})
     )
 }

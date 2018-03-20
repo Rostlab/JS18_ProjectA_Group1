@@ -3,7 +3,7 @@ let _ = require('lodash');
 
 var plot_functions = {
 
-    plotHistogramOfColumn(dataset, parameters, callback) {
+    plotHistogramOfColumn(dataset, parameters, callback, error) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -25,10 +25,12 @@ var plot_functions = {
                     }
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
-    plotHistogramOfTwoColumns(dataset, parameters, callback) {
+    plotHistogramOfTwoColumns(dataset, parameters, callback, error) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -53,10 +55,12 @@ var plot_functions = {
                     title: "Count",
                 }
             }
-        ));
+        )).catch(err =>
+            error(err)
+        );
     },
 
-    plotLineChartOfColumn(dataset, parameters, callback) {
+    plotLineChartOfColumn(dataset, parameters, callback, error) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -75,10 +79,12 @@ var plot_functions = {
                     title: "Count",
                 }
             }
-        ));
+        )).catch(err =>
+            error(err)
+        );
     },
 
-    plotScatterOfTwoColumns(dataset, parameters, callback) {
+    plotScatterOfTwoColumns(dataset, parameters, callback, error) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -102,10 +108,12 @@ var plot_functions = {
                     }
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
-    plotPieChartOfColumn(dataset, parameters, callback) {
+    plotPieChartOfColumn(dataset, parameters, callback, error) {
         let column = parameters[0];
         // SELECT <column> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
@@ -131,7 +139,9 @@ var plot_functions = {
                     title: 'Pie Chart of ' + column,
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     }
 }
 
