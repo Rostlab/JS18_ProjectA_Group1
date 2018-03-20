@@ -1,9 +1,10 @@
 let bookshelf = require('../config/bookshelf');
 let _ = require('lodash');
+let tranformationLib = require('js18_projectb_group3');
 
 let plot_functions = {
 
-    plotHistogramOfColumn(dataset, parameters, data, callback) {
+    plotHistogramOfColumn(dataset, parameters, input, data, callback) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -28,7 +29,7 @@ let plot_functions = {
         });
     },
 
-    plotHistogramOfTwoColumns(dataset, parameters, data, callback) {
+    plotHistogramOfTwoColumns(dataset, parameters, input, data, callback) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -56,7 +57,7 @@ let plot_functions = {
         ));
     },
 
-    plotLineChartOfColumn(dataset, parameters, data, callback) {
+    plotLineChartOfColumn(dataset, parameters, input, data, callback) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -78,7 +79,7 @@ let plot_functions = {
         ));
     },
 
-    plotScatterOfTwoColumns(dataset, parameters, data, callback) {
+    plotScatterOfTwoColumns(dataset, parameters, input, data, callback) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -90,7 +91,8 @@ let plot_functions = {
                     x: data.map((value) => value.attributes[column1]),
                     y: data.map((value) => value.attributes[column2]),
                     mode: 'markers',
-                    type: 'scatter'
+                    type: 'scatter',
+                    name: "age"
                 }],
                 {
                     title: 'Scatter plot of ' + column1 + ' and ' + column2,
@@ -99,13 +101,14 @@ let plot_functions = {
                     },
                     yaxis: {
                         title: column2,
-                    }
+                    },
+                    showlegend: true
                 }
             )
         });
     },
 
-    plotPieChartOfColumn(dataset, parameters, data, callback) {
+    plotPieChartOfColumn(dataset, parameters, input, data, callback) {
         let column = parameters[0];
         // SELECT <column> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
@@ -131,6 +134,14 @@ let plot_functions = {
                     title: 'Pie Chart of ' + column,
                 }
             )
+        });
+    },
+
+    transformData(dataset, parameters, input, data, callback) {
+        tranformationLib.editChart(input, data, (error, result) => {
+            // TODO handle error
+            console.log(error);
+            callback(result.data, result.layout)
         });
     }
 };

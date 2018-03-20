@@ -70,7 +70,7 @@ async function executeFunctions(history, dataset) {
     let currentData = {};
     for (let currentFunction of history) {
         await new Promise(resolve => {
-            plot_functions[currentFunction.function](dataset, currentFunction.functionParameters, currentData, (data, layout) => {
+            plot_functions[currentFunction.function](dataset, currentFunction.functionParameters, currentFunction.input, currentData, (data, layout) => {
                 currentData = {data: data, layout: layout};
                 resolve()
             })
@@ -111,10 +111,8 @@ function findDataTransformationFunction(state, callback) {
                 }
             }
         });
-        if (numberColumns === command.parameters.numberColumns) {
-            numberMatches++;
-        }
-        if (numberMatches > bestMatched.numberMatches) {
+        // TODO find a better metric for not matching
+        if (numberColumns === command.parameters.numberColumns && numberMatches > bestMatched.numberMatches) {
             bestMatched.numberMatches = numberMatches;
             bestMatched.function = command.function;
             bestMatched.functionParameters = [];
@@ -123,9 +121,12 @@ function findDataTransformationFunction(state, callback) {
                     bestMatched.functionParameters.push(columnsArray[index]);
                 }
             });
-
         }
     });
 
+    if(bestMatched.function === "") {
+        bestMatched.function = "transformData";
+        bestMatched.isTransformation = true;
+    }
     callback(bestMatched)
 }
