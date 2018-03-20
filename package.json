@@ -39,7 +39,7 @@
     "knex": "^0.14.4",
     "lodash": "^4.17.5",
     "morgan": "^1.7.0",
-    "natural": "^0.5.6",
+    "natural": "https://github.com/TobiasPr/natural/tarball/master",
     "nodemailer": "^4.6.0",
     "papaparse": "^4.3.7",
     "pg": "^7.4.1",

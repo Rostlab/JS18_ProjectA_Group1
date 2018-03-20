@@ -18,7 +18,7 @@ function loadJSON(endpoint, type, body, callback, error) {
 function generateGraph(dataset, input) {
     setLoading(true);
     loadJSON("nlp", "POST", { dataset: dataset, input: input }, function (response) {
-        Plotly.newPlot('graph', response.data);
+        Plotly.newPlot('graph', response.data, response.layout);
         setLoading(false);
     }, function () {
         // TODO handle error
@@ -40,28 +40,31 @@ function setLoading(loading) {
     }
 }
 
-function createColumnEntry(column, columns, table) {
+function createColumnEntry(column, table) {
     var tr = document.createElement("tr");
     var td1 = document.createElement("td");
     td1.setAttribute("class", "mdl-data-table__cell--non-numeric");
-    td1.append(column.replace(/_/g, " "));
+    var columnName = column.column_name;
+    if (column.synonyms.length > 0) {
+        columnName += " (" + column.synonyms.join(", ") + ")";
+    }
+    td1.append(columnName.replace(/_/g, " "));
     tr.appendChild(td1);
     var td2 = document.createElement("td");
     td2.setAttribute("class", "mdl-data-table__cell--non-numeric");
-    td2.append(columns[column].type);
+    td2.append(column.type);
     tr.appendChild(td2);
     table.appendChild(tr);
 }
 
 function createColumnList(response) {
     var columns = response.columns;
-    var keys = Object.keys(columns);
     var table = document.getElementById('column_body');
     while (table.firstChild) {
         table.removeChild(table.firstChild);
     }
-    keys.forEach(function (key) {
-        createColumnEntry(key, columns, table);
+    columns.forEach(function (column) {
+        return createColumnEntry(column, table);
     });
 }
 
@@ -77,7 +80,6 @@ function getCurrentDataset() {
 }
 
 function onExampleSelected(example) {
-    var dataset = getCurrentDataset();
     document.getElementById('command-textfield').value = example.textContent;
     document.getElementById('query-textfield').setAttribute("class", "mdl-textfield mdl-js-textfield mdl-textfield--floating-label is-upgraded is-dirty");
     document.getElementById("command-button").click();
@@ -163,7 +165,7 @@ window.onload = function () {
         }
     });
     var command_button = document.getElementById("command-button");
-    command_button.addEventListener("click", function (event) {
+    command_button.addEventListener("click", function () {
         generateGraph(getCurrentDataset(), command_textfield.value);
     });
     setLoading(false);

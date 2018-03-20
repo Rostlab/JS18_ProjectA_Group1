@@ -1,35 +1,41 @@
 [
   {
-    "parameters":
-    {
-      "chartType" : "histogram",
+    "parameters": {
+      "chartType": "histogram",
       "numberColumns": 2
     },
     "function": "plotHistogramOfTwoColumns",
-    "functionParameters" : ["Column", "Column"],
+    "functionParameters": [
+      "Column",
+      "Column"
+    ],
     "tests": [
       {
-        "input": "Plot a scatter plot of two columns",
+        "input": "Plot a histogram of age and race",
         "dataset": "human_resources__core_dataset",
         "function": "plotScatterOfTwoColumns",
         "parameters": [
           {
             "type": "COLUMN",
             "value": "age"
+          },
+          {
+            "type": "COLUMN",
+            "value": "race"
           }
         ]
       }
     ]
   },
-
   {
-    "parameters":
-      {
-        "chartType" : "histogram",
-        "numberColumns": 1
-      },
+    "parameters": {
+      "chartType": "histogram",
+      "numberColumns": 1
+    },
     "function": "plotHistogramOfColumn",
-    "functionParameters" : ["Column"],
+    "functionParameters": [
+      "Column"
+    ],
     "tests": [
       {
         "input": "Plot a histogram of age",
@@ -44,41 +50,41 @@
       }
     ]
   },
-
   {
-    "parameters":
-      {
-        "chartType" : "pie chart",
-        "numberColumns": 1
-      },
+    "parameters": {
+      "chartType": "pie chart",
+      "numberColumns": 1
+    },
     "function": "plotPieChartOfColumn",
-    "functionParameters" : ["Column"],
+    "functionParameters": [
+      "Column"
+    ],
     "tests": [
       {
-        "input": "Plot a histogram of age",
+        "input": "Plot a pie chart of race",
         "dataset": "human_resources__core_dataset",
         "function": "plotPieChartOfColumn",
         "parameters": [
           {
             "type": "COLUMN",
-            "value": "age"
+            "value": "race"
           }
         ]
       }
     ]
   },
-
   {
-    "parameters":
-    {
-      "chartType" : "line chart",
+    "parameters": {
+      "chartType": "line chart",
       "numberColumns": 1
     },
     "function": "plotLineChartOfColumn",
-    "functionParameters" : ["Column"],
+    "functionParameters": [
+      "Column"
+    ],
     "tests": [
       {
-        "input": "Plot a histogram of age",
+        "input": "Plot a line chart of age",
         "dataset": "human_resources__core_dataset",
         "function": "plotLineChartOfColumn",
         "parameters": [
@@ -91,28 +97,31 @@
     ]
   },
   {
-    "parameters":
-    {
-      "chartType" : "scatter plot",
+    "parameters": {
+      "chartType": "scatter plot",
       "numberColumns": 2
     },
     "function": "plotScatterOfTwoColumns",
-    "functionParameters" : ["Column", "Column"],
+    "functionParameters": [
+      "Column",
+      "Column"
+    ],
     "tests": [
       {
-        "input": "Plot a scatter plot of two columns",
+        "input": "Plot a scatter plot of age and race",
         "dataset": "human_resources__core_dataset",
         "function": "plotScatterOfTwoColumns",
         "parameters": [
           {
             "type": "COLUMN",
             "value": "age"
+          },
+          {
+            "type": "COLUMN",
+            "value": "race"
           }
         ]
       }
     ]
   }
-
-
-
 ]
