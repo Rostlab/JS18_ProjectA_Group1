@@ -44,6 +44,7 @@
     "papaparse": "^4.3.7",
     "pg": "^7.4.1",
     "swagger-ui-express": "^2.0.15",
+    "underscore": "^1.8.3",
     "vinyl-buffer": "^1.0.0",
     "yargs": "^11.0.0"
   },

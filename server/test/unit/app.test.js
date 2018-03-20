@@ -1,7 +1,7 @@
 let request = require('supertest');
 let assert = require('assert');
 let server = require('../../server');
-let nlp = require('../../controllers/nlp.js')
+const plot_functions = require('../../controllers/plot-functions.js');
 
 describe('GET /', function () {
     it('should render ok', function (done) {
@@ -76,7 +76,7 @@ describe('POST /API/nlp', function () {
 
 describe('Test Transformation Functions', function () {
     it('should render ok', function (done) {
-        let fkt = nlp.functions["plotHistogramOfColumn"];
+        let fkt = plot_functions["plotHistogramOfColumn"];
         fkt("human_resources__core_dataset", ["age"], (data) => {
             if(data[0].x[0] === 32){
                 done();
@@ -84,7 +84,7 @@ describe('Test Transformation Functions', function () {
         });
     });
     it('should render ok', function (done) {
-        let fkt = nlp.functions["plotPieChartOfColumn"];
+        let fkt = plot_functions["plotPieChartOfColumn"];
         fkt("human_resources__core_dataset", ["racedesc"], (data) => {
             if(data[0].labels[0] === "Black or African American"){
                 if(data[0].values[0] === 54){
@@ -96,7 +96,7 @@ describe('Test Transformation Functions', function () {
         });
     });
     it('should render ok', function (done) {
-        let fkt = nlp.functions["plotScatterOfTwoColumns"];
+        let fkt = plot_functions["plotScatterOfTwoColumns"];
         fkt("human_resources__core_dataset", ["racedesc", "age"], (data) => {
             if(data[0].type === "scatter" && data[0].x[0] === "Black or African American" && data[0].y[0] === 32){
                 done();
