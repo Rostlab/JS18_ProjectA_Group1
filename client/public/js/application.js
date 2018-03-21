@@ -1,5 +1,7 @@
 "use strict";
 
+var plotHistory = [];
+
 function loadJSON(endpoint, type, body, callback, error) {
     var xhttp = new XMLHttpRequest();
     xhttp.open(type, window.location.origin + "/API/" + endpoint, true);
@@ -14,8 +16,8 @@ function loadJSON(endpoint, type, body, callback, error) {
                 var errorMessage = JSON.parse(xhttp.responseText).error;
                 error(errorMessage);
             } else if (xhttp.status === 500) {
-                var errorMessage = JSON.parse(xhttp.responseText).error;
-                console.log(errorMessage);
+                var _errorMessage = JSON.parse(xhttp.responseText).error;
+                console.log(_errorMessage);
                 error('Internal server error');
             }
         }
@@ -26,11 +28,11 @@ function generateGraph(dataset, input) {
     setLoading(true);
     var error = document.getElementById('error');
     if (error.innerHTML !== '') error.innerHTML = '';
-    loadJSON("nlp", "POST", { dataset: dataset, input: input }, function (response) {
-        Plotly.newPlot('graph', response.data, response.layout);
+    loadJSON("nlp", "POST", { dataset: dataset, input: input, history: plotHistory }, function (response) {
+        Plotly.newPlot('graph', response.plotly.data, response.plotly.layout);
+        plotHistory = response.history;
         setLoading(false);
     }, function (errorText) {
-        // TODO handle error
         error.innerHTML = errorText;
         setLoading(false);
     });

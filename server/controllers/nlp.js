@@ -25,6 +25,7 @@ exports.handleInput = function (req, res) {
             return res.status(400).send(errors);
         }
 
+        let input = req.body.input;
         let dataset = req.body.dataset;
         let history = req.body.history;
 
@@ -41,41 +42,43 @@ exports.handleInput = function (req, res) {
         }));
 
         let initState = {
-            input: req.body.input,
+            input: input,
             tokenHolders: tokenHolders,
             layer: 0,
             currentToken: 0,
             dataset: dataset
         };
 
-        let c = new Classifier(initState, state => findDataTransformationFunction(state, matchedFunction => {
-            if(!matchedFunction.isTransformation) {
+        let c = new Classifier(initState, state => findDataTransformationFunction(state, matchedCommand => {
+            if (!matchedCommand.command.parameters.isTransformation) {
                 history = []
             }
             history.push({
-                function: matchedFunction.function,
-                functionParameters: matchedFunction.functionParameters,
-                input: matchedFunction.input
+                function: matchedCommand.command.function,
+                functionParameters: matchedCommand.parameters,
+                input: input
             });
 
-            executeFunctions(history, dataset).then(data => {
-                res.send({plotly: data, history: history}), err =>
-                    res.status(500).send({error: err})
-            })
-        }));
+            executeFunctions(history, dataset, err => res.status(500).send({
+                error: err,
+                history: history.splice(-1, 1)
+            })).then(
+                data => res.send({plotly: data, history: history})
+            )
+        }, errorMessage => res.status(417).send({error: errorMessage})));
         c.findCommand();
     })
 };
 
-async function executeFunctions(history, dataset) {
+async function executeFunctions(history, dataset, errorCallback) {
     let currentData = {};
     for (let currentFunction of history) {
-        await new Promise(resolve, reject => {
+        await new Promise(resolve => {
             plot_functions[currentFunction.function](dataset, currentFunction.functionParameters, currentFunction.input, currentData, (data, layout) => {
                 currentData = {data: data, layout: layout};
                 resolve()
-            }, reject(error))
-        }).catch(error);
+            }, errorCallback)
+        })
     }
     return currentData
 }
@@ -83,68 +86,78 @@ async function executeFunctions(history, dataset) {
 /**
  * Query the needed data and transform them i nto the dataformat for plotly.js
  * @param state containing the classified input
- * @param res response object
+ * @param callback: a function that takes the found command and the connected parameters as a object
+ * @param errorCallback: a function that is only called then a error occurred. It takes the error message as a parameter.
  */
-function findDataTransformationFunction(state, callback) {
-    let error = false;
-    let errorMessage = '';
-    let chartTypeMatch;
-    let numberMatches;
-    let numberColumns;
-    let columnsArray;
-    let dataset = state.dataset;
-    let bestMatched = {
-        input: state.input,
-        numberMatches: 0,
-        function: "",
-        functionParameters: [],
-        // TODO
-        isTransformation: false
-    };
-    _.forEach(commands, function (command) {
-        numberMatches = 0;
-        numberColumns = 0;
-        columnsArray = [];
-        chartTypeMatch = false;
-        _.forEach(state.tokenHolders, function (tokenHolder) {
-            if (tokenHolder.type === Classifier.staticWords.column) {
-                numberColumns++;
-                columnsArray.push(tokenHolder.matchedValue);
-            } else if (tokenHolder.type === Classifier.staticWords.chartType) {
-                if (tokenHolder.matchedValue === command.parameters.chartType) {
-                    numberMatches++;
-                    chartTypeMatch = true;
-                }
-            }
-        });
-        // TODO find a better metric for not matching
-        if (numberColumns === command.parameters.numberColumns && numberMatches > bestMatched.numberMatches) {
-            bestMatched.numberMatches = numberMatches;
-            if (chartTypeMatch)bestMatched.function = command.function;if (columnsArray.length > 0) {
-            bestMatched.functionParameters = [];_.forEach(command.functionParameters, (param, index) => {
-                if (param === Classifier.staticWords.column) {
-                    bestMatched.functionParameters.push(columnsArray[index]);
-                }
-            });
-}
+function findDataTransformationFunction(state, callback, errorCallback) {
+    let operation = null;
+    let chartType = null;
+    let columnsArray = [];
+
+    state.tokenHolders.forEach(tokenHolder => {
+        if (tokenHolder.type === Classifier.staticWords.operation) {
+            operation = tokenHolder.matchedValue
+        } else if (tokenHolder.type === Classifier.staticWords.chartType) {
+            chartType = tokenHolder.matchedValue
+        } else if (tokenHolder.type === Classifier.staticWords.column) {
+            columnsArray.push(tokenHolder.matchedValue);
         }
     });
+
+    let error = null;
+    let bestMatchedCommand = null;
+    commands.forEach(command => {
+        if (!command.parameters.isTransformation) {
+            let possiblyMatches = true;
+
+            // if there is a operation it must match
+            if (operation != null) {
+                possiblyMatches = Classifier.staticWords.plotOperations.includes(operation)
+            }
+
+            // check the chart type
+            if (possiblyMatches) {
+                if (chartType != null) {
+                    possiblyMatches = command.parameters.chartType === chartType
+                } else {
+                    possiblyMatches = false;
+                    error = true
+                }
+            }
+
+            // check number of columns
+            if (possiblyMatches) {
+                possiblyMatches = columnsArray.length >= command.parameters.numberColumns;
+            }
+
+            // check if it is a better match than the current one
+            if (possiblyMatches && bestMatchedCommand != null && !bestMatchedCommand.parameters.isTransformation) {
+                possiblyMatches = command.parameters.numberColumn < bestMatchedCommand.parameters.numberColumns
+            }
+
+            // save command
+            if (possiblyMatches) {
+                bestMatchedCommand = command
+            }
+        } else {
+            if (bestMatchedCommand == null) {
+                bestMatchedCommand = command
+            }
+        }
+    });
+
     // error handling
-    if (bestMatched.functionParameter.length === 0) {
-        error = true;
+    let errorMessage = "";
+    if (error = true) {
         errorMessage = 'A column must be provided.'
     }
-    if (bestMatched.function === "") {
+    if (bestMatchedCommand == null) {
         error = true;
         errorMessage = 'No supported Chart-Type found.'
     }
     if (error) {
-        return res.status(417).send({error: errorMessage});
+        errorCallback(errorMessage)
+    } else {
+        callback({command: bestMatchedCommand, parameters: columnsArray})
     }
-
-    if(bestMatched.function === "") {
-        bestMatched.function = "transformData";
-        bestMatched.isTransformation = true;
-    }
-    callback(bestMatched)
 }

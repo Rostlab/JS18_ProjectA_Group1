@@ -11,11 +11,10 @@ function loadJSON(endpoint, type, body, callback, error) {
                 let response = JSON.parse(xhttp.responseText);
                 callback(response)
             } else if (xhttp.status === 417) {
-                var errorMessage = JSON.parse(xhttp.responseText).error;
+                let errorMessage = JSON.parse(xhttp.responseText).error;
                 error(errorMessage);
-            }
-            else if (xhttp.status === 500) {
-                var errorMessage = JSON.parse(xhttp.responseText).error;
+            } else if (xhttp.status === 500) {
+                let errorMessage = JSON.parse(xhttp.responseText).error;
                 console.log(errorMessage);
                 error('Internal server error');
             }
