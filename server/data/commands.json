@@ -123,5 +123,14 @@
         ]
       }
     ]
+  },
+  {
+    "parameters": {
+      "isTransformation": true,
+      "numberColumns": 0
+    },
+    "function": "transformData",
+    "functionParameters": [],
+    "tests": []
   }
 ]

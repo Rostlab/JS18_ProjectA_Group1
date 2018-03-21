@@ -1,3 +1,5 @@
+let plotHistory = [];
+
 function loadJSON(endpoint, type, body, callback, error) {
     let xhttp = new XMLHttpRequest();
     xhttp.open(type, window.location.origin + "/API/" + endpoint, true);
@@ -9,11 +11,10 @@ function loadJSON(endpoint, type, body, callback, error) {
                 let response = JSON.parse(xhttp.responseText);
                 callback(response)
             } else if (xhttp.status === 417) {
-                var errorMessage = JSON.parse(xhttp.responseText).error;
+                let errorMessage = JSON.parse(xhttp.responseText).error;
                 error(errorMessage);
-            }
-            else if (xhttp.status === 500) {
-                var errorMessage = JSON.parse(xhttp.responseText).error;
+            } else if (xhttp.status === 500) {
+                let errorMessage = JSON.parse(xhttp.responseText).error;
                 console.log(errorMessage);
                 error('Internal server error');
             }
@@ -26,11 +27,11 @@ function generateGraph(dataset, input) {
     let error = document.getElementById('error');
     if (error.innerHTML !== '')
         error.innerHTML = '';
-    loadJSON("nlp", "POST", {dataset: dataset, input: input}, (response) => {
-        Plotly.newPlot('graph', response.data, response.layout);
+    loadJSON("nlp", "POST", {dataset: dataset, input: input, history: plotHistory}, (response) => {
+        Plotly.newPlot('graph', response.plotly.data, response.plotly.layout);
+        plotHistory = response.history;
         setLoading(false)
     }, (errorText) => {
-        // TODO handle error
         error.innerHTML = errorText;
         setLoading(false);
     });
