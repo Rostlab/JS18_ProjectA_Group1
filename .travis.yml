@@ -25,7 +25,7 @@ env:
     - DB_NAME=group1
 deploy:
   provider: azure_web_apps
-  on: bugfix/72/azure-deployment
+  on: develop
   verbose: true
 
 #karma
