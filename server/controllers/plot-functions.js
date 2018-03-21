@@ -1,9 +1,10 @@
 let bookshelf = require('../config/bookshelf');
 let _ = require('lodash');
+let tranformationLib = require('js18_projectb_group3');
 
-var plot_functions = {
+let plot_functions = {
 
-    plotHistogramOfColumn(dataset, parameters, callback) {
+    plotHistogramOfColumn(dataset, parameters, input, data, callback, error) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -25,10 +26,12 @@ var plot_functions = {
                     }
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
-    plotHistogramOfTwoColumns(dataset, parameters, callback) {
+    plotHistogramOfTwoColumns(dataset, parameters, input, data, callback, error) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -53,10 +56,12 @@ var plot_functions = {
                     title: "Count",
                 }
             }
-        ));
+        )).catch(err =>
+            error(err)
+        );
     },
 
-    plotLineChartOfColumn(dataset, parameters, callback) {
+    plotLineChartOfColumn(dataset, parameters, input, data, callback, error) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -75,10 +80,12 @@ var plot_functions = {
                     title: "Count",
                 }
             }
-        ));
+        )).catch(err =>
+            error(err)
+        );
     },
 
-    plotScatterOfTwoColumns(dataset, parameters, callback) {
+    plotScatterOfTwoColumns(dataset, parameters, input, data, callback, error) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -90,7 +97,8 @@ var plot_functions = {
                     x: data.map((value) => value.attributes[column1]),
                     y: data.map((value) => value.attributes[column2]),
                     mode: 'markers',
-                    type: 'scatter'
+                    type: 'scatter',
+                    name: "age"
                 }],
                 {
                     title: 'Scatter plot of ' + column1 + ' and ' + column2,
@@ -99,13 +107,16 @@ var plot_functions = {
                     },
                     yaxis: {
                         title: column2,
-                    }
+                    },
+                    showlegend: true
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
-    plotPieChartOfColumn(dataset, parameters, callback) {
+    plotPieChartOfColumn(dataset, parameters, input, data, callback, error) {
         let column = parameters[0];
         // SELECT <column> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
@@ -131,8 +142,22 @@ var plot_functions = {
                     title: 'Pie Chart of ' + column,
                 }
             )
+        }).catch(err =>
+            error(err)
+        );
+    },
+
+    transformData(dataset, parameters, input, data, callback, error) {
+        tranformationLib.editChart(input, data, (errorData, result) => {
+            // TODO handle error
+            console.log(error);
+            if(errorData != null) {
+                error(errorData)
+            } else {
+                callback(result.data, result.layout)
+            }
         });
     }
-}
+};
 
 module.exports = plot_functions;

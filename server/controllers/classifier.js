@@ -1,6 +1,7 @@
 let natural = require('natural');
 let config = require('../knexfile');
 let knex = require('knex')(config);
+let fs = require('fs');
 
 class Classifier {
 
@@ -10,25 +11,43 @@ class Classifier {
         this.searchFunction = [
             this.extractOperation,
             this.extractChartType,
-            this.extractColumn
+            this.extractColumn,
+            this.extractColumnValue
         ]
     }
 
     extractOperation() {
-        let possibleOperations = ["plot", "make", "draw", "select"];
+        let possibleOperations = Classifier.staticWords.plotOperations.concat(Classifier.staticWords.transformOperations);
         this.classifyToken(Classifier.staticWords.operation, possibleOperations, false);
     }
 
     extractColumn() {
-        var self = this;
+        let self = this;
         knex(this.state.dataset).columnInfo().then(function (columnInfo) {
             let columnNames = Object.getOwnPropertyNames(columnInfo);
             self.classifyToken(Classifier.staticWords.column, columnNames, true);
         });
     }
 
+    extractColumnValue() {
+        var self = this;
+        knex(this.state.dataset).columnInfo().then(function (columnInfo) {
+            let columnNames = Object.getOwnPropertyNames(columnInfo);
+            let colValues = [];
+            columnNames.forEach(colName => {
+                if(fs.exists("./data/columns/" + colName + ".json")) {
+                    console.log("File exists");
+                    let fileJSON = require('./data/columns/" + colName + ".json');
+                    colValues.concat(fileJSON);
+                };
+            });
+
+            self.classifyToken(Classifier.staticWords.column, columnNames, true);
+        });
+    }
+
     extractChartType() {
-        let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
+        let possibleTypes = Classifier.staticWords.chartTypes;
         this.classifyToken(Classifier.staticWords.chartType, possibleTypes, true);
     }
 
@@ -45,7 +64,6 @@ class Classifier {
      * either accept the current classification of a token and move to the next token,
      * or try other layers to find a classification for a token
      * or move to the next token because there are no classification functions left
-     * @param state current state of classification of the whole state
      * @param lookahead ture if a lookahead was used in the classification
      */
     nextAction(lookahead) {
@@ -70,7 +88,6 @@ class Classifier {
 
     /**
      * classifies a token with levenshtein distance
-     * @param state current state
      * @param type classification category (chartType, column, operation ...)
      * @param valueRange possible values of the category
      * @param lookahead false if no lookahead should be performed
@@ -113,37 +130,39 @@ class Classifier {
     getMostLikelyMatch(token, possibleTypes) {
         let ratedTypeAffiliation = [];
         possibleTypes.forEach((type) => {
-            let distance = this.getLevenshteinDistance(token, type)
+            let distance = Classifier.getLevenshteinDistance(token, type);
             ratedTypeAffiliation.push({
                 "type": type,
                 "distance": distance,
                 "token": token
             });
-        })
+        });
 
         let minDistance = Math.min.apply(Math, ratedTypeAffiliation.map(ratedType => ratedType.distance));
 
-        let mostLikelyMatch = ratedTypeAffiliation.find((ratedType) => ratedType.distance == minDistance);
         //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
-        return mostLikelyMatch;
+        return ratedTypeAffiliation.find((ratedType) => ratedType.distance === minDistance);
     }
 
 
-    getLevenshteinDistance(token, label) {
+    static getLevenshteinDistance(token, label) {
         let weight = 5 / (token.length / 2);
-        let distance = natural.LevenshteinDistance(token, label, {
+        return natural.LevenshteinDistance(token, label, {
             insertion_cost: 2 * weight,
             deletion_cost: 2 * weight,
             substitution_cost: weight
         });
-        return distance;
     }
 }
 
 Classifier.staticWords = {
     column: "Column",
     operation: "Operation",
-    chartType: "ChartType"
+    chartType: "ChartType",
+    plotOperations: ["plot", "make", "draw", "select"],
+    transformOperations: [],
+    chartTypes: ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"],
+    columnValue: "ColumnValue"
 };
 
 Classifier.maxDistance = 5;
