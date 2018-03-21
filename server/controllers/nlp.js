@@ -57,6 +57,9 @@ exports.handleInput = function (req, res) {
  * @param res response object
  */
 function findDataTransformationFunction(state, res) {
+    let error = false;
+    let errorMessage = '';
+    let chartTypeMatch;
     let numberMatches;
     let numberColumns;
     let columnsArray;
@@ -70,6 +73,7 @@ function findDataTransformationFunction(state, res) {
         numberMatches = 0;
         numberColumns = 0;
         columnsArray = [];
+        chartTypeMatch = false;
         _.forEach(state.tokenHolders, function (tokenHolder) {
             if (tokenHolder.type === Classifier.staticWords.column) {
                 numberColumns++;
@@ -77,6 +81,7 @@ function findDataTransformationFunction(state, res) {
             } else if (tokenHolder.type === Classifier.staticWords.chartType) {
                 if (tokenHolder.matchedValue === command.parameters.chartType) {
                     numberMatches++;
+                    chartTypeMatch = true;
                 }
             }
         });
@@ -85,18 +90,33 @@ function findDataTransformationFunction(state, res) {
         }
         if (numberMatches > bestMatched.numberMatches) {
             bestMatched.numberMatches = numberMatches;
-            bestMatched.function = command.function;
-            _.forEach(command.functionParameters, (param, index) => {
-                if (param === Classifier.staticWords.column) {
-                    bestMatched.functionParameter.push(columnsArray[index]);
-                }
-            });
-
+            if (chartTypeMatch)
+                bestMatched.function = command.function;
+            if (columnsArray.length > 0) {
+                _.forEach(command.functionParameters, (param, index) => {
+                    if (param === Classifier.staticWords.column) {
+                        bestMatched.functionParameter.push(columnsArray[index]);
+                    }
+                });
+            }
         }
     });
+    // error handling
+    if (bestMatched.functionParameter.length === 0) {
+        error = true;
+        errorMessage = 'A column must be provided.'
+    }
+    if (bestMatched.function === "") {
+        error = true;
+        errorMessage = 'No supported Chart-Type found.'
+    }
+    if (error) {
+        return res.status(417).send({error: errorMessage});
+    }
 
     plot_functions[bestMatched.function](dataset, bestMatched.functionParameter, (data, layout) =>
         // Send the data back to the client
-        res.send({data: data, layout: layout})
+        res.send({data: data, layout: layout}), err =>
+        res.status(500).send({error: err})
     )
 }
