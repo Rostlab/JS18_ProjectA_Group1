@@ -59,7 +59,8 @@ exports.handleInput = function (req, res) {
             });
 
             executeFunctions(history, dataset).then(data => {
-                res.send({plotly: data, history: history});
+                res.send({plotly: data, history: history}), err =>
+                    res.status(500).send({error: err})
             })
         }));
         c.findCommand();
@@ -69,12 +70,12 @@ exports.handleInput = function (req, res) {
 async function executeFunctions(history, dataset) {
     let currentData = {};
     for (let currentFunction of history) {
-        await new Promise(resolve => {
+        await new Promise(resolve, reject => {
             plot_functions[currentFunction.function](dataset, currentFunction.functionParameters, currentFunction.input, currentData, (data, layout) => {
                 currentData = {data: data, layout: layout};
                 resolve()
-            })
-        });
+            }, reject(error))
+        }).catch(error);
     }
     return currentData
 }
@@ -85,6 +86,9 @@ async function executeFunctions(history, dataset) {
  * @param res response object
  */
 function findDataTransformationFunction(state, callback) {
+    let error = false;
+    let errorMessage = '';
+    let chartTypeMatch;
     let numberMatches;
     let numberColumns;
     let columnsArray;
@@ -101,6 +105,7 @@ function findDataTransformationFunction(state, callback) {
         numberMatches = 0;
         numberColumns = 0;
         columnsArray = [];
+        chartTypeMatch = false;
         _.forEach(state.tokenHolders, function (tokenHolder) {
             if (tokenHolder.type === Classifier.staticWords.column) {
                 numberColumns++;
@@ -108,21 +113,34 @@ function findDataTransformationFunction(state, callback) {
             } else if (tokenHolder.type === Classifier.staticWords.chartType) {
                 if (tokenHolder.matchedValue === command.parameters.chartType) {
                     numberMatches++;
+                    chartTypeMatch = true;
                 }
             }
         });
         // TODO find a better metric for not matching
         if (numberColumns === command.parameters.numberColumns && numberMatches > bestMatched.numberMatches) {
             bestMatched.numberMatches = numberMatches;
-            bestMatched.function = command.function;
-            bestMatched.functionParameters = [];
-            _.forEach(command.functionParameters, (param, index) => {
+            if (chartTypeMatch)bestMatched.function = command.function;if (columnsArray.length > 0) {
+            bestMatched.functionParameters = [];_.forEach(command.functionParameters, (param, index) => {
                 if (param === Classifier.staticWords.column) {
                     bestMatched.functionParameters.push(columnsArray[index]);
                 }
             });
+}
         }
     });
+    // error handling
+    if (bestMatched.functionParameter.length === 0) {
+        error = true;
+        errorMessage = 'A column must be provided.'
+    }
+    if (bestMatched.function === "") {
+        error = true;
+        errorMessage = 'No supported Chart-Type found.'
+    }
+    if (error) {
+        return res.status(417).send({error: errorMessage});
+    }
 
     if(bestMatched.function === "") {
         bestMatched.function = "transformData";

@@ -4,7 +4,7 @@ let tranformationLib = require('js18_projectb_group3');
 
 let plot_functions = {
 
-    plotHistogramOfColumn(dataset, parameters, input, data, callback) {
+    plotHistogramOfColumn(dataset, parameters, input, data, callback, error) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -26,10 +26,12 @@ let plot_functions = {
                     }
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
-    plotHistogramOfTwoColumns(dataset, parameters, input, data, callback) {
+    plotHistogramOfTwoColumns(dataset, parameters, input, data, callback, error) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -54,10 +56,12 @@ let plot_functions = {
                     title: "Count",
                 }
             }
-        ));
+        )).catch(err =>
+            error(err)
+        );
     },
 
-    plotLineChartOfColumn(dataset, parameters, input, data, callback) {
+    plotLineChartOfColumn(dataset, parameters, input, data, callback, error) {
         let column = parameters[0];
 
         // SELECT <column> FROM <dataset>
@@ -76,10 +80,12 @@ let plot_functions = {
                     title: "Count",
                 }
             }
-        ));
+        )).catch(err =>
+            error(err)
+        );
     },
 
-    plotScatterOfTwoColumns(dataset, parameters, input, data, callback) {
+    plotScatterOfTwoColumns(dataset, parameters, input, data, callback, error) {
         let column1 = parameters[0];
         let column2 = parameters[1];
 
@@ -105,10 +111,12 @@ let plot_functions = {
                     showlegend: true
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
-    plotPieChartOfColumn(dataset, parameters, input, data, callback) {
+    plotPieChartOfColumn(dataset, parameters, input, data, callback, error) {
         let column = parameters[0];
         // SELECT <column> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
@@ -134,14 +142,20 @@ let plot_functions = {
                     title: 'Pie Chart of ' + column,
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
-    transformData(dataset, parameters, input, data, callback) {
-        tranformationLib.editChart(input, data, (error, result) => {
+    transformData(dataset, parameters, input, data, callback, error) {
+        tranformationLib.editChart(input, data, (errorData, result) => {
             // TODO handle error
             console.log(error);
-            callback(result.data, result.layout)
+            if(errorData != null) {
+                error(errorData)
+            } else {
+                callback(result.data, result.layout)
+            }
         });
     }
 };

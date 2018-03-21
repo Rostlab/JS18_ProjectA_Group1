@@ -1,30 +1,37 @@
 "use strict";
 
-var plotHistory = [];
-
 function loadJSON(endpoint, type, body, callback, error) {
     var xhttp = new XMLHttpRequest();
     xhttp.open(type, window.location.origin + "/API/" + endpoint, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     xhttp.send(JSON.stringify(body));
     xhttp.onreadystatechange = function () {
-        if (xhttp.readyState === 4 && xhttp.status === 200) {
-            var response = JSON.parse(xhttp.responseText);
-            callback(response);
-        } else {
-            error();
+        if (xhttp.readyState === 4) {
+            if (xhttp.status === 200) {
+                var response = JSON.parse(xhttp.responseText);
+                callback(response);
+            } else if (xhttp.status === 417) {
+                var errorMessage = JSON.parse(xhttp.responseText).error;
+                error(errorMessage);
+            } else if (xhttp.status === 500) {
+                var errorMessage = JSON.parse(xhttp.responseText).error;
+                console.log(errorMessage);
+                error('Internal server error');
+            }
         }
     };
 }
 
 function generateGraph(dataset, input) {
     setLoading(true);
-    loadJSON("nlp", "POST", { dataset: dataset, input: input, history: plotHistory }, function (response) {
-        Plotly.newPlot('graph', response.plotly.data, response.plotly.layout);
-        plotHistory = response.history;
+    var error = document.getElementById('error');
+    if (error.innerHTML !== '') error.innerHTML = '';
+    loadJSON("nlp", "POST", { dataset: dataset, input: input }, function (response) {
+        Plotly.newPlot('graph', response.data, response.layout);
         setLoading(false);
-    }, function () {
+    }, function (errorText) {
         // TODO handle error
+        error.innerHTML = errorText;
         setLoading(false);
     });
 }
