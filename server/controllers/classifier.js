@@ -1,6 +1,7 @@
 let natural = require('natural');
 let config = require('../knexfile');
 let knex = require('knex')(config);
+let fs = require('fs');
 
 class Classifier {
 
@@ -10,7 +11,8 @@ class Classifier {
         this.searchFunction = [
             this.extractOperation,
             this.extractChartType,
-            this.extractColumn
+            this.extractColumn,
+            this.extractColumnValue
         ]
     }
 
@@ -23,6 +25,23 @@ class Classifier {
         let self = this;
         knex(this.state.dataset).columnInfo().then(function (columnInfo) {
             let columnNames = Object.getOwnPropertyNames(columnInfo);
+            self.classifyToken(Classifier.staticWords.column, columnNames, true);
+        });
+    }
+
+    extractColumnValue() {
+        var self = this;
+        knex(this.state.dataset).columnInfo().then(function (columnInfo) {
+            let columnNames = Object.getOwnPropertyNames(columnInfo);
+            let colValues = [];
+            columnNames.forEach(colName => {
+                if(fs.exists("./data/columns/" + colName + ".json")) {
+                    console.log("File exists");
+                    let fileJSON = require('./data/columns/" + colName + ".json');
+                    colValues.concat(fileJSON);
+                };
+            });
+
             self.classifyToken(Classifier.staticWords.column, columnNames, true);
         });
     }
@@ -142,7 +161,8 @@ Classifier.staticWords = {
     chartType: "ChartType",
     plotOperations: ["plot", "make", "draw", "select"],
     transformOperations: [],
-    chartTypes: ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"]
+    chartTypes: ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"],
+    columnValue: "ColumnValue"
 };
 
 Classifier.maxDistance = 5;
