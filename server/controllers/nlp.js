@@ -104,7 +104,6 @@ function findDataTransformationFunction(state, callback, errorCallback) {
         }
     });
 
-    let error = null;
     let bestMatchedCommand = null;
     commands.forEach(command => {
         if (!command.parameters.isTransformation) {
@@ -121,7 +120,6 @@ function findDataTransformationFunction(state, callback, errorCallback) {
                     possiblyMatches = command.parameters.chartType === chartType
                 } else {
                     possiblyMatches = false;
-                    error = true
                 }
             }
 
@@ -147,15 +145,13 @@ function findDataTransformationFunction(state, callback, errorCallback) {
     });
 
     // error handling
-    let errorMessage = "";
-    if (error = true) {
-        errorMessage = 'A column must be provided.'
-    }
     if (bestMatchedCommand == null) {
-        error = true;
-        errorMessage = 'No supported Chart-Type found.'
-    }
-    if (error) {
+        let errorMessage = "";
+        if (chartType != null) {
+            errorMessage = 'A column must be provided.'
+        } else {
+            errorMessage = 'No supported Chart-Type found.'
+        }
         errorCallback(errorMessage)
     } else {
         callback({command: bestMatchedCommand, parameters: columnsArray})
