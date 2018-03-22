@@ -2,34 +2,6 @@
   {
     "parameters": {
       "chartType": "histogram",
-      "numberColumns": 2
-    },
-    "function": "plotHistogramOfTwoColumns",
-    "functionParameters": [
-      "Column",
-      "Column"
-    ],
-    "tests": [
-      {
-        "input": "Plot a histogram of age and race",
-        "dataset": "human_resources__core_dataset",
-        "function": "plotScatterOfTwoColumns",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "age"
-          },
-          {
-            "type": "COLUMN",
-            "value": "race"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "parameters": {
-      "chartType": "histogram",
       "numberColumns": 1
     },
     "function": "plotHistogramOfColumn",
@@ -52,47 +24,31 @@
   },
   {
     "parameters": {
-      "chartType": "pie chart",
-      "numberColumns": 1
     },
-    "function": "plotPieChartOfColumn",
-    "functionParameters": [
-      "Column"
-    ],
     "tests": [
       {
-        "input": "Plot a pie chart of race",
-        "dataset": "human_resources__core_dataset",
-        "function": "plotPieChartOfColumn",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "race"
-          }
-        ]
+        "input": "Change title to Title goes here",
+        "dataset": "human_resources__core_dataset"
       }
     ]
   },
   {
     "parameters": {
-      "chartType": "line chart",
-      "numberColumns": 1
     },
-    "function": "plotLineChartOfColumn",
-    "functionParameters": [
-      "Column"
-    ],
     "tests": [
       {
-        "input": "Plot a line chart of age",
-        "dataset": "human_resources__core_dataset",
-        "function": "plotLineChartOfColumn",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "age"
-          }
-        ]
+        "input": "Set title of y-axis to y-axis Count",
+        "dataset": "human_resources__core_dataset"
+      }
+    ]
+  },
+  {
+    "parameters": {
+    },
+    "tests": [
+      {
+        "input": "Change width of gridlines of x-axis to 8",
+        "dataset": "human_resources__core_dataset"
       }
     ]
   },
@@ -108,7 +64,7 @@
     ],
     "tests": [
       {
-        "input": "Plot a scatter plot of age and race",
+        "input": "Make a scatter plot with age and pay rate.",
         "dataset": "human_resources__core_dataset",
         "function": "plotScatterOfTwoColumns",
         "parameters": [
@@ -118,10 +74,153 @@
           },
           {
             "type": "COLUMN",
-            "value": "race"
+            "value": "pay rate"
           }
         ]
       }
     ]
+  },
+  {
+    "parameters": {
+    },
+    "tests": [
+      {
+        "input": "set position of legend to  10,0",
+        "dataset": "human_resources__core_dataset"
+      }
+    ]
+  },
+  {
+    "parameters": {
+      "chartType": "pie chart",
+      "numberColumns": 1
+    },
+    "function": "plotPieChartOfColumn",
+    "functionParameters": [
+      "Column"
+    ],
+    "tests": [
+      {
+        "input": "Show the number of department as pie chart",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotPieChartOfColumn",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "department"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "parameters": {
+    },
+    "tests": [
+      {
+        "input": "Set color to red,black,yellow, green, purple, pink, orange",
+        "dataset": "human_resources__core_dataset"
+      }
+    ]
+  },
+  {
+    "parameters": {
+      "chartType": "scatter plot",
+      "numberColumns": 2
+    },
+    "function": "plotScatterOfTwoColumns",
+    "functionParameters": [
+      "Column",
+      "Column"
+    ],
+    "tests": [
+      {
+        "input": "Draw a scatter plot of department and age",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotScatterOfTwoColumns",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "department"
+          },
+          {
+            "type": "COLUMN",
+            "value": "age"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "parameters": {
+    },
+    "tests": [
+      {
+        "input": "Set title of x-axis to x-axis",
+        "dataset": "human_resources__core_dataset"
+      }
+    ]
+  },
+  {
+    "parameters": {
+    },
+    "tests": [
+      {
+        "input": "Set color of gridlines of x-axis to red",
+        "dataset": "human_resources__core_dataset"
+      }
+    ]
+  },
+  {
+    "parameters": {
+    },
+    "tests": [
+      {
+        "input": "Set color of gridlines of y-axis to yellow",
+        "dataset": "human_resources__core_dataset"
+      }
+    ]
+  },
+  {
+    "parameters": {
+      "chartType": "pie chart",
+      "numberColumns": 1
+    },
+    "function": "plotPieChartOfColumn",
+    "functionParameters": [
+      "Column"
+    ],
+    "tests": [
+      {
+        "input": "Show the position as pie chart",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotPieChartOfColumn",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "position"
+          }
+        ]
+      }
+    ]
+  },
+  {
+  "parameters": {
+  },
+  "tests": [
+    {
+      "input": "Change info type to value",
+      "dataset": "human_resources__core_dataset"
+    }
+  ]
+},
+  {
+    "parameters": {
+      "isTransformation": true,
+      "numberColumns": 0
+    },
+    "function": "transformData",
+    "functionParameters": [],
+    "tests": []
   }
 ]

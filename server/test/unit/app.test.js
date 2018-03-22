@@ -70,7 +70,7 @@ describe('POST /API/nlp', function () {
     it('should render ok', function (done) {
         request(server)
             .post('/API/nlp')
-            .send({dataset: "human_resources__core_dataset", input: "Plot a histogram of age"})
+            .send({dataset: "human_resources__core_dataset", input: "Plot a histogram of age", history: []})
             .expect(200, done);
     });
 });
