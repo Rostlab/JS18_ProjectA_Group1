@@ -26,13 +26,13 @@ class Classifier {
     }
 
     extractOperation() {
-        let possibleOperations = ["plot", "make", "draw", "select"];
+        let possibleOperations = Classifier.staticWords.plotOperations.concat(Classifier.staticWords.transformOperations);
         let operationsWithSynonyms = this.createLabelSynonymStructure(possibleOperations);
         this.classifyToken(Classifier.staticWords.operation, operationsWithSynonyms, false);
     }
 
     extractColumn() {
-        var self = this;
+        let self = this;
         knex(this.state.dataset).columnInfo().then(function (columnInfo) {
             let columnNames = Object.getOwnPropertyNames(columnInfo);
             let columnsWithSynonyms = self.createLabelSynonymStructure(columnNames);
@@ -45,7 +45,7 @@ class Classifier {
     }
 
     extractChartType() {
-        let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
+        let possibleTypes = Classifier.staticWords.chartTypes;
         let chartTypesWithSynonyms = this.createLabelSynonymStructure(possibleTypes);
         this.classifyToken(Classifier.staticWords.chartType, chartTypesWithSynonyms, true);
     }
@@ -63,7 +63,6 @@ class Classifier {
      * either accept the current classification of a token and move to the next token,
      * or try other layers to find a classification for a token
      * or move to the next token because there are no classification functions left
-     * @param state current state of classification of the whole state
      * @param lookahead ture if a lookahead was used in the classification
      */
     nextAction(lookahead) {
@@ -88,7 +87,6 @@ class Classifier {
 
     /**
      * classifies a token with levenshtein distance
-     * @param state current state
      * @param type classification category (chartType, column, operation ...)
      * @param valueRange possible values of the category
      * @param lookahead false if no lookahead should be performed
@@ -137,41 +135,42 @@ class Classifier {
                 let labelVariation = [];
                 labelVariation [0] = type.label;
                 labelVariation = labelVariation.concat(type.synonyms);
-                let bestSynonym = this.getMostLikelyMatch(token, this.createLabelSynonymStructure(labelVariation));
+                let bestSynonym = Classifier.getMostLikelyMatch(token, this.createLabelSynonymStructure(labelVariation));
                 distance = bestSynonym.distance;
             } else {
-                distance = this.getLevenshteinDistance(token, type.label);
+                distance = Classifier.getLevenshteinDistance(token, type.label);
             }
             ratedTypeAffiliation.push({
                 "type": type.label,
                 "distance": distance,
                 "token": token
             });
-        })
+        });
 
         let minDistance = Math.min.apply(Math, ratedTypeAffiliation.map(ratedType => ratedType.distance));
 
-        let mostLikelyMatch = ratedTypeAffiliation.find((ratedType) => ratedType.distance == minDistance);
         //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
-        return mostLikelyMatch;
+        return ratedTypeAffiliation.find((ratedType) => ratedType.distance === minDistance);
     }
 
 
-    getLevenshteinDistance(token, label) {
+    static getLevenshteinDistance(token, label) {
         let weight = 5 / (token.length / 2);
-        let distance = natural.LevenshteinDistance(token, label, {
+        return natural.LevenshteinDistance(token, label, {
             insertion_cost: 2 * weight,
             deletion_cost: 2 * weight,
             substitution_cost: weight
         });
-        return distance;
     }
 }
 
 Classifier.staticWords = {
     column: "Column",
     operation: "Operation",
-    chartType: "ChartType"
+    chartType: "ChartType",
+    plotOperations: ["plot", "make", "draw", "select"],
+    transformOperations: [],
+    chartTypes: ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"]
 };
 
 Classifier.maxDistance = 5;
