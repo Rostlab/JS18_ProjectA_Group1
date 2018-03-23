@@ -76,32 +76,40 @@ describe('POST /API/nlp', function () {
 });
 
 describe('Test Plot Functions', function () {
-    it('should render ok', function (done) {
+    it('should render ok', function () {
         let fkt = plot_functions["plotHistogramOfColumn"];
-        fkt("human_resources__core_dataset", ["age"], (data) => {
-            if(data[0].x[0] === 32){
+        fkt("human_resources__core_dataset", ["age"], "test Input", "test data", (data, layout) => {
+            assert.equal(data.length, 2);
+            /*if(data.length === 1 && layout.xaxis.title === "age" && layout.title !== undefined && data[0].type === "histogram" && data[0].x[0] === 32){
                 done();
-            }
+            }*/
+        }, (error) => {
+
         });
     });
     it('should render ok', function (done) {
         let fkt = plot_functions["plotPieChartOfColumn"];
-        fkt("human_resources__core_dataset", ["racedesc"], (data) => {
-            if(data[0].labels[0] === "Black or African American"){
-                if(data[0].values[0] === 54){
-                    done();
-                }
-            } else {
+        fkt("human_resources__core_dataset", ["racedesc"], "test Input","test data", (data, layout) => {
+            if(data[0].labels[0] === "Black or African American" && data[0].values[0] === 54 && layout.title === "Pie Chart of racedesc" && data.length === 1 && data[0].type === "pie"){
                 done();
             }
+        }, (error) => {
+
         });
     });
     it('should render ok', function (done) {
         let fkt = plot_functions["plotScatterOfTwoColumns"];
-        fkt("human_resources__core_dataset", ["racedesc", "age"], (data) => {
-            if(data[0].type === "scatter" && data[0].x[0] === "Black or African American" && data[0].y[0] === 32){
+        fkt("human_resources__core_dataset", ["racedesc", "age"], "test Input", "test data", (data, layout) => {
+            if(data[0].type === "scatter" &&
+                data[0].x[0] === "Black or African American" &&
+                data[0].y[0] === 32 &&
+                layout.title === "Scatter plot of racedesc and age" &&
+                layout.xaxis.title === "racedesc" &&
+                data.length === 1){
                 done();
             }
+        }, (error) => {
+
         });
     });
 });
