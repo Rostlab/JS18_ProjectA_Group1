@@ -1,5 +1,5 @@
 let request = require('supertest');
-let assert = require('assert');
+let chai = require('chai');
 let server = require('../../server');
 let plot_functions = require('../../controllers/plot-functions.js');
 let Classifier = require('../../controllers/classifier.js');
@@ -76,41 +76,46 @@ describe('POST /API/nlp', function () {
 });
 
 describe('Test Plot Functions', function () {
-    it('should render ok', function () {
+    it('should render ok',async function () {
+        var me = this;
         let fkt = plot_functions["plotHistogramOfColumn"];
-        fkt("human_resources__core_dataset", ["age"], "test Input", "test data", (data, layout) => {
-            assert.equal(data.length, 2);
-            /*if(data.length === 1 && layout.xaxis.title === "age" && layout.title !== undefined && data[0].type === "histogram" && data[0].x[0] === 32){
-                done();
-            }*/
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", ["age"], "test Input", "test data", (data, layout) => {
+            resolve({'data':data, 'layout' : layout});
         }, (error) => {
-
-        });
+            reject(error);
+        })});
+        chai.assert(result.data.length === 1);
+        chai.assert(result.layout.xaxis.title === "age");
+        chai.assert(result.layout.title === "Histogram of age");
+        chai.assert(result.data[0].type === "histogram");
+        chai.assert(result.data[0].x[0] === 32);
     });
-    it('should render ok', function (done) {
+    it('should render ok', async function () {
         let fkt = plot_functions["plotPieChartOfColumn"];
-        fkt("human_resources__core_dataset", ["racedesc"], "test Input","test data", (data, layout) => {
-            if(data[0].labels[0] === "Black or African American" && data[0].values[0] === 54 && layout.title === "Pie Chart of racedesc" && data.length === 1 && data[0].type === "pie"){
-                done();
-            }
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", ["racedesc"], "test Input", "test data", (data, layout) => {
+            resolve({'data':data, 'layout' : layout});
         }, (error) => {
-
-        });
+            reject(error);
+        })});
+        chai.assert(result.data[0].labels[0] === "Black or African American");
+        chai.assert(result.data[0].values[0] === 54);
+        chai.assert(result.layout.title === "Pie Chart of racedesc");
+        chai.assert(result.data.length === 1);
+        chai.assert(result.data[0].type === "pie");
     });
-    it('should render ok', function (done) {
+    it('should render ok', async function () {
         let fkt = plot_functions["plotScatterOfTwoColumns"];
-        fkt("human_resources__core_dataset", ["racedesc", "age"], "test Input", "test data", (data, layout) => {
-            if(data[0].type === "scatter" &&
-                data[0].x[0] === "Black or African American" &&
-                data[0].y[0] === 32 &&
-                layout.title === "Scatter plot of racedesc and age" &&
-                layout.xaxis.title === "racedesc" &&
-                data.length === 1){
-                done();
-            }
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", ["racedesc", "age"], "test Input", "test data", (data, layout) => {
+            resolve({'data':data, 'layout' : layout});
         }, (error) => {
-
-        });
+            reject(error);
+        })});
+        chai.assert(result.data[0].type === "scatter");
+        chai.assert(result.data[0].x[0] === "Black or African American");
+        chai.assert(result.data[0].y[0] === 32);
+        chai.assert(result.layout.title === "Scatter plot of racedesc and age");
+        chai.assert(result.layout.xaxis.title === "racedesc");
+        chai.assert(result.data.length === 1);
     });
 });
 
