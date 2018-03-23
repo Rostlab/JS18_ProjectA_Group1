@@ -33,12 +33,7 @@ exports.handleInput = function (req, res) {
         let tokenizer = new natural.WordTokenizer();
         let tokenizedInput = tokenizer.tokenize(lowerCaseInput);
 
-        let tokenHolders = tokenizedInput.map(token => ({
-            token: token,
-            type: null,
-            matchedValue: null,
-            distance: Classifier.maxDistance + 1
-        }));
+        let tokenHolders = tokenizedInput.map(token => Classifier.createUnlabeledTokenInfo(token));
 
         let initState = {
             input: input,
@@ -94,12 +89,12 @@ function findDataTransformationFunction(state, callback, errorCallback) {
     let columnsArray = [];
 
     state.tokenHolders.forEach(tokenHolder => {
-        if (tokenHolder.type === Classifier.staticWords.operation) {
-            operation = tokenHolder.matchedValue.value
-        } else if (tokenHolder.type === Classifier.staticWords.chartType) {
-            chartType = tokenHolder.matchedValue.value
-        } else if (tokenHolder.type === Classifier.staticWords.column) {
-            columnsArray.push(tokenHolder.matchedValue.value);
+        if (tokenHolder.labelType === Classifier.staticWords.operation) {
+            operation = tokenHolder.label
+        } else if (tokenHolder.labelType === Classifier.staticWords.chartType) {
+            chartType = tokenHolder.label
+        } else if (tokenHolder.labelType === Classifier.staticWords.column) {
+            columnsArray.push(tokenHolder.label);
         }
     });
 
