@@ -17,37 +17,61 @@ class Classifier {
     }
 
     extractOperation() {
-        let possibleOperations = Classifier.staticWords.plotOperations.concat(Classifier.staticWords.transformOperations);
+        let possibleOperations = Classifier.staticWords.plotOperations.concat(Classifier.staticWords.transformOperations).map(op => Classifier.createValueRangeDataType(op));
         this.classifyToken(Classifier.staticWords.operation, possibleOperations, false);
     }
 
     extractColumn() {
         let self = this;
         knex(this.state.dataset).columnInfo().then(function (columnInfo) {
-            let columnNames = Object.getOwnPropertyNames(columnInfo);
+            let columnNames = Object.getOwnPropertyNames(columnInfo).map(col => Classifier.createValueRangeDataType(col));
             self.classifyToken(Classifier.staticWords.column, columnNames, true);
         });
     }
 
     extractColumnValue() {
-        var self = this;
-        knex(this.state.dataset).columnInfo().then(function (columnInfo) {
-            let columnNames = Object.getOwnPropertyNames(columnInfo);
-            let colValues = [];
-            columnNames.forEach(colName => {
-                if(fs.exists("./data/columns/" + colName + ".json")) {
-                    console.log("File exists");
-                    let fileJSON = require('./data/columns/" + colName + ".json');
-                    colValues.concat(fileJSON);
-                };
+        let self = this;
+        knex(this.state.dataset).columnInfo()
+            .then(function (columnInfo) {
+                let columnNames = Object.getOwnPropertyNames(columnInfo);
+                let colValues = self.readFiles(columnNames);
+                return colValues;
+            })
+            .then((colValues) => {
+                self.classifyToken(Classifier.staticWords.columnValue, colValues, true);
             });
-
-            self.classifyToken(Classifier.staticWords.column, columnNames, true);
-        });
     }
 
+    async readFiles(columnNames) {
+        let colValues = [];
+        for (let col of columnNames) {
+            await new Promise(resolve => {
+                fs.readFile("./data/columns/" + col + ".json", (err, data) => {
+
+                    if (err) {
+                        resolve()
+                        return
+                    }
+
+                    let obj = JSON.parse(data).map(d => Classifier.createValueRangeDataType(d[col], col));
+                    colValues = colValues.concat(obj);
+                    resolve()
+                })
+            })
+        }
+        return colValues
+    }
+
+    static createValueRangeDataType(value, column) {
+        return {
+            value: value,
+            column: column
+        }
+    }
+
+
     extractChartType() {
-        let possibleTypes = Classifier.staticWords.chartTypes;
+        let possibleTypes = Classifier.staticWords.chartTypes.map(chartType => Classifier.createValueRangeDataType(chartType));
         this.classifyToken(Classifier.staticWords.chartType, possibleTypes, true);
     }
 
@@ -130,7 +154,7 @@ class Classifier {
     getMostLikelyMatch(token, possibleTypes) {
         let ratedTypeAffiliation = [];
         possibleTypes.forEach((type) => {
-            let distance = Classifier.getLevenshteinDistance(token, type);
+            let distance = Classifier.getLevenshteinDistance(token, type.value);
             ratedTypeAffiliation.push({
                 "type": type,
                 "distance": distance,
@@ -146,7 +170,7 @@ class Classifier {
 
 
     static getLevenshteinDistance(token, label) {
-        let weight = 5 / (token.length / 2);
+        let weight = 5 / (Math.max(1, token.length) / 2);
         return natural.LevenshteinDistance(token, label, {
             insertion_cost: 2 * weight,
             deletion_cost: 2 * weight,

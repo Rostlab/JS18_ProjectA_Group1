@@ -95,11 +95,11 @@ function findDataTransformationFunction(state, callback, errorCallback) {
 
     state.tokenHolders.forEach(tokenHolder => {
         if (tokenHolder.type === Classifier.staticWords.operation) {
-            operation = tokenHolder.matchedValue
+            operation = tokenHolder.matchedValue.value
         } else if (tokenHolder.type === Classifier.staticWords.chartType) {
-            chartType = tokenHolder.matchedValue
+            chartType = tokenHolder.matchedValue.value
         } else if (tokenHolder.type === Classifier.staticWords.column) {
-            columnsArray.push(tokenHolder.matchedValue);
+            columnsArray.push(tokenHolder.matchedValue.value);
         }
     });
 
