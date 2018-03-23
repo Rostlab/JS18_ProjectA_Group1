@@ -1,6 +1,7 @@
 let natural = require('natural');
 let config = require('../knexfile');
 let knex = require('knex')(config);
+let columnSynonyms = require('../data/column_synonyms');
 
 class Classifier {
 
@@ -14,22 +15,40 @@ class Classifier {
         ]
     }
 
+    static createLabelSynonymStructure(possibleTypes) {
+        return possibleTypes.map(type => {
+                return {
+                    label: type,
+                    synonyms: []
+                }
+            }
+        );
+    }
+
     extractOperation() {
         let possibleOperations = Classifier.staticWords.plotOperations.concat(Classifier.staticWords.transformOperations);
-        this.classifyToken(Classifier.staticWords.operation, possibleOperations, false);
+        let operationsWithSynonyms = Classifier.createLabelSynonymStructure(possibleOperations);
+        this.classifyToken(Classifier.staticWords.operation, operationsWithSynonyms, false);
     }
 
     extractColumn() {
         let self = this;
         knex(this.state.dataset).columnInfo().then(function (columnInfo) {
             let columnNames = Object.getOwnPropertyNames(columnInfo);
-            self.classifyToken(Classifier.staticWords.column, columnNames, true);
+            let columnsWithSynonyms = Classifier.createLabelSynonymStructure(columnNames);
+            columnSynonyms.forEach(syn => {
+                let column = columnsWithSynonyms.find(cS => cS.label == syn.column_name);
+                if (column)
+                    column.synonyms = syn.synonyms;
+            });
+            self.classifyToken(Classifier.staticWords.column, columnsWithSynonyms, true);
         });
     }
 
     extractChartType() {
         let possibleTypes = Classifier.staticWords.chartTypes;
-        this.classifyToken(Classifier.staticWords.chartType, possibleTypes, true);
+        let chartTypesWithSynonyms = Classifier.createLabelSynonymStructure(possibleTypes);
+        this.classifyToken(Classifier.staticWords.chartType, chartTypesWithSynonyms, true);
     }
 
     findCommand() {
@@ -76,7 +95,7 @@ class Classifier {
     classifyToken(type, valueRange, lookahead) {
         let tokenHolder = this.state.tokenHolders[this.state.currentToken];
         let performedLookahead = false;
-        let tokenMatched = this.getMostLikelyMatch(tokenHolder.token, valueRange);
+        let tokenMatched = Classifier.getMostLikelyMatch(tokenHolder.token, valueRange);
         if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
             // this layer matches for this token
             this.state.tokenHolders[this.state.currentToken] = {
@@ -87,7 +106,7 @@ class Classifier {
             };
         } else if (lookahead && this.state.currentToken <= this.state.tokenHolders.length - 2) {
             let nextTokenHolder = this.state.tokenHolders[this.state.currentToken + 1];
-            tokenMatched = this.getMostLikelyMatch(tokenHolder.token + " " + nextTokenHolder.token, valueRange);
+            tokenMatched = Classifier.getMostLikelyMatch(tokenHolder.token + " " + nextTokenHolder.token, valueRange);
             if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
                 performedLookahead = true;
                 //replace the currentToken
@@ -108,12 +127,22 @@ class Classifier {
      * @param possibleTypes possible values which it could match
      * @returns {*}
      */
-    getMostLikelyMatch(token, possibleTypes) {
+    static getMostLikelyMatch(token, possibleTypes) {
         let ratedTypeAffiliation = [];
-        possibleTypes.forEach((type) => {
-            let distance = Classifier.getLevenshteinDistance(token, type);
+        possibleTypes.forEach(type => {
+            let distance;
+            if (type.synonyms && type.synonyms.length != 0) {
+                //get best fitting synonym
+                let labelVariation = [];
+                labelVariation [0] = type.label;
+                labelVariation = labelVariation.concat(type.synonyms);
+                let bestSynonym = Classifier.getMostLikelyMatch(token, Classifier.createLabelSynonymStructure(labelVariation));
+                distance = bestSynonym.distance;
+            } else {
+                distance = Classifier.getLevenshteinDistance(token, type.label);
+            }
             ratedTypeAffiliation.push({
-                "type": type,
+                "type": type.label,
                 "distance": distance,
                 "token": token
             });

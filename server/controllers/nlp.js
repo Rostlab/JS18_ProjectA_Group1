@@ -2,7 +2,6 @@ let bookshelf = require('../config/bookshelf');
 let commands = require('../data/commands.json');
 let _ = require('lodash');
 let natural = require('natural');
-let columnSynonyms = require('../data/column_synonyms');
 const plot_functions = require('./plot-functions.js');
 const Classifier = require('./classifier.js');
 
