@@ -1,7 +1,6 @@
 let natural = require('natural');
 let config = require('../knexfile');
 let knex = require('knex')(config);
-let fs = require('fs');
 
 class Classifier {
 
@@ -17,14 +16,14 @@ class Classifier {
     }
 
     extractOperation() {
-        let possibleOperations = Classifier.staticWords.plotOperations.concat(Classifier.staticWords.transformOperations).map(op => Classifier.createValueRangeDataType(op));
+        let possibleOperations = Classifier.staticWords.plotOperations.concat(Classifier.staticWords.transformOperations).map(op => Classifier.createValueRangeDataType(op, Classifier.col_types.string));
         this.classifyToken(Classifier.staticWords.operation, possibleOperations, false);
     }
 
     extractColumn() {
         let self = this;
         knex(this.state.dataset).columnInfo().then(function (columnInfo) {
-            let columnNames = Object.getOwnPropertyNames(columnInfo).map(col => Classifier.createValueRangeDataType(col));
+            let columnNames = Object.getOwnPropertyNames(columnInfo).map(col => Classifier.createValueRangeDataType(col, Classifier.col_types.string));
             self.classifyToken(Classifier.staticWords.column, columnNames, true);
         });
     }
@@ -32,46 +31,75 @@ class Classifier {
     extractColumnValue() {
         let self = this;
         knex(this.state.dataset).columnInfo()
-            .then(function (columnInfo) {
+            .then(columnInfo => {
                 let columnNames = Object.getOwnPropertyNames(columnInfo);
-                let colValues = self.readFiles(columnNames);
-                return colValues;
+                //includes is overwritten in the col_type object
+                let usedColumns = columnNames.filter(cInfo => Classifier.col_types.includes(columnInfo[cInfo].type));
+                return self.getValuesOfColumns(usedColumns, columnInfo);
             })
             .then((colValues) => {
                 self.classifyToken(Classifier.staticWords.columnValue, colValues, true);
             });
     }
 
-    async readFiles(columnNames) {
-        let colValues = [];
-        for (let col of columnNames) {
-            await new Promise(resolve => {
-                fs.readFile("./data/columns/" + col + ".json", (err, data) => {
-
-                    if (err) {
-                        resolve()
-                        return
-                    }
-
-                    let obj = JSON.parse(data).map(d => Classifier.createValueRangeDataType(d[col], col));
-                    colValues = colValues.concat(obj);
-                    resolve()
-                })
-            })
-        }
-        return colValues
+    /**
+     * extracts the column Names from the states dataset
+     * @param columnNames
+     * @returns {*|PromiseLike<T>|Promise<T>}
+     */
+    getValuesOfColumnsByName(columnNames) {
+        return knex(this.state.dataset).columnInfo()
+            .then(columnInfo => {
+                self.getValuesOfColumns(columnNames, columnInfo);
+            });
     }
 
-    static createValueRangeDataType(value, column) {
+    /**
+     * extracts the values from the given columnNames from the given columnInfo
+     * @param columnNames
+     * @param columnInfo
+     * @returns {Promise<*>}
+     */
+    getValuesOfColumns(columnNames, columnInfo) {
+        let filteredColumnInfo = {};
+        columnNames.forEach(colName => {
+            let colObject = columnInfo[colName];
+            filteredColumnInfo[colName] = Object.assign(colObject, {name: colName});
+        });
+        return this.readColumnValues(filteredColumnInfo);
+    }
+
+    async readColumnValues(columnInfos) {
+        let allColValues = [];
+        for (let col of Object.getOwnPropertyNames(columnInfos)) {
+            await this.readColumn(columnInfos[col]).then(values => {
+                allColValues = allColValues.concat(values);
+            });
+        }
+        return allColValues;
+    }
+
+    readColumn(colInfo) {
+        return knex.distinct(colInfo.name)
+            .select()
+            .from(this.state.dataset)
+            .then(dbResult => {
+                return dbResult.map(r => Classifier.createValueRangeDataType(r[colInfo.name], colInfo.type, colInfo.name));
+            });
+    }
+
+
+    static createValueRangeDataType(value, datatype, column) {
         return {
             value: value,
+            datatype: datatype,
             column: column
         }
     }
 
 
     extractChartType() {
-        let possibleTypes = Classifier.staticWords.chartTypes.map(chartType => Classifier.createValueRangeDataType(chartType));
+        let possibleTypes = Classifier.staticWords.chartTypes.map(chartType => Classifier.createValueRangeDataType(chartType, Classifier.col_types.string));
         this.classifyToken(Classifier.staticWords.chartType, possibleTypes, true);
     }
 
@@ -154,7 +182,8 @@ class Classifier {
     getMostLikelyMatch(token, possibleTypes) {
         let ratedTypeAffiliation = [];
         possibleTypes.forEach((type) => {
-            let distance = Classifier.getLevenshteinDistance(token, type.value);
+            let value = (type.datatype === Classifier.col_types.date) ? type.value.toString() : type.value;
+            let distance = Classifier.getLevenshteinDistance(token, value);
             ratedTypeAffiliation.push({
                 "type": type,
                 "distance": distance,
@@ -187,6 +216,14 @@ Classifier.staticWords = {
     transformOperations: [],
     chartTypes: ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"],
     columnValue: "ColumnValue"
+};
+
+Classifier.col_types = {
+    string: "character varying",
+    date: "date",
+    includes: function (value) {
+        return value === this.string || value === this.date;
+    }
 };
 
 Classifier.maxDistance = 5;

@@ -2,14 +2,13 @@ let tableName_human_resource__core_dataset = 'human_resources__core_dataset';
 let identifier_human_resources__core_dataset = 'employee_number';
 let tableName_generic_dataset = 'generic_dataset';
 let identifier_generic_dataset = 'table_name';
-let bookshelf = require('../config/bookshelf');
 let fs = require('fs');
 
-var col_types = ["character varying", "date"];
+
 
 exports.up = function (knex, Promise) {
 
-    console.log("Migrate")
+    console.log("Migrate");
 
     return Promise.resolve()
         .then(() => createGenericDataset(knex))
@@ -22,24 +21,20 @@ exports.up = function (knex, Promise) {
                 display_name: 'Employees',
                 description: 'The core human resource dataset',
                 file: './data/core_dataset.csv'
-            }]))
-        .then(() => knex(tableName_human_resource__core_dataset).columnInfo())
-        .then((columnInfo) => generateValueFiles(knex, columnInfo, tableName_human_resource__core_dataset));
+            }]));
 };
 
 exports.down = function (knex, Promise) {
 
-    console.log("Rollback")
+    console.log("Rollback");
 
     return Promise.resolve()
-        .then(() => knex(tableName_human_resource__core_dataset).columnInfo())
-        .then((columnInfo) => deleteValueFiles(knex, columnInfo))
         .then(() => deleteHumanResourcesDataCore(knex))
         .then(() => deleteGenericDataset(knex));
 };
 
 function createGenericDataset(knex) {
-    console.log("Create " + tableName_generic_dataset)
+    console.log("Create " + tableName_generic_dataset);
     return knex.schema.createTable(tableName_generic_dataset, table => {
         table.string(identifier_generic_dataset).primary();
         table.string('display_name');
@@ -49,12 +44,12 @@ function createGenericDataset(knex) {
 }
 
 function deleteGenericDataset(knex) {
-    console.log("Delete " + tableName_generic_dataset)
+    console.log("Delete " + tableName_generic_dataset);
     return knex.schema.dropTable(tableName_generic_dataset);
 }
 
 function createHumanResourcesDataCore(knex) {
-    console.log("Create " + tableName_human_resource__core_dataset)
+    console.log("Create " + tableName_human_resource__core_dataset);
     return knex.schema.createTable(tableName_human_resource__core_dataset, table => {
         table.string('employee_name');
         table.integer(identifier_human_resources__core_dataset).primary();
@@ -81,13 +76,13 @@ function createHumanResourcesDataCore(knex) {
 }
 
 function deleteHumanResourcesDataCore(knex) {
-    console.log("Delete " + tableName_human_resource__core_dataset)
+    console.log("Delete " + tableName_human_resource__core_dataset);
     return knex.schema.dropTable(tableName_human_resource__core_dataset)
 }
 
 
 function parseDataFromCsv(knex, fileLocation) {
-    console.log("Parse data from " + fileLocation)
+    console.log("Parse data from " + fileLocation);
 
     let papaparse = require('papaparse');
 
@@ -106,42 +101,11 @@ function parseDataFromCsv(knex, fileLocation) {
             return rows.join("\r\n");
         }
     });
-    console.log("Read data from file " + fileLocation)
+    console.log("Read data from file " + fileLocation);
     return parseResult;
 }
 
 function insertData(knex, tableName, data) {
     console.log("Insert Data into " + tableName);
     return knex(tableName).insert(data);
-}
-
-function generateValueFiles(knex, columnInfo, dataset) {
-    let columnNames = Object.getOwnPropertyNames(columnInfo);
-    columnNames.forEach(cInfo => {
-        var colType = columnInfo[cInfo].type;
-        if (col_types.includes(colType)) {
-            knex.distinct(cInfo).select().from(dataset).then(list => {
-                var columnValues = JSON.stringify(list);
-                fs.writeFile("./data/columns/" + cInfo + ".json", columnValues, 'utf8', function (err) {
-                    if (err) {
-                        return console.log(err);
-                    }
-                    console.log("The file " + cInfo + " was created");
-                });
-            });
-        }
-    }, columnInfo)
-}
-
-function deleteValueFiles(knex, columnInfo) {
-    let columnNames = Object.getOwnPropertyNames(columnInfo);
-    columnNames.forEach(cInfo => {
-        var colType = columnInfo[cInfo].type;
-        if (col_types.includes(colType)) {
-            fs.unlink("./data/columns/" + cInfo + ".json", (err) => {
-                if (err) throw err;
-                console.log("/data/columns/" + cInfo + ".json was deleted");
-            });
-        }
-    }, columnInfo)
 }
