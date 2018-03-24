@@ -30,14 +30,13 @@ class Classifier {
         let lTokenInfo = {
             token: token,
             distance: distance
-        }
+        };
         return Object.assign(lTokenInfo, labelInfo);
     }
 
     static createUnlabeledTokenInfo(token) {
         let emptyLabelInfo = Classifier.createLabelInfo(null, null, null, null);
-        let emptyTokenInfo = Classifier.createLabeledTokenInfo(token, Classifier.maxDistance + 1, emptyLabelInfo);
-        return emptyTokenInfo;
+        return Classifier.createLabeledTokenInfo(token, Classifier.maxDistance + 1, emptyLabelInfo);
     }
 
 
@@ -53,7 +52,7 @@ class Classifier {
             let columnNames = Object.getOwnPropertyNames(columnInfo);
             let columnsWithSynonyms = columnNames.map(colName => Classifier.createLabelInfo(colName, Classifier.staticWords.column, Classifier.col_types.string));
             columnSynonyms.forEach(syn => {
-                let column = columnsWithSynonyms.find(cS => cS.label == syn.column_name);
+                let column = columnsWithSynonyms.find(cS => cS.label === syn.column_name);
                 if (column)
                     column.synonyms = syn.synonyms;
             });
@@ -68,7 +67,7 @@ class Classifier {
                 let columnNames = Object.getOwnPropertyNames(columnInfo);
                 //includes is overwritten in the col_type object
                 let usedColumns = columnNames.filter(cInfo => Classifier.col_types.includes(columnInfo[cInfo].type));
-                return self.getValuesOfColumns(usedColumns, columnInfo);
+                return Classifier.getValuesOfColumns(usedColumns, columnInfo, self.state.dataset);
             })
             .then((colValues) => {
                 self.classifyToken(colValues, true);
@@ -76,14 +75,15 @@ class Classifier {
     }
 
     /**
-     * extracts the column Names from the states dataset
+     * Get specified columns of the specified dataset
      * @param columnNames
+     * @param dataset
      * @returns {*|PromiseLike<T>|Promise<T>}
      */
-    getValuesOfColumnsByName(columnNames) {
-        return knex(this.state.dataset).columnInfo()
+    static getValuesOfColumnsByName(columnNames, dataset) {
+        return knex(dataset).columnInfo()
             .then(columnInfo => {
-                self.getValuesOfColumns(columnNames, columnInfo);
+                return Classifier.getValuesOfColumns(columnNames, columnInfo, dataset);
             });
     }
 
@@ -91,31 +91,32 @@ class Classifier {
      * extracts the values from the given columnNames from the given columnInfo
      * @param columnNames
      * @param columnInfo
+     * @param dataset
      * @returns {Promise<*>}
      */
-    getValuesOfColumns(columnNames, columnInfo) {
+    static getValuesOfColumns(columnNames, columnInfo, dataset) {
         let filteredColumnInfo = {};
         columnNames.forEach(colName => {
             let colObject = columnInfo[colName];
             filteredColumnInfo[colName] = Object.assign(colObject, {name: colName});
         });
-        return this.readColumnValues(filteredColumnInfo);
+        return Classifier.readColumnValues(filteredColumnInfo, dataset);
     }
 
-    async readColumnValues(columnInfos) {
+    static async readColumnValues(columnInfos, dataset) {
         let allColValues = [];
         for (let col of Object.getOwnPropertyNames(columnInfos)) {
-            await this.readColumn(columnInfos[col]).then(values => {
+            await Classifier.readColumn(columnInfos[col], dataset).then(values => {
                 allColValues = allColValues.concat(values);
             });
         }
         return allColValues;
     }
 
-    readColumn(colInfo) {
+    static readColumn(colInfo, dataset) {
         return knex.distinct(colInfo.name)
             .select()
-            .from(this.state.dataset)
+            .from(dataset)
             .then(dbResult => {
                 return dbResult.map(r => Classifier.createLabelInfo(r[colInfo.name], Classifier.staticWords.columnValue, colInfo.type, colInfo.name));
             });
@@ -198,7 +199,7 @@ class Classifier {
         let labeledTokenInfos = [];
         labelInfos.forEach(lInfo => {
             let distance;
-            if (lInfo.synonyms && lInfo.synonyms.length != 0) {
+            if (lInfo.synonyms && lInfo.synonyms.length !== 0) {
                 //get best fitting synonym
                 let labelVariation = [];
                 labelVariation [0] = lInfo.label;
