@@ -8,7 +8,7 @@ let fs = require('fs')
 
 exports.up = function (knex, Promise) {
 
-    console.log("Migrate")
+    console.log("Migrate");
 
     return Promise.resolve()
         .then(() => createGenericDataset(knex))
@@ -27,7 +27,7 @@ exports.up = function (knex, Promise) {
 
 exports.down = function (knex, Promise) {
 
-    console.log("Rollback")
+    console.log("Rollback");
 
     return Promise.resolve()
         .then(() => deleteHumanResourcesDataCore(knex))
@@ -35,7 +35,7 @@ exports.down = function (knex, Promise) {
 };
 
 function createGenericDataset(knex) {
-    console.log("Create " + tableName_generic_dataset)
+    console.log("Create " + tableName_generic_dataset);
     return knex.schema.createTable(tableName_generic_dataset, table => {
         table.string(identifier_generic_dataset).primary();
         table.string('display_name');
@@ -45,12 +45,12 @@ function createGenericDataset(knex) {
 }
 
 function deleteGenericDataset(knex) {
-    console.log("Delete " + tableName_generic_dataset)
+    console.log("Delete " + tableName_generic_dataset);
     return knex.schema.dropTable(tableName_generic_dataset);
 }
 
 function createHumanResourcesDataCore(knex) {
-    console.log("Create " + tableName_human_resource__core_dataset)
+    console.log("Create " + tableName_human_resource__core_dataset);
     return knex.schema.createTable(tableName_human_resource__core_dataset, table => {
         table.string('employee_name');
         table.integer(identifier_human_resources__core_dataset).primary();
@@ -77,16 +77,15 @@ function createHumanResourcesDataCore(knex) {
 }
 
 function deleteHumanResourcesDataCore(knex) {
-    console.log("Delete " + tableName_human_resource__core_dataset)
+    console.log("Delete " + tableName_human_resource__core_dataset);
     return knex.schema.dropTable(tableName_human_resource__core_dataset)
 }
 
 
 function parseDataFromCsv(knex, fileLocation) {
-    console.log("Parse data from " + fileLocation)
+    console.log("Parse data from " + fileLocation);
 
     let papaparse = require('papaparse');
-    let fs = require('fs');
 
     let data = fs.readFileSync(fileLocation, "utf8");
     let parseResult = papaparse.parse(data, {
@@ -102,7 +101,7 @@ function parseDataFromCsv(knex, fileLocation) {
             return rows.join("\r\n");
         }
     });
-    console.log("Read data from file " + fileLocation)
+    console.log("Read data from file " + fileLocation);
     return parseResult;
 }
 
