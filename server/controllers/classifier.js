@@ -11,44 +11,122 @@ class Classifier {
         this.searchFunction = [
             this.extractOperation,
             this.extractChartType,
-            this.extractColumn
+            this.extractColumn,
+            this.extractColumnValue
         ]
     }
 
-    static createLabelSynonymStructure(possibleTypes) {
-        return possibleTypes.map(type => {
-                return {
-                    label: type,
-                    synonyms: []
-                }
-            }
-        );
+    static createLabelInfo(label, labelType, datatype, column) {
+        return {
+            label: label,
+            labelType: labelType,
+            synonyms: [],
+            datatype: datatype,
+            column: column
+        };
     }
+
+    static createLabeledTokenInfo(token, distance, labelInfo) {
+        let lTokenInfo = {
+            token: token,
+            distance: distance
+        }
+        return Object.assign(lTokenInfo, labelInfo);
+    }
+
+    static createUnlabeledTokenInfo(token) {
+        let emptyLabelInfo = Classifier.createLabelInfo(null, null, null, null);
+        let emptyTokenInfo = Classifier.createLabeledTokenInfo(token, Classifier.maxDistance + 1, emptyLabelInfo);
+        return emptyTokenInfo;
+    }
+
 
     extractOperation() {
         let possibleOperations = Classifier.staticWords.plotOperations.concat(Classifier.staticWords.transformOperations);
-        let operationsWithSynonyms = Classifier.createLabelSynonymStructure(possibleOperations);
-        this.classifyToken(Classifier.staticWords.operation, operationsWithSynonyms, false);
+        let operationsWithSynonyms = possibleOperations.map(op => Classifier.createLabelInfo(op, Classifier.staticWords.operation, Classifier.col_types.string));
+        this.classifyToken(operationsWithSynonyms, false);
     }
 
     extractColumn() {
         let self = this;
         knex(this.state.dataset).columnInfo().then(function (columnInfo) {
             let columnNames = Object.getOwnPropertyNames(columnInfo);
-            let columnsWithSynonyms = Classifier.createLabelSynonymStructure(columnNames);
+            let columnsWithSynonyms = columnNames.map(colName => Classifier.createLabelInfo(colName, Classifier.staticWords.column, Classifier.col_types.string));
             columnSynonyms.forEach(syn => {
                 let column = columnsWithSynonyms.find(cS => cS.label == syn.column_name);
                 if (column)
                     column.synonyms = syn.synonyms;
             });
-            self.classifyToken(Classifier.staticWords.column, columnsWithSynonyms, true);
+            self.classifyToken(columnsWithSynonyms, true);
         });
     }
 
+    extractColumnValue() {
+        let self = this;
+        knex(this.state.dataset).columnInfo()
+            .then(columnInfo => {
+                let columnNames = Object.getOwnPropertyNames(columnInfo);
+                //includes is overwritten in the col_type object
+                let usedColumns = columnNames.filter(cInfo => Classifier.col_types.includes(columnInfo[cInfo].type));
+                return self.getValuesOfColumns(usedColumns, columnInfo);
+            })
+            .then((colValues) => {
+                self.classifyToken(colValues, true);
+            });
+    }
+
+    /**
+     * extracts the column Names from the states dataset
+     * @param columnNames
+     * @returns {*|PromiseLike<T>|Promise<T>}
+     */
+    getValuesOfColumnsByName(columnNames) {
+        return knex(this.state.dataset).columnInfo()
+            .then(columnInfo => {
+                self.getValuesOfColumns(columnNames, columnInfo);
+            });
+    }
+
+    /**
+     * extracts the values from the given columnNames from the given columnInfo
+     * @param columnNames
+     * @param columnInfo
+     * @returns {Promise<*>}
+     */
+    getValuesOfColumns(columnNames, columnInfo) {
+        let filteredColumnInfo = {};
+        columnNames.forEach(colName => {
+            let colObject = columnInfo[colName];
+            filteredColumnInfo[colName] = Object.assign(colObject, {name: colName});
+        });
+        return this.readColumnValues(filteredColumnInfo);
+    }
+
+    async readColumnValues(columnInfos) {
+        let allColValues = [];
+        for (let col of Object.getOwnPropertyNames(columnInfos)) {
+            await this.readColumn(columnInfos[col]).then(values => {
+                allColValues = allColValues.concat(values);
+            });
+        }
+        return allColValues;
+    }
+
+    readColumn(colInfo) {
+        return knex.distinct(colInfo.name)
+            .select()
+            .from(this.state.dataset)
+            .then(dbResult => {
+                return dbResult.map(r => Classifier.createLabelInfo(r[colInfo.name], Classifier.staticWords.columnValue, colInfo.type, colInfo.name));
+            });
+    }
+
+
     extractChartType() {
         let possibleTypes = Classifier.staticWords.chartTypes;
-        let chartTypesWithSynonyms = Classifier.createLabelSynonymStructure(possibleTypes);
-        this.classifyToken(Classifier.staticWords.chartType, chartTypesWithSynonyms, true);
+        let chartTypesWithSynonyms = possibleTypes.map(chartType =>
+            Classifier.createLabelInfo(chartType, Classifier.staticWords.chartType, Classifier.col_types.string));
+        this.classifyToken(chartTypesWithSynonyms, true);
     }
 
     findCommand() {
@@ -88,34 +166,23 @@ class Classifier {
 
     /**
      * classifies a token with levenshtein distance
-     * @param type classification category (chartType, column, operation ...)
-     * @param valueRange possible values of the category
+     * @param labelInfos possible values of the category
      * @param lookahead false if no lookahead should be performed
      */
-    classifyToken(type, valueRange, lookahead) {
+    classifyToken(labelInfos, lookahead) {
         let tokenHolder = this.state.tokenHolders[this.state.currentToken];
         let performedLookahead = false;
-        let tokenMatched = Classifier.getMostLikelyMatch(tokenHolder.token, valueRange);
-        if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
+        let labeledTokenInfo = Classifier.getMostLikelyMatch(tokenHolder.token, labelInfos);
+        if (labeledTokenInfo && labeledTokenInfo.distance < tokenHolder.distance) {
             // this layer matches for this token
-            this.state.tokenHolders[this.state.currentToken] = {
-                token: tokenMatched.token,
-                type: type,
-                matchedValue: tokenMatched.type,
-                distance: tokenMatched.distance
-            };
+            this.state.tokenHolders[this.state.currentToken] = labeledTokenInfo;
         } else if (lookahead && this.state.currentToken <= this.state.tokenHolders.length - 2) {
             let nextTokenHolder = this.state.tokenHolders[this.state.currentToken + 1];
-            tokenMatched = Classifier.getMostLikelyMatch(tokenHolder.token + " " + nextTokenHolder.token, valueRange);
-            if (tokenMatched && tokenMatched.distance < tokenHolder.distance) {
+            labeledTokenInfo = Classifier.getMostLikelyMatch(tokenHolder.token + " " + nextTokenHolder.token, labelInfos);
+            if (labeledTokenInfo && labeledTokenInfo.distance < tokenHolder.distance) {
                 performedLookahead = true;
                 //replace the currentToken
-                this.state.tokenHolders[this.state.currentToken] = {
-                    token: tokenMatched.token,
-                    type: type,
-                    matchedValue: tokenMatched.type,
-                    distance: tokenMatched.distance
-                };
+                this.state.tokenHolders[this.state.currentToken] = labeledTokenInfo;
             }
         }
         this.nextAction(performedLookahead);
@@ -124,39 +191,36 @@ class Classifier {
     /**
      * gets the most likely match for a token out of an array of values
      * @param token token to match
-     * @param possibleTypes possible values which it could match
+     * @param labelInfos possible values which it could match
      * @returns {*}
      */
-    static getMostLikelyMatch(token, possibleTypes) {
-        let ratedTypeAffiliation = [];
-        possibleTypes.forEach(type => {
+    static getMostLikelyMatch(token, labelInfos) {
+        let labeledTokenInfos = [];
+        labelInfos.forEach(lInfo => {
             let distance;
-            if (type.synonyms && type.synonyms.length != 0) {
+            if (lInfo.synonyms && lInfo.synonyms.length != 0) {
                 //get best fitting synonym
                 let labelVariation = [];
-                labelVariation [0] = type.label;
-                labelVariation = labelVariation.concat(type.synonyms);
-                let bestSynonym = Classifier.getMostLikelyMatch(token, Classifier.createLabelSynonymStructure(labelVariation));
+                labelVariation [0] = lInfo.label;
+                labelVariation = labelVariation.concat(lInfo.synonyms);
+                let bestSynonym = Classifier.getMostLikelyMatch(token, labelVariation.map(lV => Classifier.createLabelInfo(lV, lInfo.labelType, lInfo.datatype, lInfo.column)));
                 distance = bestSynonym.distance;
             } else {
-                distance = Classifier.getLevenshteinDistance(token, type.label);
+                let value = (lInfo.datatype === Classifier.col_types.date) ? lInfo.label.toString() : lInfo.label;
+                distance = Classifier.getLevenshteinDistance(token, value);
             }
-            ratedTypeAffiliation.push({
-                "type": type.label,
-                "distance": distance,
-                "token": token
-            });
+            labeledTokenInfos.push(Classifier.createLabeledTokenInfo(token, distance, lInfo));
         });
 
-        let minDistance = Math.min.apply(Math, ratedTypeAffiliation.map(ratedType => ratedType.distance));
+        let minDistance = Math.min.apply(Math, labeledTokenInfos.map(labeledToken => labeledToken.distance));
 
         //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
-        return ratedTypeAffiliation.find((ratedType) => ratedType.distance === minDistance);
+        return labeledTokenInfos.find(labeledToken => labeledToken.distance === minDistance);
     }
 
 
     static getLevenshteinDistance(token, label) {
-        let weight = 5 / (token.length / 2);
+        let weight = 11.25 / Math.max(1, token.length);
         return natural.LevenshteinDistance(token, label, {
             insertion_cost: 2 * weight,
             deletion_cost: 2 * weight,
@@ -171,7 +235,16 @@ Classifier.staticWords = {
     chartType: "ChartType",
     plotOperations: ["plot", "make", "draw", "select"],
     transformOperations: [],
-    chartTypes: ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"]
+    chartTypes: ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"],
+    columnValue: "ColumnValue"
+};
+
+Classifier.col_types = {
+    string: "character varying",
+    date: "date",
+    includes: function (value) {
+        return value === this.string || value === this.date;
+    }
 };
 
 Classifier.maxDistance = 5;
