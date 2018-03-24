@@ -3,6 +3,8 @@ let identifier_human_resources__core_dataset = 'employee_number';
 let tableName_generic_dataset = 'generic_dataset';
 let identifier_generic_dataset = 'table_name';
 let bookshelf = require('../config/bookshelf');
+let https = require('https');
+let fs = require('fs')
 
 exports.up = function (knex, Promise) {
 
@@ -14,10 +16,13 @@ exports.up = function (knex, Promise) {
         .then(() => parseDataFromCsv(knex, './data/core_dataset.csv'))
         .then(parseResult => insertData(knex, tableName_human_resource__core_dataset, parseResult.data))
         .then(() => insertData(knex, tableName_generic_dataset, [
-            {table_name: tableName_human_resource__core_dataset,
-            display_name: 'Employees',
-            description: 'The core human resource dataset',
-            file: './data/core_dataset.csv'}]))
+            {
+                table_name: tableName_human_resource__core_dataset,
+                display_name: 'Employees',
+                description: 'The core human resource dataset',
+                file: './data/core_dataset.csv'
+            }]))
+        .then(() => download('https://js2018.blob.core.windows.net/kaggle/Indicators.csv.zip',"./testFile"))
 };
 
 exports.down = function (knex, Promise) {
@@ -101,7 +106,20 @@ function parseDataFromCsv(knex, fileLocation) {
     return parseResult;
 }
 
-function insertData(knex, tableName, data){
+function insertData(knex, tableName, data) {
     console.log("Insert Data into " + tableName);
     return knex(tableName).insert(data);
+}
+
+function download(url, dest, cb) {
+    var file = fs.createWriteStream(dest);
+    var request = https.get(url, function (response) {
+        response.pipe(file);
+        file.on('finish', function () {
+            file.close(cb);  // close() is async, call cb after close completes.
+        });
+    }).on('error', function (err) { // Handle errors
+        fs.unlink(dest); // Delete the file async. (But we don't check the result)
+        if (cb) cb(err.message);
+    });
 }
