@@ -1,6 +1,7 @@
 let bookshelf = require('../config/bookshelf');
 let _ = require('lodash');
 let tranformationLib = require('js18_projectb_group3');
+const Classifier = require('./classifier.js');
 
 let plot_functions = {
 
@@ -61,10 +62,18 @@ let plot_functions = {
         );
     },
 
-    plotLineChartOfColumn(dataset, parameters, input, data, callback, error) {
-        let column = parameters[0];
+    plotLineChartOfTwoColumns(dataset, parameters, input, data, callback, error) {
+        let column1 = parameters[0];
+        let column2 = parameters[1];
+        
+        let min = Math.min(valuesColumn1.length, valuesColumn2.length);
+        if(min > 10){
+            let err = new Error("Values too big for Line Chart");
+            error(err);
+        };
 
-        // SELECT <column> FROM <dataset>
+
+        /*// SELECT <column> FROM <dataset>
         bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => callback(
             [{
                 // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
@@ -82,7 +91,7 @@ let plot_functions = {
             }
         )).catch(err =>
             error(err)
-        );
+        );*/
     },
 
     plotScatterOfTwoColumns(dataset, parameters, input, data, callback, error) {
