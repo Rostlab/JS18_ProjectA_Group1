@@ -1,7 +1,47 @@
 let bookshelf = require('../config/bookshelf');
 let _ = require('lodash');
+let config = require('../knexfile');
+let knex = require('knex')(config);
 let tranformationLib = require('js18_projectb_group3');
 const Classifier = require('./classifier.js');
+
+
+async function createData(yAxisValues, xAxisValues, dataset) {
+    let data = [];
+    for(let minValue of yAxisValues){
+        await new Promise(resolve => {
+            createTrace(minValue, xAxisValues, dataset, data).then(result => {
+                resolve();
+            })
+        });
+    }
+    return data;
+}
+
+async function createTrace(minValue, xAxisValues, dataset, data) {
+    if(xAxisValues[0].datatype === "integer" || xAxisValues[0].datatype === "double precision"){
+        xAxisValues.sort((a,b) => a.label - b.label);
+    } else if(xAxisValues[0].datatype === "date"){
+        xAxisValues.sort((a,b) => new Date(b.label) - new Date(a.label));
+    }
+    let trace = {
+        x: [],
+        y: [],
+        mode: 'lines',
+        name: minValue.label
+    };
+    for(let maxValue of xAxisValues) {
+        await new Promise(resolve => {
+            trace.x.push(maxValue.label);
+            knex(dataset).where(minValue.column, '=', minValue.label).where(maxValue.column, '=', maxValue.label).then(value => {
+                trace.y.push(value.length);
+                resolve();
+            });
+        })
+    }
+    return data.push(trace);
+
+}
 
 let plot_functions = {
 
@@ -65,33 +105,33 @@ let plot_functions = {
     plotLineChartOfTwoColumns(dataset, parameters, input, data, callback, error) {
         let column1 = parameters[0];
         let column2 = parameters[1];
-        
-        let min = Math.min(valuesColumn1.length, valuesColumn2.length);
-        if(min > 10){
-            let err = new Error("Values too big for Line Chart");
-            error(err);
-        };
 
-
-        /*// SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => callback(
-            [{
-                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                x: data.map((value) => value.attributes[column]),
-                type: 'scatter'
-            }],
-            {
-                title: 'Line chart of ' + column,
-                xaxis: {
-                    title: column,
-                },
-                yaxis: {
-                    title: "Count",
-                }
+        Classifier.getValuesOfColumnsByName([column1, column2], dataset).then(columnValues => {
+            let column1Values = columnValues.filter(value => value.column === column1);
+            let column2Values = columnValues.filter(value => value.column === column2);
+            let yAxisValues = (column1Values.length >= column2Values.length ? column2Values : column1Values);
+            let xAxisValues = (column1Values.length < column2Values.length ? column2Values : column1Values);
+            //decided that it does not make sense to have more than 10 lines
+            if(yAxisValues.length > 10){
+                let err = new Error("Columns are to high dimensional");
+                error(err);
+            } else {
+                createData(yAxisValues, xAxisValues, dataset).then(data => {
+                    callback(data, {
+                        title: 'Line Chart of ' + xAxisValues[0].column + ' and ' + yAxisValues[0].column,
+                        xaxis: {
+                            title: xAxisValues[0].column,
+                        },
+                        yaxis: {
+                            title: yAxisValues[0].column,
+                        },
+                        showlegend: true
+                    });
+                });
             }
-        )).catch(err =>
+        }).catch(err =>
             error(err)
-        );*/
+        );
     },
 
     plotScatterOfTwoColumns(dataset, parameters, input, data, callback, error) {
