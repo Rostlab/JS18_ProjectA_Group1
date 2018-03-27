@@ -205,6 +205,32 @@
     ]
   },
   {
+    "parameters": {
+      "chartType": "line chart",
+      "numberColumns": 2
+    },
+    "function": "plotLineChartOfTwoColumns",
+    "functionParameters": [
+      "Column",
+      "Column"
+    ],
+    "tests": [
+      {
+        "input": "Show the position as pie chart",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotPieChartOfColumn",
+        "parameters": [
+          {
+            "type": "COLUMN",
+            "value": "position"
+          }
+        ]
+      }
+    ]
+  },
+
+
+  {
   "parameters": {
   },
   "tests": [
