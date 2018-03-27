@@ -5,6 +5,21 @@ let knex = require('knex')(config);
 let tranformationLib = require('js18_projectb_group3');
 const Classifier = require('./classifier.js');
 
+/**
+ * get the data for some columns filtered and grouped by the rules defined in the column objects
+ * returns a promise (which holds the data)
+ */
+async function getData(dataset, columnTokens) {
+    let query =  knex(dataset).select(columnTokens.map(token => token.label));
+    columnTokens.forEach(token => {
+        if(token.filter !== undefined) {
+            let operation = token.filter.labelType === Classifier.staticWords.filterSelector ? Classifier.staticWords.filterSelectors[token.filter.label] : '='
+            query.where(token.label, operation, token.filter.filterValue.token)
+        }
+    });
+    return await query
+}
+
 
 async function createData(yAxisValues, xAxisValues, dataset) {
     let data = [];
@@ -46,15 +61,16 @@ async function createTrace(minValue, xAxisValues, dataset, data) {
 let plot_functions = {
 
     plotHistogramOfColumn(dataset, parameters, input, data, callback, error) {
-        let column = parameters[0];
+        let column = parameters[0].label;
 
+        // TODO sample implementation for automatic data request, add this for the other functions
         // SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
+        getData(dataset, parameters).then(data => {
             //var synonym = _.find(columnSynonyms, {'columnName': column}).synomyms[0];
             callback(
                 [{
                     // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((value) => value.attributes[column]),
+                    x: data.map((object) => object[column]),
                     type: 'histogram'
                 }],
                 {
@@ -67,9 +83,7 @@ let plot_functions = {
                     }
                 }
             )
-        }).catch(err =>
-            error(err)
-        );
+        });
     },
 
     plotHistogramOfTwoColumns(dataset, parameters, input, data, callback, error) {

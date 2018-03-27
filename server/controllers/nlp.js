@@ -1,13 +1,39 @@
 let bookshelf = require('../config/bookshelf');
 let commands = require('../data/commands.json');
-let _ = require('lodash');
-let natural = require('natural');
+let nlp = require('compromise');
 const plot_functions = require('./plot-functions.js');
 const Classifier = require('./classifier.js');
 
 function getDatasets() {
     return bookshelf.Model.extend({tableName: 'generic_dataset'}).fetchAll()
 }
+
+/**
+ * POST /API/classifyTokens
+ * for debug purposes
+ * renders only the classify results, request parameters are similar to /API/nlp
+ */
+exports.classifyTokens = function (req, res) {
+    let input = req.body.input;
+    let dataset = req.body.dataset;
+
+    let data = nlp(input);
+    data.values().toNumber();
+    let tokenHolders = data.terms().data().map(item => Classifier.createUnlabeledTokenInfo(item.normal, item.bestTag));
+
+    let initState = {
+        input: input,
+        tokenHolders: tokenHolders,
+        layer: 0,
+        currentToken: 0,
+        dataset: dataset
+    };
+
+    new Classifier(initState, state => {
+        combineComplexTokens(state);
+        res.send(state.tokenHolders.map(simplifyTokenHolder))
+    });
+};
 
 /**
  * POST /API/nlp
@@ -28,12 +54,9 @@ exports.handleInput = function (req, res) {
         let dataset = req.body.dataset;
         let history = req.body.history;
 
-        let lowerCaseInput = req.body.input.toLowerCase();
-
-        let tokenizer = new natural.WordTokenizer();
-        let tokenizedInput = tokenizer.tokenize(lowerCaseInput);
-
-        let tokenHolders = tokenizedInput.map(token => Classifier.createUnlabeledTokenInfo(token));
+        let data = nlp(input);
+        data.values().toNumber();
+        let tokenHolders = data.terms().data().map(item => Classifier.createUnlabeledTokenInfo(item.normal, item.bestTag));
 
         let initState = {
             input: input,
@@ -43,8 +66,8 @@ exports.handleInput = function (req, res) {
             dataset: dataset
         };
 
-        let c = new Classifier(initState, state => findDataTransformationFunction(state, matchedCommand => {
-            if (!matchedCommand.command.parameters.isTransformation) {
+        new Classifier(initState, state => findDataTransformationFunction(state, matchedCommand => {
+            if (history === undefined || !matchedCommand.command.parameters.isTransformation) {
                 history = []
             }
             history.push({
@@ -60,7 +83,6 @@ exports.handleInput = function (req, res) {
                 data => res.send({plotly: data, history: history})
             )
         }, errorMessage => res.status(417).send({error: errorMessage})));
-        c.findCommand();
     })
 };
 
@@ -78,6 +100,27 @@ async function executeFunctions(history, dataset, errorCallback) {
 }
 
 /**
+ * takes a tokenHolder and extracts (recursively) all information that is needed after classification
+ */
+function simplifyTokenHolder(tokenHolder) {
+    let data = {
+        "token": tokenHolder.token,
+        "label": tokenHolder.label,
+        "labelType": tokenHolder.labelType
+    };
+    if (tokenHolder.hasOwnProperty("filter")) {
+        data.filter = simplifyTokenHolder(tokenHolder.filter)
+    }
+    if (tokenHolder.hasOwnProperty("filterValue")) {
+        data.filterValue = simplifyTokenHolder(tokenHolder.filterValue)
+    }
+    if (tokenHolder.hasOwnProperty("groupColumn")) {
+        data.groupColumn = simplifyTokenHolder(tokenHolder.groupColumn)
+    }
+    return data
+}
+
+/**
  * Query the needed data and transform them i nto the dataformat for plotly.js
  * @param state containing the classified input
  * @param callback: a function that takes the found command and the connected parameters as a object
@@ -88,13 +131,15 @@ function findDataTransformationFunction(state, callback, errorCallback) {
     let chartType = null;
     let columnsArray = [];
 
+    combineComplexTokens(state);
+
     state.tokenHolders.forEach(tokenHolder => {
         if (tokenHolder.labelType === Classifier.staticWords.operation) {
             operation = tokenHolder.label
         } else if (tokenHolder.labelType === Classifier.staticWords.chartType) {
             chartType = tokenHolder.label
         } else if (tokenHolder.labelType === Classifier.staticWords.column) {
-            columnsArray.push(tokenHolder.label);
+            columnsArray.push(simplifyTokenHolder(tokenHolder));
         }
     });
 
@@ -150,4 +195,56 @@ function findDataTransformationFunction(state, callback, errorCallback) {
     } else {
         callback({command: bestMatchedCommand, parameters: columnsArray})
     }
+}
+
+
+/**
+ * takes the list of (simplified) tokenHolders from the state, combines them by predefined rules to filters and groupings and puts the new structure back into the state
+ * @param state
+ */
+function combineComplexTokens(state) {
+    // from unclassified tokens
+    state.tokenHolders = state.tokenHolders.filter(tokenHolder => tokenHolder.label != null || tokenHolder.labelType === Classifier.staticWords.value);
+
+    // include ColumnValues/Values into FilterSelectors
+    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
+        if ((state.tokenHolders[i].labelType === Classifier.staticWords.filterSelector && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
+            || (state.tokenHolders[i].labelType === Classifier.staticWords.genericSelector && state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue)) {
+            state.tokenHolders[i].filterValue = state.tokenHolders[i + 1];
+            state.tokenHolders.splice(i + 1, 1)
+        }
+    }
+
+    // todo concat filters
+
+    // include FilterSelectors into Columns
+    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
+        if (state.tokenHolders[i].labelType === Classifier.staticWords.column && state.tokenHolders[i + 1].labelType === Classifier.staticWords.filterSelector && state.tokenHolders[i + 1].filterValue !== undefined) {
+            state.tokenHolders[i].filter = state.tokenHolders[i + 1];
+            state.tokenHolders.splice(i + 1, 1)
+        }
+    }
+
+    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
+        if (state.tokenHolders[i].labelType === Classifier.staticWords.column && state.tokenHolders[i].filter === undefined) {
+            for (let j = i + 1; j < state.tokenHolders.length; j++) {
+                if (state.tokenHolders[j].labelType === Classifier.staticWords.column && state.tokenHolders[j].filter !== undefined) {
+                    // TODO add (for concat filters
+                    state.tokenHolders[i].filter = state.tokenHolders[j].filter;
+                    state.tokenHolders.splice(j, 1);
+                    break;
+                }
+            }
+        }
+    }
+
+    /*
+    // include Columns into GroupSelectors
+    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
+        if (state.tokenHolders[i].labelType === Classifier.staticWords.groupSelector && state.tokenHolders[i + 1].labelType === Classifier.staticWords.column) {
+            state.tokenHolders[i].groupColumn = state.tokenHolders[i + 1];
+            state.tokenHolders.splice(i + 1, 1)
+        }
+    }
+    */
 }
