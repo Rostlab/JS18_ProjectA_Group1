@@ -11,6 +11,7 @@ cache:
 addons:
   postgresql: "9.6"
 before_install:
+  - npm cache clean --force
   - npm i -f
 before_script:
   - psql -c 'CREATE DATABASE group1;' -U postgres
