@@ -29,7 +29,6 @@ deploy:
   provider: azure_web_apps
   on: develop
   verbose: true
-os: osx
 
 #karma
 #before_script:
