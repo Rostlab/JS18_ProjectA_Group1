@@ -1,13 +1,13 @@
 language: node_js
 node_js:
-  - "8.1"     #Azure web app compability
+  - "8.9.4"     #Azure web app compability
+npm:
+  - "5.8.0"
 notifications:
   on_success: never
   on_failure: always
   slack: js2018sose:Xavb1Q1dBIeFGCjiBOS1nb4c
-cache:
-  directories:
-    - "node_modules"
+cache: false
 addons:
   postgresql: "9.6"
 before_install:
