@@ -5,7 +5,9 @@ notifications:
   on_success: never
   on_failure: always
   slack: js2018sose:Xavb1Q1dBIeFGCjiBOS1nb4c
-cache: false
+cache:
+  directories:
+    - "node_modules"
 addons:
   postgresql: "9.6"
 before_install:
