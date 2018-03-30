@@ -2,7 +2,7 @@ let bookshelf = require('../config/bookshelf');
 let _ = require('lodash');
 let config = require('../knexfile');
 let knex = require('knex')(config);
-// let tranformationLib = require('js18_projectb_group3');
+let tranformationLib = require('js18_projectb_group3');
 const Classifier = require('./classifier.js');
 
 
@@ -196,17 +196,17 @@ let plot_functions = {
         );
     },
 
-    // transformData(dataset, parameters, input, data, callback, error) {
-    //     tranformationLib.editChart(input, data, (errorData, result) => {
-    //         // TODO handle error
-    //         console.log(error);
-    //         if(errorData != null) {
-    //             error(errorData)
-    //         } else {
-    //             callback(result.data, result.layout)
-    //         }
-    //     });
-    // }
+    transformData(dataset, parameters, input, data, callback, error) {
+        tranformationLib.editChart(input, data, (errorData, result) => {
+            // TODO handle error
+            console.log(error);
+            if(errorData != null) {
+                error(errorData)
+            } else {
+                callback(result.data, result.layout)
+            }
+        });
+    }
 };
 
 module.exports = plot_functions;
