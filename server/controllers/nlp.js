@@ -108,8 +108,8 @@ function simplifyTokenHolder(tokenHolder) {
         "label": tokenHolder.label,
         "labelType": tokenHolder.labelType
     };
-    if (tokenHolder.hasOwnProperty("filter")) {
-        data.filter = tokenHolder.filter//simplifyTokenHolder(tokenHolder.filter)
+    if (tokenHolder.hasOwnProperty("column") && tokenHolder.column !== undefined) {
+        data.column = tokenHolder.column
     }
     if (tokenHolder.hasOwnProperty("filterValue")) {
         data.filterValue = simplifyTokenHolder(tokenHolder.filterValue)
@@ -130,6 +130,7 @@ function findDataTransformationFunction(state, callback, errorCallback) {
     let operation = null;
     let chartType = null;
     let columnsArray = [];
+    let filterArray = [];
 
     combineComplexTokens(state);
 
@@ -140,6 +141,8 @@ function findDataTransformationFunction(state, callback, errorCallback) {
             chartType = tokenHolder.label
         } else if (tokenHolder.labelType === Classifier.staticWords.column) {
             columnsArray.push(simplifyTokenHolder(tokenHolder));
+        } else if ((tokenHolder.labelType === Classifier.staticWords.filterSelector || tokenHolder.labelType === Classifier.staticWords.genericSelector) && tokenHolder.filterValue !== undefined) {
+            filterArray.push(simplifyTokenHolder(tokenHolder))
         }
     });
 
@@ -193,7 +196,7 @@ function findDataTransformationFunction(state, callback, errorCallback) {
         }
         errorCallback(errorMessage)
     } else {
-        callback({command: bestMatchedCommand, parameters: columnsArray})
+        callback({command: bestMatchedCommand, parameters: {columns: columnsArray, filters: filterArray}})
     }
 }
 
@@ -203,12 +206,8 @@ function findDataTransformationFunction(state, callback, errorCallback) {
  * @param state
  */
 function combineComplexTokens(state) {
-    // from unclassified tokens
+    // hide unclassified tokens
     state.tokenHolders = state.tokenHolders.filter(tokenHolder => tokenHolder.label != null || tokenHolder.labelType === Classifier.staticWords.value);
-    state.tokenHolders.filter(tokenHolder => tokenHolder.labelType === Classifier.staticWords.column).forEach(column => column.filter = {
-        type: "AND",
-        filters: []
-    });
 
     // include ColumnValues/Values into FilterSelectors
     for (let i = 0; i < state.tokenHolders.length - 1; i++) {
@@ -216,33 +215,15 @@ function combineComplexTokens(state) {
             && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
             || (state.tokenHolders[i].labelType === Classifier.staticWords.genericSelector && state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue)) {
             state.tokenHolders[i].filterValue = state.tokenHolders[i + 1];
-            state.tokenHolders.splice(i + 1, 1)
-        }
-    }
+            state.tokenHolders.splice(i + 1, 1);
 
-    // include FilterSelectors into Columns based on column in columnValue
-    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
-        if (state.tokenHolders[i].labelType === Classifier.staticWords.column) {
-            for (let j = i + 1; j < state.tokenHolders.length; j++) {
-                if (state.tokenHolders[j].labelType === Classifier.staticWords.filterSelector
-                    && state.tokenHolders[j].filterValue.labelType === Classifier.staticWords.columnValue
-                    && state.tokenHolders[j].filterValue.column === state.tokenHolders[i].label) {
-                    state.tokenHolders[i].filter.filters.push(state.tokenHolders[j]);
-                    state.tokenHolders.splice(j, 1);
-                    break;
-                }
+            if (state.tokenHolders[i].filterValue.column === null && i > 0 && state.tokenHolders[i - 1].labelType === Classifier.staticWords.column) {
+                state.tokenHolders[i].filterValue.column = state.tokenHolders[i - 1].label
             }
-        }
-    }
-
-    // include FilterSelectors into Columns based on location
-    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
-        while (i < state.tokenHolders.length - 1
-        && state.tokenHolders[i].labelType === Classifier.staticWords.column
-        && state.tokenHolders[i + 1].labelType === Classifier.staticWords.filterSelector
-        && state.tokenHolders[i + 1].filterValue !== undefined) {
-            state.tokenHolders[i].filter.filters.push(state.tokenHolders[i + 1]);
-            state.tokenHolders.splice(i + 1, 1)
+            // TODO verify that (assigning the same column as the previous filter)
+            if (state.tokenHolders[i].filterValue.column === null && i > 0 && (state.tokenHolders[i - 1].labelType === Classifier.staticWords.filterSelector || state.tokenHolders[i - 1].labelType === Classifier.staticWords.genericSelector)) {
+                state.tokenHolders[i].filterValue.column = state.tokenHolders[i - 1].filterValue.column
+            }
         }
     }
 
@@ -251,7 +232,7 @@ function combineComplexTokens(state) {
         if (state.tokenHolders[i].labelType === Classifier.staticWords.column) {
             for (let j = i + 1; j < state.tokenHolders.length; j++) {
                 if (state.tokenHolders[j].labelType === Classifier.staticWords.column && state.tokenHolders[j].label === state.tokenHolders[i].label) {
-                    state.tokenHolders[i].filter.filters = state.tokenHolders[i].filter.filters.concat(state.tokenHolders[j].filter.filters);
+                    //state.tokenHolders[i].filter.filters = state.tokenHolders[i].filter.filters.concat(state.tokenHolders[j].filter.filters);
                     state.tokenHolders.splice(j, 1);
                     break;
                 }

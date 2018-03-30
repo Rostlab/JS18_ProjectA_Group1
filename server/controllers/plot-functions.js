@@ -4,33 +4,32 @@ let knex = require('knex')(config);
 let tranformationLib = require('js18_projectb_group3');
 const Classifier = require('./classifier.js');
 
+knex.on('query', function (queryData) {
+    console.log({
+        bindings: queryData.bindings,
+        sql: queryData.sql,
+    });
+});
+
 /**
  * get the data for some columns filtered and grouped by the rules defined in the column objects
  * returns a promise (which holds the data)
  */
-async function getData(dataset, columnTokens) {
-    let query = knex(dataset).select(columnTokens.map(token => token.label));
-    columnTokens.forEach(token => {
-        if (token.filter !== undefined) {
-            buildWhere(token.label, token.filter, query)
+async function getData(dataset, parameters) {
+    let columnInfo = await knex(dataset).columnInfo();
+    let query = knex(dataset).select(parameters.columns.map(token => token.label));
+    parameters.filters.forEach(filter => {
+        if (filter.filterValue !== undefined && filter.filterValue.column !== undefined) {
+            let operation = filter.labelType === Classifier.staticWords.filterSelector ? Classifier.staticWords.filterSelectors[filter.label] : '=';
+            if (columnInfo[filter.filterValue.column] === "character varying") {
+                query.whereRaw('LOWER(' + filter.filterValue.column + ') ' + operation + " '" + filter.filterValue.token.toLocaleLowerCase() + "'")
+            } else {
+                query.where(filter.filterValue.column, operation, filter.filterValue.token)
+            }
         }
     });
     return await query
 }
-
-function buildWhere(column, token, query) {
-    if (token.type === "AND") {
-        token.filters.forEach(filter => {
-            buildWhere(column, filter, query)
-        })
-    } else if (token.type === "OR") {
-        // TODO
-    } else if (token.token !== undefined) {
-        let operation = token.labelType === Classifier.staticWords.filterSelector ? Classifier.staticWords.filterSelectors[token.label] : '=';
-        query.where(column, operation, token.filterValue.token)
-    }
-}
-
 
 async function createData(yAxisValues, xAxisValues, dataset) {
     let data = [];
@@ -72,15 +71,15 @@ async function createTrace(minValue, xAxisValues, dataset, data) {
 let plot_functions = {
 
     plotHistogramOfColumn(dataset, parameters, input, data, callback, error) {
-        let column = parameters[0].label;
+        let column = parameters.columns[0].label;
 
         // SELECT <column> FROM <dataset>
-        getData(dataset, parameters).then(data => {
+        getData(dataset, parameters).then(queriedData => {
             //var synonym = _.find(columnSynonyms, {'columnName': column}).synomyms[0];
             callback(
                 [{
                     // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((object) => object[column]),
+                    x: queriedData.map((object) => object[column]),
                     type: 'histogram'
                 }],
                 {
@@ -97,21 +96,21 @@ let plot_functions = {
     },
 
     plotHistogramOfTwoColumns(dataset, parameters, input, data, callback, error) {
-        let column1 = parameters[0].label;
-        let column2 = parameters[1].label;
+        let column1 = parameters.columns[0].label;
+        let column2 = parameters.columns[1].label;
 
         // SELECT <column1>, <column2> FROM <dataset>
-        getData(dataset, parameters).then(data => {
+        getData(dataset, parameters).then(queriedData => {
             callback(
                 [
                     {
                         // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                        x: data.map((object) => object[column1]),
+                        x: queriedData.map((object) => object[column1]),
                         type: 'histogram'
                     },
                     {
                         // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                        x: data.map((object) => object[column2]),
+                        x: queriedData.map((object) => object[column2]),
                         type: 'histogram'
                     }
                 ],
@@ -130,8 +129,8 @@ let plot_functions = {
 
     // TODO add filters for line chart as well
     plotLineChartOfTwoColumns(dataset, parameters, input, data, callback, error) {
-        let column1 = parameters[0].label;
-        let column2 = parameters[1].label;
+        let column1 = parameters.columns[0].label;
+        let column2 = parameters.columns[1].label;
 
         Classifier.getValuesOfColumnsByName([column1, column2], dataset).then(columnValues => {
             let column1Values = columnValues.filter(value => value.column === column1);
@@ -162,16 +161,16 @@ let plot_functions = {
     },
 
     plotScatterOfTwoColumns(dataset, parameters, input, data, callback, error) {
-        let column1 = parameters[0].label;
-        let column2 = parameters[1].label;
+        let column1 = parameters.columns[0].label;
+        let column2 = parameters.columns[1].label;
 
         // SELECT <column1>, <column2>  FROM <dataset>
-        getData(dataset, parameters).then(data => {
+        getData(dataset, parameters).then(queriedData => {
             callback(
                 [{
                     // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((object) => object[column1]),
-                    y: data.map((object) => object[column2]),
+                    x: queriedData.map((object) => object[column1]),
+                    y: queriedData.map((object) => object[column2]),
                     mode: 'markers',
                     type: 'scatter',
                     name: "age"
@@ -191,10 +190,10 @@ let plot_functions = {
     },
 
     plotPieChartOfColumn(dataset, parameters, input, data, callback, error) {
-        let column = parameters[0].label;
+        let column = parameters.columns[0].label;
         // SELECT <column> FROM <dataset>
-        getData(dataset, parameters).then(data => {
-            let entries = data.map((object) => object[column]);
+        getData(dataset, parameters).then(queriedData => {
+            let entries = queriedData.map((object) => object[column]);
             let values = [];
             let labels = [];
             _.forEach(entries, function (entry) {
