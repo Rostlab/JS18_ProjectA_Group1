@@ -1,8 +1,6 @@
 language: node_js
 node_js:
   - "8.9.4"     #Azure web app compability
-npm:
-  - "5.8.0"
 notifications:
   on_success: never
   on_failure: always
