@@ -277,8 +277,10 @@ Classifier.staticWords = {
     groupSelectors: ["for every", "for each", "each"],
     filterSelectors: {
         "is": "=",
+        "is not": "!=",
         "equal to": "=",
         "is equal to": "=",
+        "is not equal to": "!=",
         "bigger than": ">",
         "is bigger than": ">",
         "greater than": ">",
