@@ -82,7 +82,10 @@ exports.handleInput = function (req, res) {
             })).then(
                 data => res.send({plotly: data, history: history})
             )
-        }, errorMessage => res.status(417).send({error: errorMessage})));
+        }, errorMessage => {
+            console.log(errorMessage);
+            res.status(417).send({error: errorMessage})
+        }));
     })
 };
 

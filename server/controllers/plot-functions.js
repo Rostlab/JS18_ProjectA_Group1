@@ -17,11 +17,12 @@ knex.on('query', function (queryData) {
  */
 async function getData(dataset, parameters) {
     let columnInfo = await knex(dataset).columnInfo();
+    console.log(columnInfo);
     let query = knex(dataset).select(parameters.columns.map(token => token.label));
     parameters.filters.forEach(filter => {
         if (filter.filterValue !== undefined && filter.filterValue.column !== undefined) {
             let operation = filter.labelType === Classifier.staticWords.filterSelector ? Classifier.staticWords.filterSelectors[filter.label] : '=';
-            if (columnInfo[filter.filterValue.column] === "character varying") {
+            if (columnInfo[filter.filterValue.column].type === "character varying") {
                 query.whereRaw('LOWER(' + filter.filterValue.column + ') ' + operation + " '" + filter.filterValue.token.toLocaleLowerCase() + "'")
             } else {
                 query.where(filter.filterValue.column, operation, filter.filterValue.token)
@@ -92,7 +93,9 @@ let plot_functions = {
                     }
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
     plotHistogramOfTwoColumns(dataset, parameters, input, data, callback, error) {
@@ -124,7 +127,9 @@ let plot_functions = {
                     }
                 }
             );
-        })
+        }).catch(err =>
+            error(err)
+        );
     },
 
     // TODO add filters for line chart as well
@@ -186,7 +191,9 @@ let plot_functions = {
                     showlegend: true
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
     plotPieChartOfColumn(dataset, parameters, input, data, callback, error) {
@@ -215,7 +222,9 @@ let plot_functions = {
                     title: 'Pie Chart of ' + column,
                 }
             )
-        });
+        }).catch(err =>
+            error(err)
+        );
     },
 
     transformData(dataset, parameters, input, data, callback, error) {
