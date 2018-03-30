@@ -109,7 +109,7 @@ function simplifyTokenHolder(tokenHolder) {
         "labelType": tokenHolder.labelType
     };
     if (tokenHolder.hasOwnProperty("filter")) {
-        data.filter = simplifyTokenHolder(tokenHolder.filter)
+        data.filter = tokenHolder.filter//simplifyTokenHolder(tokenHolder.filter)
     }
     if (tokenHolder.hasOwnProperty("filterValue")) {
         data.filterValue = simplifyTokenHolder(tokenHolder.filterValue)
@@ -169,7 +169,7 @@ function findDataTransformationFunction(state, callback, errorCallback) {
 
             // check if it is a better match than the current one
             if (possiblyMatches && bestMatchedCommand != null && !bestMatchedCommand.parameters.isTransformation) {
-                possiblyMatches = command.parameters.numberColumn < bestMatchedCommand.parameters.numberColumns
+                possiblyMatches = command.parameters.numberColumns > bestMatchedCommand.parameters.numberColumns
             }
 
             // save command
@@ -205,32 +205,53 @@ function findDataTransformationFunction(state, callback, errorCallback) {
 function combineComplexTokens(state) {
     // from unclassified tokens
     state.tokenHolders = state.tokenHolders.filter(tokenHolder => tokenHolder.label != null || tokenHolder.labelType === Classifier.staticWords.value);
+    state.tokenHolders.filter(tokenHolder => tokenHolder.labelType === Classifier.staticWords.column).forEach(column => column.filter = {
+        type: "AND",
+        filters: []
+    });
 
     // include ColumnValues/Values into FilterSelectors
     for (let i = 0; i < state.tokenHolders.length - 1; i++) {
-        if ((state.tokenHolders[i].labelType === Classifier.staticWords.filterSelector && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
+        if ((state.tokenHolders[i].labelType === Classifier.staticWords.filterSelector
+            && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
             || (state.tokenHolders[i].labelType === Classifier.staticWords.genericSelector && state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue)) {
             state.tokenHolders[i].filterValue = state.tokenHolders[i + 1];
             state.tokenHolders.splice(i + 1, 1)
         }
     }
 
-    // todo concat filters
-
-    // include FilterSelectors into Columns
+    // include FilterSelectors into Columns based on column in columnValue
     for (let i = 0; i < state.tokenHolders.length - 1; i++) {
-        if (state.tokenHolders[i].labelType === Classifier.staticWords.column && state.tokenHolders[i + 1].labelType === Classifier.staticWords.filterSelector && state.tokenHolders[i + 1].filterValue !== undefined) {
-            state.tokenHolders[i].filter = state.tokenHolders[i + 1];
+        if (state.tokenHolders[i].labelType === Classifier.staticWords.column) {
+            for (let j = i + 1; j < state.tokenHolders.length; j++) {
+                if (state.tokenHolders[j].labelType === Classifier.staticWords.filterSelector
+                    && state.tokenHolders[j].filterValue.labelType === Classifier.staticWords.columnValue
+                    && state.tokenHolders[j].filterValue.column === state.tokenHolders[i].label) {
+                    state.tokenHolders[i].filter.filters.push(state.tokenHolders[j]);
+                    state.tokenHolders.splice(j, 1);
+                    break;
+                }
+            }
+        }
+    }
+
+    // include FilterSelectors into Columns based on location
+    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
+        while (i < state.tokenHolders.length - 1
+        && state.tokenHolders[i].labelType === Classifier.staticWords.column
+        && state.tokenHolders[i + 1].labelType === Classifier.staticWords.filterSelector
+        && state.tokenHolders[i + 1].filterValue !== undefined) {
+            state.tokenHolders[i].filter.filters.push(state.tokenHolders[i + 1]);
             state.tokenHolders.splice(i + 1, 1)
         }
     }
 
+    // combine same columns
     for (let i = 0; i < state.tokenHolders.length - 1; i++) {
-        if (state.tokenHolders[i].labelType === Classifier.staticWords.column && state.tokenHolders[i].filter === undefined) {
+        if (state.tokenHolders[i].labelType === Classifier.staticWords.column) {
             for (let j = i + 1; j < state.tokenHolders.length; j++) {
-                if (state.tokenHolders[j].labelType === Classifier.staticWords.column && state.tokenHolders[j].filter !== undefined) {
-                    // TODO add (for concat filters
-                    state.tokenHolders[i].filter = state.tokenHolders[j].filter;
+                if (state.tokenHolders[j].labelType === Classifier.staticWords.column && state.tokenHolders[j].label === state.tokenHolders[i].label) {
+                    state.tokenHolders[i].filter.filters = state.tokenHolders[i].filter.filters.concat(state.tokenHolders[j].filter.filters);
                     state.tokenHolders.splice(j, 1);
                     break;
                 }

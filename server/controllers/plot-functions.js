@@ -1,4 +1,3 @@
-let bookshelf = require('../config/bookshelf');
 let _ = require('lodash');
 let config = require('../knexfile');
 let knex = require('knex')(config);
@@ -10,20 +9,32 @@ const Classifier = require('./classifier.js');
  * returns a promise (which holds the data)
  */
 async function getData(dataset, columnTokens) {
-    let query =  knex(dataset).select(columnTokens.map(token => token.label));
+    let query = knex(dataset).select(columnTokens.map(token => token.label));
     columnTokens.forEach(token => {
-        if(token.filter !== undefined) {
-            let operation = token.filter.labelType === Classifier.staticWords.filterSelector ? Classifier.staticWords.filterSelectors[token.filter.label] : '='
-            query.where(token.label, operation, token.filter.filterValue.token)
+        if (token.filter !== undefined) {
+            buildWhere(token.label, token.filter, query)
         }
     });
     return await query
 }
 
+function buildWhere(column, token, query) {
+    if (token.type === "AND") {
+        token.filters.forEach(filter => {
+            buildWhere(column, filter, query)
+        })
+    } else if (token.type === "OR") {
+        // TODO
+    } else if (token.token !== undefined) {
+        let operation = token.labelType === Classifier.staticWords.filterSelector ? Classifier.staticWords.filterSelectors[token.label] : '=';
+        query.where(column, operation, token.filterValue.token)
+    }
+}
+
 
 async function createData(yAxisValues, xAxisValues, dataset) {
     let data = [];
-    for(let minValue of yAxisValues){
+    for (let minValue of yAxisValues) {
         await new Promise(resolve => {
             createTrace(minValue, xAxisValues, dataset, data).then(result => {
                 resolve();
@@ -34,10 +45,10 @@ async function createData(yAxisValues, xAxisValues, dataset) {
 }
 
 async function createTrace(minValue, xAxisValues, dataset, data) {
-    if(xAxisValues[0].datatype === "integer" || xAxisValues[0].datatype === "double precision"){
-        xAxisValues.sort((a,b) => a.label - b.label);
-    } else if(xAxisValues[0].datatype === "date"){
-        xAxisValues.sort((a,b) => new Date(b.label) - new Date(a.label));
+    if (xAxisValues[0].datatype === "integer" || xAxisValues[0].datatype === "double precision") {
+        xAxisValues.sort((a, b) => a.label - b.label);
+    } else if (xAxisValues[0].datatype === "date") {
+        xAxisValues.sort((a, b) => new Date(b.label) - new Date(a.label));
     }
     let trace = {
         x: [],
@@ -45,7 +56,7 @@ async function createTrace(minValue, xAxisValues, dataset, data) {
         mode: 'lines',
         name: minValue.label
     };
-    for(let maxValue of xAxisValues) {
+    for (let maxValue of xAxisValues) {
         await new Promise(resolve => {
             trace.x.push(maxValue.label);
             knex(dataset).where(minValue.column, '=', minValue.label).where(maxValue.column, '=', maxValue.label).then(value => {
@@ -63,7 +74,6 @@ let plot_functions = {
     plotHistogramOfColumn(dataset, parameters, input, data, callback, error) {
         let column = parameters[0].label;
 
-        // TODO sample implementation for automatic data request, add this for the other functions
         // SELECT <column> FROM <dataset>
         getData(dataset, parameters).then(data => {
             //var synonym = _.find(columnSynonyms, {'columnName': column}).synomyms[0];
@@ -87,38 +97,41 @@ let plot_functions = {
     },
 
     plotHistogramOfTwoColumns(dataset, parameters, input, data, callback, error) {
-        let column1 = parameters[0];
-        let column2 = parameters[1];
+        let column1 = parameters[0].label;
+        let column2 = parameters[1].label;
 
         // SELECT <column1>, <column2> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => callback(
-            [{
-                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                x: data.map((value) => value.attributes[column1]),
-                type: 'histogram'
-            },
+        getData(dataset, parameters).then(data => {
+            callback(
+                [
+                    {
+                        // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                        x: data.map((object) => object[column1]),
+                        type: 'histogram'
+                    },
+                    {
+                        // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                        x: data.map((object) => object[column2]),
+                        type: 'histogram'
+                    }
+                ],
                 {
-                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((value) => value.attributes[column2]),
-                    type: 'histogram'
-                }],
-            {
-                title: 'Histogram of ' + column1 + ' and ' + column2,
-                xaxis: {
-                    title: column1 + ' ' + column2,
-                },
-                yaxis: {
-                    title: "Count",
+                    title: 'Histogram of ' + column1 + ' and ' + column2,
+                    xaxis: {
+                        title: column1 + ' ' + column2,
+                    },
+                    yaxis: {
+                        title: "Count",
+                    }
                 }
-            }
-        )).catch(err =>
-            error(err)
-        );
+            );
+        })
     },
 
+    // TODO add filters for line chart as well
     plotLineChartOfTwoColumns(dataset, parameters, input, data, callback, error) {
-        let column1 = parameters[0];
-        let column2 = parameters[1];
+        let column1 = parameters[0].label;
+        let column2 = parameters[1].label;
 
         Classifier.getValuesOfColumnsByName([column1, column2], dataset).then(columnValues => {
             let column1Values = columnValues.filter(value => value.column === column1);
@@ -126,7 +139,7 @@ let plot_functions = {
             let yAxisValues = (column1Values.length >= column2Values.length ? column2Values : column1Values);
             let xAxisValues = (column1Values.length < column2Values.length ? column2Values : column1Values);
             //decided that it does not make sense to have more than 10 lines
-            if(yAxisValues.length > 10){
+            if (yAxisValues.length > 10) {
                 let err = new Error("Columns are to high dimensional");
                 error(err);
             } else {
@@ -149,16 +162,16 @@ let plot_functions = {
     },
 
     plotScatterOfTwoColumns(dataset, parameters, input, data, callback, error) {
-        let column1 = parameters[0];
-        let column2 = parameters[1];
+        let column1 = parameters[0].label;
+        let column2 = parameters[1].label;
 
         // SELECT <column1>, <column2>  FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => {
+        getData(dataset, parameters).then(data => {
             callback(
                 [{
                     // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((value) => value.attributes[column1]),
-                    y: data.map((value) => value.attributes[column2]),
+                    x: data.map((object) => object[column1]),
+                    y: data.map((object) => object[column2]),
                     mode: 'markers',
                     type: 'scatter',
                     name: "age"
@@ -174,16 +187,14 @@ let plot_functions = {
                     showlegend: true
                 }
             )
-        }).catch(err =>
-            error(err)
-        );
+        });
     },
 
     plotPieChartOfColumn(dataset, parameters, input, data, callback, error) {
-        let column = parameters[0];
+        let column = parameters[0].label;
         // SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
-            let entries = data.map((value) => value.attributes[column]);
+        getData(dataset, parameters).then(data => {
+            let entries = data.map((object) => object[column]);
             let values = [];
             let labels = [];
             _.forEach(entries, function (entry) {
@@ -205,16 +216,14 @@ let plot_functions = {
                     title: 'Pie Chart of ' + column,
                 }
             )
-        }).catch(err =>
-            error(err)
-        );
+        });
     },
 
     transformData(dataset, parameters, input, data, callback, error) {
         tranformationLib.editChart(input, data, (errorData, result) => {
             // TODO handle error
             console.log(error);
-            if(errorData != null) {
+            if (errorData != null) {
                 error(errorData)
             } else {
                 callback(result.data, result.layout)
