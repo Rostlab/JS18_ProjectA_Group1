@@ -45,7 +45,7 @@
     "lodash": "^4.17.5",
     "morgan": "^1.7.0",
     "natural": "https://github.com/TobiasPr/natural/tarball/master",
-    "js18_projectb_group3": "https://github.com/Rostlab/JS18_ProjectB_Group3/tarball/develop",
+    "js18_projectb_group3": "git+https://github.com/Rostlab/JS18_ProjectB_Group3#90a72531679998b335f8cf1db818efa4239800b1",
     "nodemailer": "^4.6.0",
     "papaparse": "^4.3.7",
     "pg": "^7.4.1",
