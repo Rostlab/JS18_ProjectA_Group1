@@ -221,12 +221,16 @@ class Classifier {
 
 
     static getLevenshteinDistance(token, label) {
-        let weight = 11.25 / Math.max(1, token.length);
-        return natural.LevenshteinDistance(token, label, {
-            insertion_cost: 2 * weight,
-            deletion_cost: 2 * weight,
-            substitution_cost: weight
-        });
+        if (label != null) {
+            let weight = 11.25 / Math.max(1, token.length);
+            return natural.LevenshteinDistance(token, label, {
+                insertion_cost: 2 * weight,
+                deletion_cost: 2 * weight,
+                substitution_cost: weight
+            });
+        } else {
+            return Classifier.maxDistance;
+        }
     }
 }
 
