@@ -3,7 +3,6 @@ let identifier_human_resources__core_dataset = 'employee_number';
 let tableName_generic_dataset = 'generic_dataset';
 let tableName_world_develop_indicators__indicator_dataset = 'world_develop_indicators__indicator_dataset'
 let identifier_generic_dataset = 'table_name';
-let bookshelf = require('../config/bookshelf');
 let https = require('https');
 let fs = require('fs');
 let papaparse = require('papaparse');
@@ -49,7 +48,6 @@ exports.up = function (knex, Promise) {
                 description: 'The world develop indicators',
                 file: 'https://js2018.blob.core.windows.net/kaggle/Indicators.csv.gz'
             }]));
-    //.then(parseResult => insertData(knex, tableName_world_develop_indicators__indicator_dataset, parseResult.data))
 };
 
 exports.down = function (knex, Promise) {
@@ -120,7 +118,6 @@ function insertData(knex, tableName, data) {
 }
 
 async function download(url, knex) {
-    const gzip = zlib.createUnzip();
     var streamSplitPart1;
 
     await new Promise((resolve, reject) => {
@@ -169,28 +166,23 @@ async function download(url, knex) {
             insertData(knex, tableName_world_develop_indicators__indicator_dataset, result.data).then(() => done());
         };
         writeStream.on('finish', () => {
-            console.error('All writes are now complete.');
+            console.log('All writes are now complete.');
             resolve();
         });
 
         writeStream.on('error', () => {
-            console.error('Error occurred.');
+            console.log('Error occurred.');
             reject();
         });
 
-        var request = https.get(url, function (response) {
+        https.get(url, function (response) {
                 response.pipe(zlib.createUnzip()).pipe(writeStream);
             }
         ).on('error', function (err) { // Handle errors
-            console.log("error");// Delete the file async. (But we don't check the result)
+            console.log(err);// Delete the file async. (But we don't check the result)
             reject();
         });
     });
-}
-
-function readCSVChunk(results, parser) {
-    console.log("Row data:", results.data);
-    console.log("Row errors:", results.errors);
 }
 
 function createIndicatorDataset(knex) {
