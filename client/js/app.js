@@ -29,7 +29,7 @@ function generateGraph(dataset, input) {
         error.innerHTML = '';
     loadJSON("nlp", "POST", {dataset: dataset, input: input, history: plotHistory}, (response) => {
         Plotly.newPlot('graph', response.plotly.data, response.plotly.layout);
-        plotHistory = response.history;
+        createHistoryList(response.history);
         setLoading(false)
     }, (errorText) => {
         error.innerHTML = errorText;
@@ -94,26 +94,40 @@ function onExampleSelected(example) {
     document.getElementById("command-button").click();
 }
 
-function createExampleEntry(example, table) {
+function createHistoryList(historyData) {
+    plotHistory = historyData;
+    let table = document.getElementById('history_body');
+    clearList(table);
+    historyData.forEach(example => {
+        createTableEntry(example, table);
+    })
+}
+
+function createTableEntry(data, table, onClickFunction) {
     let tr = document.createElement("tr");
     let td = document.createElement("td");
     td.setAttribute("class", "mdl-data-table__cell--non-numeric");
-    td.append(example.input);
-    tr.onclick = function () {
-        onExampleSelected(this);
-    };
+    td.append(data.input);
+    if (onClickFunction) {
+        tr.onclick = function () {
+            onClickFunction(this);
+        };
+    }
     tr.appendChild(td);
     table.appendChild(tr);
 }
 
-function createExampleList(response) {
-    let examples = response.examples;
-    let table = document.getElementById('example_body');
+function clearList(table) {
     while (table.firstChild) {
         table.removeChild(table.firstChild);
     }
+}
+function createExampleList(response) {
+    let examples = response.examples;
+    let table = document.getElementById('example_body');
+    clearList(table);
     examples.forEach(example => {
-        createExampleEntry(example, table);
+        createTableEntry(example, table, onExampleSelected);
     })
 }
 
