@@ -206,6 +206,7 @@ class Classifier {
 
     /**
      * gets the most likely match for a token out of an array of values
+     * if there are more tokens with the same minimal distance the longest token is selected
      * @param labelInfos possible values which it could match
      * @returns {*}
      */
@@ -225,10 +226,10 @@ class Classifier {
                     value = value[0]
                 }
                 let wordCount = value.split(' ').length;
-                if (this.state.tokenHolders.length >= this.state.currentToken + wordCount) {
+                if (this.state.currentToken <= this.state.tokenHolders.length - wordCount) {
                     let token = "";
-                    for (let i = this.state.currentToken; i <= this.state.currentToken + wordCount - 1; i++) {
-                        token += this.state.tokenHolders[i].token + " ";
+                    for (let i = 0; i < wordCount; i++) {
+                        token += this.state.tokenHolders[this.state.currentToken + i].token + " ";
                     }
                     token = token.trim();
 
@@ -240,9 +241,7 @@ class Classifier {
 
         let minDistance = Math.min.apply(Math, labeledTokenInfos.map(labeledToken => labeledToken.distance));
         let tokensWithMinDistance = labeledTokenInfos.filter(labeledToken => labeledToken.distance === minDistance);
-
-        //console.log("Token: " + token + " Distance: " + mostLikelyMatch.distance + " matched to " + mostLikelyMatch.type)
-        return tokensWithMinDistance.sort((a, b) => b.token.length - a.token.length)[0]
+        return tokensWithMinDistance.sort((a, b) => b.token.length - a.token.length)[0] // longest token with min distance
     }
 
 

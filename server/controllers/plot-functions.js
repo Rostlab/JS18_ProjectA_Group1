@@ -15,11 +15,11 @@ knex.on('query', function (queryData) {
  * get the data for some columns filtered and grouped by the rules defined in the column objects
  * returns a promise (which holds the data)
  */
-async function getData(dataset, parameters) {
+async function getData(dataset, {columns, filters}) {
     let columnInfo = await knex(dataset).columnInfo();
     console.log(columnInfo);
-    let query = knex(dataset).select(parameters.columns.map(token => token.label));
-    parameters.filters.forEach(filter => {
+    let query = knex(dataset).select(columns.map(token => token.label));
+    filters.forEach(filter => {
         if (filter.filterValue !== undefined && filter.filterValue.column !== undefined) {
             let operation = filter.labelType === Classifier.staticWords.filterSelector ? Classifier.staticWords.filterSelectors[filter.label] : '=';
             if (columnInfo[filter.filterValue.column].type === "character varying") {

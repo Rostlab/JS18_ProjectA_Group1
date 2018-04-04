@@ -214,15 +214,20 @@ function combineComplexTokens(state) {
 
     // include ColumnValues/Values into FilterSelectors
     for (let i = 0; i < state.tokenHolders.length - 1; i++) {
+        // if (current token is a FilterSelector and next token is a Value|ColumnValue) or (current token is a GenericSelector and next token is a ColumnValue)
         if ((state.tokenHolders[i].labelType === Classifier.staticWords.filterSelector
             && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
             || (state.tokenHolders[i].labelType === Classifier.staticWords.genericSelector && state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue)) {
+
             state.tokenHolders[i].filterValue = state.tokenHolders[i + 1];
             state.tokenHolders.splice(i + 1, 1);
 
+            // if we don't yet know the filter is operating on and the token before is a column it is most likely the column we search for
             if (state.tokenHolders[i].filterValue.column === null && i > 0 && state.tokenHolders[i - 1].labelType === Classifier.staticWords.column) {
                 state.tokenHolders[i].filterValue.column = state.tokenHolders[i - 1].label
             }
+
+            // if we don't yet know the filter is operating on and the token before is a filter as well that knows on which column it is operating on it is most likely the column we search for
             // TODO verify that (assigning the same column as the previous filter)
             if (state.tokenHolders[i].filterValue.column === null && i > 0 && (state.tokenHolders[i - 1].labelType === Classifier.staticWords.filterSelector || state.tokenHolders[i - 1].labelType === Classifier.staticWords.genericSelector)) {
                 state.tokenHolders[i].filterValue.column = state.tokenHolders[i - 1].filterValue.column
@@ -230,7 +235,7 @@ function combineComplexTokens(state) {
         }
     }
 
-    // combine same columns
+    // combine same columns (remove all duplicated column tokens)
     for (let i = 0; i < state.tokenHolders.length - 1; i++) {
         if (state.tokenHolders[i].labelType === Classifier.staticWords.column) {
             for (let j = i + 1; j < state.tokenHolders.length; j++) {
