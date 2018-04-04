@@ -51,7 +51,7 @@ class Classifier {
         knex(this.state.dataset).columnInfo().then(function (columnInfo) {
             let columnNames = Object.getOwnPropertyNames(columnInfo);
             let columnsWithSynonyms = columnNames.map(colName => Classifier.createLabelInfo(colName, Classifier.staticWords.column, Classifier.col_types.string));
-            columnSynonyms.forEach(syn => {
+            columnSynonyms.find(colSynonyms => colSynonyms.dataset == self.state.dataset).columns.forEach(syn => {
                 let column = columnsWithSynonyms.find(cS => cS.label === syn.column_name);
                 if (column)
                     column.synonyms = syn.synonyms;

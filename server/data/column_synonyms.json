@@ -1,30 +1,61 @@
 [
   {
-    "column_name": "maritaldesc",
-    "synonyms": [
-      "marriage state",
-      "marriage description"
+    "dataset": "human_resources__core_dataset",
+    "columns": [
+      {
+        "column_name": "maritaldesc",
+        "synonyms": [
+          "marriage state",
+          "marriage description"
+        ]
+      },
+      {
+        "column_name": "citizendesc",
+        "synonyms": [
+          "citizen description",
+          "citizen"
+        ]
+      },
+      {
+        "column_name": "racedesc",
+        "synonyms": [
+          "race",
+          "race description"
+        ]
+      },
+      {
+        "column_name": "hispanic/latino",
+        "synonyms": [
+          "hispanic",
+          "latino"
+        ]
+      }
     ]
   },
   {
-    "column_name": "citizendesc",
-    "synonyms": [
-      "citizen description",
-      "citizen"
-    ]
-  },
-  {
-    "column_name": "racedesc",
-    "synonyms": [
-      "race",
-      "race description"
-    ]
-  },
-  {
-    "column_name": "hispanic/latino",
-    "synonyms": [
-      "hispanic",
-      "latino"
+    "dataset": "world_develop_indicators__indicator_dataset",
+    "columns": [
+      {
+        "column_name": "countryname",
+        "synonyms": [
+          "country",
+          "nation",
+          "territory"
+        ]
+      },
+      {
+        "column_name": "indicatorname",
+        "synonyms": [
+          "indicator"
+        ]
+      },
+      {
+        "column_name": "year",
+        "synonyms": [
+          "time",
+          "term"
+        ]
+      }
     ]
   }
 ]
