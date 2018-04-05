@@ -13,12 +13,16 @@
         "input": "Plot a histogram of age",
         "dataset": "human_resources__core_dataset",
         "function": "plotHistogramOfColumn",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "age"
-          }
-        ]
+        "parameters": {
+          "columns": [
+            {
+              "token": "age",
+              "label": "age",
+              "labelType": "Column"
+            }
+          ],
+          "filters": []
+        }
       }
     ]
   },
@@ -67,16 +71,21 @@
         "input": "Plot a histogram of age and sex",
         "dataset": "human_resources__core_dataset",
         "function": "plotHistogramOfTwoColumns",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "age"
-          },
-          {
-            "type": "COLUMN",
-            "value": "sex"
-          }
-        ]
+        "parameters": {
+          "columns": [
+            {
+              "token": "age",
+              "label": "age",
+              "labelType": "Column"
+            },
+            {
+              "token": "sex",
+              "label": "sex",
+              "labelType": "Column"
+            }
+          ],
+          "filters": []
+        }
       }
     ]
   },
@@ -95,16 +104,21 @@
         "input": "Make a scatter plot with age and pay rate.",
         "dataset": "human_resources__core_dataset",
         "function": "plotScatterOfTwoColumns",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "age"
-          },
-          {
-            "type": "COLUMN",
-            "value": "pay rate"
-          }
-        ]
+        "parameters": {
+          "columns": [
+            {
+              "token": "age",
+              "label": "age",
+              "labelType": "Column"
+            },
+            {
+              "token": "rate",
+              "label": "racedesc",
+              "labelType": "Column"
+            }
+          ],
+          "filters": []
+        }
       }
     ]
   },
@@ -132,12 +146,16 @@
         "input": "Show the number of department as pie chart",
         "dataset": "human_resources__core_dataset",
         "function": "plotPieChartOfColumn",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "department"
-          }
-        ]
+        "parameters": {
+          "columns": [
+            {
+              "token": "department",
+              "label": "department",
+              "labelType": "Column"
+            }
+          ],
+          "filters": []
+        }
       }
     ]
   },
@@ -166,16 +184,21 @@
         "input": "Draw a scatter plot of department and age",
         "dataset": "human_resources__core_dataset",
         "function": "plotScatterOfTwoColumns",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "department"
-          },
-          {
-            "type": "COLUMN",
-            "value": "age"
-          }
-        ]
+        "parameters": {
+          "columns": [
+            {
+              "token": "department",
+              "label": "department",
+              "labelType": "Column"
+            },
+            {
+              "token": "age",
+              "label": "age",
+              "labelType": "Column"
+            }
+          ],
+          "filters": []
+        }
       }
     ]
   },
@@ -223,12 +246,16 @@
         "input": "Show the position as pie chart",
         "dataset": "human_resources__core_dataset",
         "function": "plotPieChartOfColumn",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "position"
-          }
-        ]
+        "parameters": {
+          "columns": [
+            {
+              "token": "position",
+              "label": "position",
+              "labelType": "Column"
+            }
+          ],
+          "filters": []
+        }
       }
     ]
   },
@@ -244,15 +271,80 @@
     ],
     "tests": [
       {
-        "input": "Show the position as pie chart",
+        "input": "Show the position and sex as line chart",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotLineChartOfTwoColumns",
+        "parameters": {
+          "columns": [
+            {
+              "token": "position",
+              "label": "position",
+              "labelType": "Column"
+            },
+            {
+              "token": "sex",
+              "label": "sex",
+              "labelType": "Column"
+            }
+          ],
+          "filters": []
+        }
+      }
+    ]
+  },
+  {
+    "parameters": {
+      "chartType": "line chart",
+      "numberColumns": 2
+    },
+    "function": "plotLineChartOfTwoColumns",
+    "functionParameters": [
+      "Column",
+      "Column"
+    ],
+    "tests": [
+      {
+        "input": "Show a pie chart of all departements for all male where age is bigger than 20",
         "dataset": "human_resources__core_dataset",
         "function": "plotPieChartOfColumn",
-        "parameters": [
-          {
-            "type": "COLUMN",
-            "value": "position"
-          }
-        ]
+        "parameters": {
+          "columns": [
+            {
+              "token": "departements",
+              "label": "department",
+              "labelType": "Column"
+            },
+            {
+              "token": "age",
+              "label": "age",
+              "labelType": "Column"
+            }
+          ],
+          "filters": [
+            {
+              "token": "for all",
+              "label": "for all",
+              "labelType": "GenericSelector",
+              "filterValue": {
+                "token": "male",
+                "label": "male",
+                "labelType": "ColumnValue",
+                "column": "sex"
+              }
+            },
+            {
+              "token": "is bigger than",
+              "label": "is bigger than",
+              "labelType": "FilterSelector",
+              "filterValue": {
+                "token": "20",
+                "label": null,
+                "labelType": "Value",
+                "column": "age"
+              }
+            }
+          ]
+        }
       }
     ]
   },

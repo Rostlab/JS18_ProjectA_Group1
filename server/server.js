@@ -35,6 +35,7 @@ app.post('/API/columns', publicController.getColumns);
 app.post('/API/examples', publicController.getExamples);
 app.post('/API/nlp', nlpController.handleInput);
 app.post('/API/classifyTokens', nlpController.classifyTokens);
+app.post('/API/generateNewHistory', nlpController.generateNewHistory);
 
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname, '../client/public', 'index.html'));

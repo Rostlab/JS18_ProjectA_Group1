@@ -54,39 +54,46 @@ exports.handleInput = function (req, res) {
         let dataset = req.body.dataset;
         let history = req.body.history;
 
-        let data = nlp(input);
-        data.values().toNumber();
-        let tokenHolders = data.terms().data().map(item => Classifier.createUnlabeledTokenInfo(item.normal, item.bestTag));
-
-        let initState = {
-            input: input,
-            tokenHolders: tokenHolders,
-            layer: 0,
-            currentToken: 0,
-            dataset: dataset
-        };
-
-        new Classifier(initState, state => findDataTransformationFunction(state, matchedCommand => {
-            if (history === undefined || !matchedCommand.command.parameters.isTransformation) {
-                history = []
-            }
-            history.push({
-                function: matchedCommand.command.function,
-                functionParameters: matchedCommand.parameters,
-                input: input
-            });
-
-            executeFunctions(history, dataset, err => res.status(500).send({
+        module.exports.generateNewHistory(input, dataset, history, (newHistory) => {
+            executeFunctions(newHistory, dataset, err => res.status(500).send({
                 error: err,
-                history: history.splice(-1, 1)
+                history: history
             })).then(
-                data => res.send({plotly: data, history: history})
+                data => res.send({plotly: data, history: newHistory})
             )
         }, errorMessage => {
             console.log(errorMessage);
             res.status(417).send({error: errorMessage})
-        }));
+        })
     })
+};
+
+exports.generateNewHistory = function (input, dataset, history, callback, errorCallback) {
+    let data = nlp(input);
+    data.values().toNumber();
+    let tokenHolders = data.terms().data().map(item => Classifier.createUnlabeledTokenInfo(item.normal, item.bestTag));
+
+    let initState = {
+        input: input,
+        tokenHolders: tokenHolders,
+        layer: 0,
+        currentToken: 0,
+        dataset: dataset
+    };
+
+    new Classifier(initState, state => findDataTransformationFunction(state, matchedCommand => {
+        if (history === undefined || !matchedCommand.command.parameters.isTransformation) {
+            history = []
+        }
+        history.push({
+            function: matchedCommand.command.function,
+            functionParameters: matchedCommand.parameters,
+            input: input
+        });
+        callback(history)
+    }, errorMessage => {
+        errorCallback(errorMessage);
+    }));
 };
 
 async function executeFunctions(history, dataset, errorCallback) {
@@ -216,7 +223,7 @@ function combineComplexTokens(state) {
     for (let i = 0; i < state.tokenHolders.length - 1; i++) {
         // if (current token is a FilterSelector and next token is a Value|ColumnValue) or (current token is a GenericSelector and next token is a ColumnValue)
         if ((state.tokenHolders[i].labelType === Classifier.staticWords.filterSelector
-            && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
+                && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
             || (state.tokenHolders[i].labelType === Classifier.staticWords.genericSelector && state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue)) {
 
             state.tokenHolders[i].filterValue = state.tokenHolders[i + 1];
