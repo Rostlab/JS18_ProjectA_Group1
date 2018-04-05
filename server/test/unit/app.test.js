@@ -91,6 +91,7 @@ describe('Test Simple Plot Functions', function () {
         chai.assert(result.data[0].type === "histogram");
         chai.assert(result.data[0].x[0] === 32);
     });
+    
     it('should render ok', async function () {
         let fkt = plot_functions["plotPieChartOfColumn"];
         var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "racedesc", label: "racedesc", labelType: "Column"}], filters: []}, "test Input", "test data", (data, layout) => {
@@ -104,6 +105,7 @@ describe('Test Simple Plot Functions', function () {
         chai.assert(result.data.length === 1);
         chai.assert(result.data[0].type === "pie");
     });
+
     it('should render ok', async function () {
         let fkt = plot_functions["plotScatterOfTwoColumns"];
         var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "racedesc", label: "racedesc", labelType: "Column"}, {token: "age", label: "age", labelType: "Column"}], filters: []}, "test Input", "test data", (data, layout) => {
@@ -118,6 +120,7 @@ describe('Test Simple Plot Functions', function () {
         chai.assert(result.layout.xaxis.title === "racedesc");
         chai.assert(result.data.length === 1);
     });
+
     it('should render ok', async function () {
         let fkt = plot_functions["plotScatterOfTwoColumns"];
         var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "racedesc", label: "racedesc", labelType: "Column"}, {token: "age", label: "age", labelType: "Column"}], filters: []}, "test Input", "test data", (data, layout) => {
@@ -132,6 +135,7 @@ describe('Test Simple Plot Functions', function () {
         chai.assert(result.layout.xaxis.title === "racedesc");
         chai.assert(result.data.length === 1);
     });
+
     it('should render ok',async function () {
         let fkt = plot_functions["plotLineChartOfTwoColumns"];
         var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "racedesc", label: "racedesc", labelType: "Column"}, {token: "age", label: "age", labelType: "Column"}], filters: []}, "test Input", "test data", (data, layout) => {
@@ -149,9 +153,51 @@ describe('Test Simple Plot Functions', function () {
     });
 });
 
-
-/*describe('Test Column Operations', function () {
+describe('Test Filter Operations', function () {
     it('should render ok',async function () {
-
+        let fkt = plot_functions["plotPieChartOfColumn"];
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "racedesc", label: "racedesc", labelType: "Column"}], filters: [
+            {token: "is equal to", label: "is equal to", labelType: "FilterSelector", filterValue: {token: "male", label: "Male", labelType: "ColumnValue", column: "sex"}}
+            ]}, "test Input", "test data", (data, layout) => {
+                resolve({'data':data, 'layout' : layout});
+        }, (error) => {
+            reject(error);
+        })});
+        chai.assert(result.data[0].labels.length === 6);
+        chai.assert(result.data[0].labels[0] === "Black or African American");
+        chai.assert(result.data[0].values[0] === 24);
     });
-});*/
+
+    // test if is smaller than filter works
+    it('should render ok',async function () {
+        let fkt = plot_functions["plotHistogramOfColumn"];
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "age", label: "age", labelType: "Column"}], filters: [
+                {token: "is smaller than", label: "is smaller than", labelType: "FilterSelector", filterValue: {token: "50", label: null, labelType: "Value", column: "age"}}
+            ]}, "test Input", "test data", (data, layout) => {
+            resolve({'data':data, 'layout' : layout});
+        }, (error) => {
+            reject(error);
+        })});
+        let isOver50 = false
+        result.data[0].x.forEach(value => {
+            if(value > 50){
+                isOver50 = true
+            }
+        })
+        chai.assert(!isOver50);
+    });
+
+    it('should render ok',async function () {
+        let fkt = plot_functions["plotPieChartOfColumn"];
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "sex", label: "sex", labelType: "Column"}, {token: "age", label: "age", labelType: "Column"}], filters: [
+                {token: "is smaller than", label: "is smaller than", labelType: "FilterSelector", filterValue: {token: "40", label: null, labelType: "Value", column: "age"}}
+            ]}, "test Input", "test data", (data, layout) => {
+            resolve({'data':data, 'layout' : layout});
+        }, (error) => {
+            reject(error);
+        })});
+        chai.assert(result.data[0].labels.length === 2);
+        chai.assert(result.data[0].labels[0] === "Female");
+        chai.assert(result.data[0].values[0] === 108);
+    });
+});
