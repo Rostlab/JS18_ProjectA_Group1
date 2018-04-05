@@ -1,14 +1,40 @@
-let bookshelf = require('../config/bookshelf');
 let _ = require('lodash');
 let config = require('../knexfile');
 let knex = require('knex')(config);
 let tranformationLib = require('js18_projectb_group3');
 const Classifier = require('./classifier.js');
 
+knex.on('query', function (queryData) {
+    console.log({
+        bindings: queryData.bindings,
+        sql: queryData.sql,
+    });
+});
+
+/**
+ * get the data for some columns filtered and grouped by the rules defined in the column objects
+ * returns a promise (which holds the data)
+ */
+async function getData(dataset, {columns, filters}) {
+    let columnInfo = await knex(dataset).columnInfo();
+    console.log(columnInfo);
+    let query = knex(dataset).select(columns.map(token => token.label));
+    filters.forEach(filter => {
+        if (filter.filterValue !== undefined && filter.filterValue.column !== undefined) {
+            let operation = filter.labelType === Classifier.staticWords.filterSelector ? Classifier.staticWords.filterSelectors[filter.label] : '=';
+            if (columnInfo[filter.filterValue.column].type === "character varying") {
+                query.whereRaw('LOWER(' + filter.filterValue.column + ') ' + operation + " '" + filter.filterValue.token.toLocaleLowerCase() + "'")
+            } else {
+                query.where(filter.filterValue.column, operation, filter.filterValue.token)
+            }
+        }
+    });
+    return await query
+}
 
 async function createData(yAxisValues, xAxisValues, dataset) {
     let data = [];
-    for(let minValue of yAxisValues){
+    for (let minValue of yAxisValues) {
         await new Promise(resolve => {
             createTrace(minValue, xAxisValues, dataset, data).then(result => {
                 resolve();
@@ -19,10 +45,10 @@ async function createData(yAxisValues, xAxisValues, dataset) {
 }
 
 async function createTrace(minValue, xAxisValues, dataset, data) {
-    if(xAxisValues[0].datatype === "integer" || xAxisValues[0].datatype === "double precision"){
-        xAxisValues.sort((a,b) => a.label - b.label);
-    } else if(xAxisValues[0].datatype === "date"){
-        xAxisValues.sort((a,b) => new Date(b.label) - new Date(a.label));
+    if (xAxisValues[0].datatype === "integer" || xAxisValues[0].datatype === "double precision") {
+        xAxisValues.sort((a, b) => a.label - b.label);
+    } else if (xAxisValues[0].datatype === "date") {
+        xAxisValues.sort((a, b) => new Date(b.label) - new Date(a.label));
     }
     let trace = {
         x: [],
@@ -30,7 +56,7 @@ async function createTrace(minValue, xAxisValues, dataset, data) {
         mode: 'lines',
         name: minValue.label
     };
-    for(let maxValue of xAxisValues) {
+    for (let maxValue of xAxisValues) {
         await new Promise(resolve => {
             trace.x.push(maxValue.label);
             knex(dataset).where(minValue.column, '=', minValue.label).where(maxValue.column, '=', maxValue.label).then(value => {
@@ -46,15 +72,15 @@ async function createTrace(minValue, xAxisValues, dataset, data) {
 let plot_functions = {
 
     plotHistogramOfColumn(dataset, parameters, input, data, callback, error) {
-        let column = parameters[0];
+        let column = parameters.columns[0].label;
 
         // SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
+        getData(dataset, parameters).then(queriedData => {
             //var synonym = _.find(columnSynonyms, {'columnName': column}).synomyms[0];
             callback(
                 [{
                     // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((value) => value.attributes[column]),
+                    x: queriedData.map((object) => object[column]),
                     type: 'histogram'
                 }],
                 {
@@ -73,38 +99,43 @@ let plot_functions = {
     },
 
     plotHistogramOfTwoColumns(dataset, parameters, input, data, callback, error) {
-        let column1 = parameters[0];
-        let column2 = parameters[1];
+        let column1 = parameters.columns[0].label;
+        let column2 = parameters.columns[1].label;
 
         // SELECT <column1>, <column2> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => callback(
-            [{
-                // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                x: data.map((value) => value.attributes[column1]),
-                type: 'histogram'
-            },
+        getData(dataset, parameters).then(queriedData => {
+            callback(
+                [
+                    {
+                        // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                        x: queriedData.map((object) => object[column1]),
+                        type: 'histogram'
+                    },
+                    {
+                        // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
+                        x: queriedData.map((object) => object[column2]),
+                        type: 'histogram'
+                    }
+                ],
                 {
-                    // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((value) => value.attributes[column2]),
-                    type: 'histogram'
-                }],
-            {
-                title: 'Histogram of ' + column1 + ' and ' + column2,
-                xaxis: {
-                    title: column1 + ' ' + column2,
-                },
-                yaxis: {
-                    title: "Count",
+                    title: 'Histogram of ' + column1 + ' and ' + column2,
+                    xaxis: {
+                        title: column1 + ' ' + column2,
+                    },
+                    yaxis: {
+                        title: "Count",
+                    }
                 }
-            }
-        )).catch(err =>
+            );
+        }).catch(err =>
             error(err)
         );
     },
 
+    // TODO add filters for line chart as well
     plotLineChartOfTwoColumns(dataset, parameters, input, data, callback, error) {
-        let column1 = parameters[0];
-        let column2 = parameters[1];
+        let column1 = parameters.columns[0].label;
+        let column2 = parameters.columns[1].label;
 
         Classifier.getValuesOfColumnsByName([column1, column2], dataset).then(columnValues => {
             let column1Values = columnValues.filter(value => value.column === column1);
@@ -112,7 +143,7 @@ let plot_functions = {
             let yAxisValues = (column1Values.length >= column2Values.length ? column2Values : column1Values);
             let xAxisValues = (column1Values.length < column2Values.length ? column2Values : column1Values);
             //decided that it does not make sense to have more than 10 lines
-            if(yAxisValues.length > 10){
+            if (yAxisValues.length > 10) {
                 let err = new Error("Columns are to high dimensional");
                 error(err);
             } else {
@@ -135,16 +166,16 @@ let plot_functions = {
     },
 
     plotScatterOfTwoColumns(dataset, parameters, input, data, callback, error) {
-        let column1 = parameters[0];
-        let column2 = parameters[1];
+        let column1 = parameters.columns[0].label;
+        let column2 = parameters.columns[1].label;
 
         // SELECT <column1>, <column2>  FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column1, column2]}).then(data => {
+        getData(dataset, parameters).then(queriedData => {
             callback(
                 [{
                     // map [{<columnName>: <columnValue>}, ...] to [<columnValue>, ...]
-                    x: data.map((value) => value.attributes[column1]),
-                    y: data.map((value) => value.attributes[column2]),
+                    x: queriedData.map((object) => object[column1]),
+                    y: queriedData.map((object) => object[column2]),
                     mode: 'markers',
                     type: 'scatter',
                     name: "age"
@@ -166,10 +197,10 @@ let plot_functions = {
     },
 
     plotPieChartOfColumn(dataset, parameters, input, data, callback, error) {
-        let column = parameters[0];
+        let column = parameters.columns[0].label;
         // SELECT <column> FROM <dataset>
-        bookshelf.Model.extend({tableName: dataset}).fetchAll({columns: [column]}).then(data => {
-            let entries = data.map((value) => value.attributes[column]);
+        getData(dataset, parameters).then(queriedData => {
+            let entries = queriedData.map((object) => object[column]);
             let values = [];
             let labels = [];
             _.forEach(entries, function (entry) {
@@ -200,7 +231,7 @@ let plot_functions = {
         tranformationLib.editChart(input, data, (errorData, result) => {
             // TODO handle error
             console.log(error);
-            if(errorData != null) {
+            if (errorData != null) {
                 error(errorData)
             } else {
                 callback(result.data, result.layout)
