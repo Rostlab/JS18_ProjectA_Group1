@@ -75,11 +75,12 @@ describe('POST /API/nlp', function () {
     });
 });
 
-describe('Test Plot Functions', function () {
+describe('Test Simple Plot Functions', function () {
     it('should render ok',async function () {
         var me = this;
         let fkt = plot_functions["plotHistogramOfColumn"];
-        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", ["age"], "test Input", "test data", (data, layout) => {
+
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "age", label: "age", labelType: "Column"}], filters: []}, "test Input", "test data", (data, layout) => {
             resolve({'data':data, 'layout' : layout});
         }, (error) => {
             reject(error);
@@ -92,7 +93,7 @@ describe('Test Plot Functions', function () {
     });
     it('should render ok', async function () {
         let fkt = plot_functions["plotPieChartOfColumn"];
-        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", ["racedesc"], "test Input", "test data", (data, layout) => {
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "racedesc", label: "racedesc", labelType: "Column"}], filters: []}, "test Input", "test data", (data, layout) => {
             resolve({'data':data, 'layout' : layout});
         }, (error) => {
             reject(error);
@@ -105,7 +106,7 @@ describe('Test Plot Functions', function () {
     });
     it('should render ok', async function () {
         let fkt = plot_functions["plotScatterOfTwoColumns"];
-        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", ["racedesc", "age"], "test Input", "test data", (data, layout) => {
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "racedesc", label: "racedesc", labelType: "Column"}, {token: "age", label: "age", labelType: "Column"}], filters: []}, "test Input", "test data", (data, layout) => {
             resolve({'data':data, 'layout' : layout});
         }, (error) => {
             reject(error);
@@ -117,52 +118,40 @@ describe('Test Plot Functions', function () {
         chai.assert(result.layout.xaxis.title === "racedesc");
         chai.assert(result.data.length === 1);
     });
+    it('should render ok', async function () {
+        let fkt = plot_functions["plotScatterOfTwoColumns"];
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "racedesc", label: "racedesc", labelType: "Column"}, {token: "age", label: "age", labelType: "Column"}], filters: []}, "test Input", "test data", (data, layout) => {
+            resolve({'data':data, 'layout' : layout});
+        }, (error) => {
+            reject(error);
+        })});
+        chai.assert(result.data[0].type === "scatter");
+        chai.assert(result.data[0].x[0] === "Black or African American");
+        chai.assert(result.data[0].y[0] === 32);
+        chai.assert(result.layout.title === "Scatter plot of racedesc and age");
+        chai.assert(result.layout.xaxis.title === "racedesc");
+        chai.assert(result.data.length === 1);
+    });
+    it('should render ok',async function () {
+        let fkt = plot_functions["plotLineChartOfTwoColumns"];
+        var result = await new Promise((resolve, reject) => {fkt("human_resources__core_dataset", {columns: [{token: "racedesc", label: "racedesc", labelType: "Column"}, {token: "age", label: "age", labelType: "Column"}], filters: []}, "test Input", "test data", (data, layout) => {
+            resolve({'data':data, 'layout' : layout});
+        }, (error) => {
+            reject(error);
+        })});
+        chai.assert(result.data.length === 6);
+        chai.assert(result.data[0].x[0] === 25);
+        chai.assert(result.data[0].y[0] === 0);
+        chai.assert(result.layout.title === "Line Chart of age and racedesc");
+        chai.assert(result.layout.xaxis.title === "age");
+        chai.assert(result.data[0].name === "American Indian or Alaska Native");
+
+    });
 });
 
-describe('Test Classifier', function () {
-    describe('Test Scatter Plot Detection', function () {
-        it('should render ok', function (done) {
-            let tokenHolders = ["scatter", "plot"].map(token => ({
-                token: token,
-                type: null,
-                matchedValue: null,
-                distance: Classifier.maxDistance + 1
-            }));
-            let initState = {
-                tokenHolders: tokenHolders,
-                layer: 0,
-                currentToken: 0,
-                dataset: "human_resources__core_dataset"
-            };
-            let c = new Classifier(initState, state => {
-                if(state.tokenHolders[0].matchedValue === "scatter plot"){
-                    done();
-                }
-            });
-            let possibleTypes = ["histogram", "pie chart", "line chart", "bar chart", "scatter plot"];
-            c.classifyToken(Classifier.staticWords.chartType, possibleTypes, true)
-        });
+
+/*describe('Test Column Operations', function () {
+    it('should render ok',async function () {
+
     });
-    describe('Test Column Detection', function () {
-        it('should render ok', function (done) {
-            let tokenHolders = ["racedesc"].map(token => ({
-                token: token,
-                type: null,
-                matchedValue: null,
-                distance: Classifier.maxDistance + 1
-            }));
-            let initState = {
-                tokenHolders: tokenHolders,
-                layer: 0,
-                currentToken: 0,
-                dataset: "human_resources__core_dataset"
-            };
-            let c = new Classifier(initState, state => {
-                if(state.tokenHolders[0].matchedValue === "racedesc" && state.tokenHolders[0].type === "Column"){
-                    done();
-                }
-            });
-            c.extractColumn()
-        });
-    });
-});
+});*/
