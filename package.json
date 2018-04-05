@@ -25,6 +25,7 @@
     "body-parser": "^1.18.2",
     "bookshelf": "^0.12.1",
     "compression": "^1.6.2",
+    "compromise": "^11.5.3",
     "cookie-parser": "^1.4.1",
     "dotenv": "^5.0.1",
     "express": "^4.13.4",
