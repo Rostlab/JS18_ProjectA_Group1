@@ -154,6 +154,15 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
+        "input": "Draw a scatter plot of department (error)"
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
         "input": "Plot departments (error)"
       }
     ]
