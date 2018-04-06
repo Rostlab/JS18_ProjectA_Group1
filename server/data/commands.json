@@ -345,6 +345,95 @@
   },
   {
     "parameters": {
+      "chartType": "scatter plot",
+      "numberColumns": 2
+    },
+    "function": "plotScatterOfTwoColumns",
+    "functionParameters": [
+      "Column",
+      "Column"
+    ],
+    "tests": [
+      {
+        "input": "Show a scatter plot of all state where pay rate is smaller than 40",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotScatterOfTwoColumns",
+        "functionParameters": {
+          "columns": [
+            {
+              "token": "state",
+              "label": "state",
+              "labelType": "Column"
+            },
+            {
+              "token": "pay rate",
+              "label": "pay_rate",
+              "labelType": "Column"
+            }
+          ],
+          "filters": [
+            {
+              "token": "is smaller than",
+              "label": "is smaller than",
+              "labelType": "FilterSelector",
+              "filterValue": {
+                "token": "40",
+                "label": null,
+                "labelType": "Value",
+                "column": "pay_rate"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "parameters": {
+      "chartType": "histogram",
+      "numberColumns": 1
+    },
+    "function": "plotHistogramOfColumn",
+    "functionParameters": [
+      "Column"
+    ],
+    "tests": [
+      {
+        "input": "Show a histogram of all sex where age is bigger than 30",
+        "dataset": "human_resources__core_dataset",
+        "function": "plotHistogramOfColumn",
+        "functionParameters": {
+          "columns": [
+            {
+              "token": "sex",
+              "label": "sex",
+              "labelType": "Column"
+            },
+            {
+              "token": "age",
+              "label": "age",
+              "labelType": "Column"
+            }
+          ],
+          "filters": [
+            {
+              "token": "is bigger than",
+              "label": "is bigger than",
+              "labelType": "FilterSelector",
+              "filterValue": {
+                "token": "30",
+                "label": null,
+                "labelType": "Value",
+                "column": "age"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "parameters": {
       "isTransformation": true,
       "numberColumns": 0
     },
