@@ -1,38 +1,27 @@
-let request = require('supertest');
-let chai = require('chai');
+let expect = require('chai').expect;
 let nlp = require('../../controllers/nlp.js');
 let commands = require('../../data/commands.json');
 
-let columnOutput;
-let filtersOutput;
-
-function errorCallback() {
-    // TO add in command.json
-    chai.assert(data.length === 1);
-}
-
-function successCallback(data) {
-    chai.assert(data.length === 1);
-    chai.assert(data[0].functionParameters.columns.length === columnOutput);
-    chai.assert(data[0].functionParameters.filters.length === filtersOutput);
-}
-
-describe('Command Json', function () {
+describe('Tests from commands.json', function () {
     commands.forEach(command => {
-        if (command.tests[0] !== undefined) {
-            let input = command.tests[0].input;
-            let dataset = command.tests[0].dataset;
-            if (command.tests[0].parameters == undefined) { // Transformation scenario
-                columnOutput = 1;
-                filtersOutput = 1;
-            } else {
-                columnOutput = command.tests[0].parameters.columns.length;
-                filtersOutput = command.tests[0].parameters.filters.length;
-            }
-            it('nlp ' + input, function (done) {
-                nlp.generateNewHistory(input, dataset, undefined, successCallback, errorCallback);
-                done();
+        command.tests.forEach((test, index) => {
+            let input = test.input;
+            let dataset = test.dataset;
+            let inputHistory = command.tests.slice(0, index);
+            let historyToCompare = command.tests.slice(0, index + 1);
+
+            it('nlp ' + input, async () => {
+                let generatedHistory = await new Promise((resolve, reject) => {
+                    nlp.generateNewHistory(input, dataset, inputHistory, resolve, reject);
+                });
+
+                expect(generatedHistory.length).to.be.equal(historyToCompare.length);
+                generatedHistory.forEach((historyItem, currentHistoryIndex) => {
+                    let historyItemToCompare = historyToCompare[currentHistoryIndex];
+                    expect(historyItem.function).to.be.equal(historyItemToCompare.function);
+                    expect(historyItem.functionParameters).to.deep.equal(historyItemToCompare.functionParameters);
+                });
             })
-        }
+        });
     });
 });
