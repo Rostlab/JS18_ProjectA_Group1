@@ -61,7 +61,7 @@ exports.handleInput = function (req, res) {
             })).then(
                 data => res.send({plotly: data, history: newHistory})
             )
-        }, errorMessage => {
+        }, (errorMessage) => {
             console.log(errorMessage);
             res.status(417).send({error: errorMessage})
         })
@@ -91,7 +91,8 @@ exports.generateNewHistory = function (input, dataset, history, callback, errorC
             input: input
         });
         callback(history)
-    }, errorMessage => {
+    }, (errorMessage) => {
+        console.log(errorMessage);
         errorCallback(errorMessage);
     }));
 };

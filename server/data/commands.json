@@ -31,18 +31,12 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Change title to Title goes here"
+        "input": "Set title to Title goes here"
       },
       {
         "function": "transformData",
         "functionParameters": {
-          "columns": [
-            {
-              "token": "set",
-              "label": "sex",
-              "labelType": "Column"
-            }
-          ],
+          "columns": [],
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
@@ -55,40 +49,7 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Change width of gridlines of x-axis to 8"
-      }
-    ]
-  },
-  {
-    "parameters": {
-      "chartType": "histogram",
-      "numberColumns": 2
-    },
-    "function": "plotHistogramOfTwoColumns",
-    "functionParameters": [
-      "Column",
-      "Column"
-    ],
-    "tests": [
-      {
-        "input": "Plot a histogram of age and sex",
-        "dataset": "human_resources__core_dataset",
-        "function": "plotHistogramOfTwoColumns",
-        "functionParameters": {
-          "columns": [
-            {
-              "token": "age",
-              "label": "age",
-              "labelType": "Column"
-            },
-            {
-              "token": "sex",
-              "label": "sex",
-              "labelType": "Column"
-            }
-          ],
-          "filters": []
-        }
+        "input": "Set width of gridlines of x-axis to 8"
       }
     ]
   },
@@ -122,6 +83,15 @@
           ],
           "filters": []
         }
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Set position of legend to 10,0"
       }
     ]
   },
@@ -149,6 +119,25 @@
           ],
           "filters": []
         }
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Set color to red,black,yellow, green, purple, pink, orange"
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "histogram",
+        "produces_error" : true
       }
     ]
   },
@@ -182,6 +171,24 @@
           ],
           "filters": []
         }
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Change title of x-axis to x-axis"
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Change color of gridlines of x-axis to red"
       }
     ]
   },
@@ -209,6 +216,15 @@
           ],
           "filters": []
         }
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Change info type to value"
       }
     ]
   },
