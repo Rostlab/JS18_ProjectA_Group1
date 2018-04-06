@@ -26,5 +26,94 @@
       "hispanic",
       "latino"
     ]
+  },
+  {
+    "column_name": "racedesc",
+    "synonyms": [
+      "race",
+      "race description"
+    ]
+  },
+  {
+    "column_name": "employee_name",
+    "synonyms": [
+      "employee name"
+    ]
+  },
+  {
+    "column_name": "employee_number",
+    "synonyms": [
+      "employee number"
+    ]
+  },
+  {
+    "column_name": "dob",
+    "synonyms": [
+      "birthday"
+    ]
+  },
+  {
+    "column_name": "sex",
+    "synonyms": [
+      "gender"
+    ]
+  },
+  {
+    "column_name": "citizendesc",
+    "synonyms": [
+      "citizen",
+      "citizen description"
+    ]
+  },
+  {
+    "column_name": "date_of_hire",
+    "synonyms": [
+      "hire date"
+    ]
+  },
+  {
+    "column_name": "reason_for_term",
+    "synonyms": [
+      "termination reason"
+    ]
+  },
+  {
+    "column_name": "employment_status",
+    "synonyms": [
+      "employment status"
+    ]
+  },
+  {
+    "column_name": "pay_rate",
+    "synonyms": [
+      "pay rate",
+      "income",
+      "salary"
+    ]
+  },
+  {
+    "column_name": "employee_source",
+    "synonyms": [
+      "employee source"
+    ]
+  },
+  {
+    "column_name": "performance_score",
+    "synonyms": [
+      "performance",
+      "performance score"
+    ]
+  },
+  {
+    "column_name": "date_of_termination",
+    "synonyms": [
+      "termination date"
+    ]
+  },
+  {
+    "column_name": "manager_name",
+    "synonyms": [
+      "manager name"
+    ]
   }
 ]
