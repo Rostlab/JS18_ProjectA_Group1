@@ -136,8 +136,25 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "histogram",
-        "produces_error" : true
+        "input": "Plot histogram (error)"
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Plot a graph (error)"
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Plot departments (error)"
       }
     ]
   },
