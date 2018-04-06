@@ -21,7 +21,7 @@ describe('Tests from commands.json', function () {
                     expect(historyItem.function).to.be.equal(historyItemToCompare.function);
                     expect(historyItem.functionParameters).to.deep.equal(historyItemToCompare.functionParameters);
                 });
-            })
+            }).timeout(5000)
         });
     });
 });
