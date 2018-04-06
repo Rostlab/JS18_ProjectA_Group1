@@ -179,7 +179,7 @@ class Classifier {
 
             // remove next tokens according to lookahead
             if (token.label != null) {
-                this.state.tokenHolders.splice(this.state.currentToken, token.label.split(' ').length - 1);
+                this.state.tokenHolders.splice(this.state.currentToken, token.token.split(' ').length - 1);
             }
         }
         else {
@@ -219,7 +219,7 @@ class Classifier {
                 labelVariation [0] = [lInfo.label, lInfo.token];
                 labelVariation = labelVariation.concat(lInfo.synonyms);
                 let bestSynonym = this.getMostLikelyMatch(labelVariation.map(lV => Classifier.createLabelInfo(lV, lInfo.labelType, lInfo.datatype, lInfo.column)));
-                labeledTokenInfos.push(Classifier.createLabeledTokenInfo(this.state.tokenHolders[this.state.currentToken].token, bestSynonym.distance, lInfo));
+                labeledTokenInfos.push(Classifier.createLabeledTokenInfo(bestSynonym.token, bestSynonym.distance, lInfo));
             } else {
                 let value = (lInfo.datatype === Classifier.col_types.date) ? lInfo.label.toString() : lInfo.label;
                 if (value instanceof Array && value.length > 0) {
