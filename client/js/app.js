@@ -15,7 +15,6 @@ function loadJSON(endpoint, type, body, callback, error) {
                 error(errorMessage);
             } else if (xhttp.status === 500) {
                 let errorMessage = JSON.parse(xhttp.responseText).error;
-                console.log(errorMessage);
                 error('Internal server error');
             }
         }
