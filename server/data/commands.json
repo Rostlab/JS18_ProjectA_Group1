@@ -31,7 +31,7 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Set title to Title goes here"
+        "input": "Set title to \"Title goes here\""
       },
       {
         "function": "transformData",
@@ -40,7 +40,7 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Set title of y-axis to y-axis Count"
+        "input": "Set title of y-axis to \"y-axis Count\""
       },
       {
         "function": "transformData",
@@ -127,7 +127,7 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Set color to red,black,yellow, green, purple, pink, orange"
+        "input": "Set color to red, black, yellow, green, purple, pink, orange"
       },
       {
         "function": "transformData",
