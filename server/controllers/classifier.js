@@ -71,7 +71,7 @@ class Classifier {
             knex(this.state.dataset).columnInfo().then(function (columnInfo) {
                 let columnNames = Object.getOwnPropertyNames(columnInfo);
                 let columnsWithSynonyms = columnNames.map(colName => Classifier.createLabelInfo(colName, Classifier.staticWords.column, Classifier.col_types.string));
-                columnSynonyms.forEach(syn => {
+                columnSynonyms.find(colSynonyms => colSynonyms.dataset == self.state.dataset).columns.forEach(syn => {
                     let column = columnsWithSynonyms.find(cS => cS.label === syn.column_name);
                     if (column)
                         column.synonyms = syn.synonyms;
@@ -213,28 +213,31 @@ class Classifier {
     getMostLikelyMatch(labelInfos) {
         let labeledTokenInfos = [];
         labelInfos.forEach(lInfo => {
-            if (lInfo.synonyms && lInfo.synonyms.length !== 0) {
-                //get best fitting synonym
-                let labelVariation = [];
-                labelVariation [0] = [lInfo.label, lInfo.token];
-                labelVariation = labelVariation.concat(lInfo.synonyms);
-                let bestSynonym = this.getMostLikelyMatch(labelVariation.map(lV => Classifier.createLabelInfo(lV, lInfo.labelType, lInfo.datatype, lInfo.column)));
-                labeledTokenInfos.push(Classifier.createLabeledTokenInfo(bestSynonym.token, bestSynonym.distance, lInfo));
-            } else {
-                let value = (lInfo.datatype === Classifier.col_types.date) ? lInfo.label.toString() : lInfo.label;
-                if (value instanceof Array && value.length > 0) {
-                    value = value[0]
-                }
-                let wordCount = value.split(' ').length;
-                if (this.state.currentToken <= this.state.tokenHolders.length - wordCount) {
-                    let token = "";
-                    for (let i = 0; i < wordCount; i++) {
-                        token += this.state.tokenHolders[this.state.currentToken + i].token + " ";
+            //might be because of null values in dataset
+            if (lInfo.label != null) {
+                if (lInfo.synonyms && lInfo.synonyms.length !== 0) {
+                    //get best fitting synonym
+                    let labelVariation = [];
+                    labelVariation [0] = [lInfo.label, lInfo.token];
+                    labelVariation = labelVariation.concat(lInfo.synonyms);
+                    let bestSynonym = this.getMostLikelyMatch(labelVariation.map(lV => Classifier.createLabelInfo(lV, lInfo.labelType, lInfo.datatype, lInfo.column)));
+                    labeledTokenInfos.push(Classifier.createLabeledTokenInfo(bestSynonym.token, bestSynonym.distance, lInfo));
+                } else {
+                    let value = (lInfo.datatype === Classifier.col_types.date) ? lInfo.label.toString() : lInfo.label;
+                    if (value instanceof Array && value.length > 0) {
+                        value = value[0]
                     }
-                    token = token.trim();
+                    let wordCount = value.split(' ').length;
+                    if (this.state.currentToken <= this.state.tokenHolders.length - wordCount) {
+                        let token = "";
+                        for (let i = 0; i < wordCount; i++) {
+                            token += this.state.tokenHolders[this.state.currentToken + i].token + " ";
+                        }
+                        token = token.trim();
 
-                    let distance = Classifier.getLevenshteinDistance(token, value);
-                    labeledTokenInfos.push(Classifier.createLabeledTokenInfo(token, distance, lInfo));
+                        let distance = Classifier.getLevenshteinDistance(token, value);
+                        labeledTokenInfos.push(Classifier.createLabeledTokenInfo(token, distance, lInfo));
+                    }
                 }
             }
         });
@@ -246,6 +249,7 @@ class Classifier {
 
 
     static getLevenshteinDistance(token, label) {
+
         let weight = 11.25 / Math.max(1, token.length);
         return natural.LevenshteinDistance(token, label, {
             insertion_cost: 2 * weight,

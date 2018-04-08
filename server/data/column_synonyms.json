@@ -1,119 +1,136 @@
 [
   {
-    "column_name": "maritaldesc",
-    "synonyms": [
-      "marriage state",
-      "marriage description"
+    "dataset": "human_resources__core_dataset",
+    "columns": [
+      {
+        "column_name": "maritaldesc",
+        "synonyms": [
+          "marriage state",
+          "marriage description"
+        ]
+      },
+      {
+        "column_name": "citizendesc",
+        "synonyms": [
+          "citizen",
+          "citizen description"
+        ]
+      },
+      {
+        "column_name": "racedesc",
+        "synonyms": [
+          "race",
+          "race description"
+        ]
+      },
+      {
+        "column_name": "hispanic/latino",
+        "synonyms": [
+          "hispanic",
+          "latino"
+        ]
+      },
+      {
+        "column_name": "employee_name",
+        "synonyms": [
+          "employee name"
+        ]
+      },
+      {
+        "column_name": "employee_number",
+        "synonyms": [
+          "employee number"
+        ]
+      },
+      {
+        "column_name": "dob",
+        "synonyms": [
+          "birthday"
+        ]
+      },
+      {
+        "column_name": "sex",
+        "synonyms": [
+          "gender"
+        ]
+      },
+      {
+        "column_name": "date_of_hire",
+        "synonyms": [
+          "hire date"
+        ]
+      },
+      {
+        "column_name": "reason_for_term",
+        "synonyms": [
+          "termination reason"
+        ]
+      },
+      {
+        "column_name": "employment_status",
+        "synonyms": [
+          "employment status"
+        ]
+      },
+      {
+        "column_name": "pay_rate",
+        "synonyms": [
+          "pay rate",
+          "income",
+          "salary"
+        ]
+      },
+      {
+        "column_name": "employee_source",
+        "synonyms": [
+          "employee source"
+        ]
+      },
+      {
+        "column_name": "performance_score",
+        "synonyms": [
+          "performance",
+          "performance score"
+        ]
+      },
+      {
+        "column_name": "date_of_termination",
+        "synonyms": [
+          "termination date"
+        ]
+      },
+      {
+        "column_name": "manager_name",
+        "synonyms": [
+          "manager name"
+        ]
+      }
     ]
   },
   {
-    "column_name": "citizendesc",
-    "synonyms": [
-      "citizen description",
-      "citizen"
-    ]
-  },
-  {
-    "column_name": "racedesc",
-    "synonyms": [
-      "race",
-      "race description"
-    ]
-  },
-  {
-    "column_name": "hispanic/latino",
-    "synonyms": [
-      "hispanic",
-      "latino"
-    ]
-  },
-  {
-    "column_name": "racedesc",
-    "synonyms": [
-      "race",
-      "race description"
-    ]
-  },
-  {
-    "column_name": "employee_name",
-    "synonyms": [
-      "employee name"
-    ]
-  },
-  {
-    "column_name": "employee_number",
-    "synonyms": [
-      "employee number"
-    ]
-  },
-  {
-    "column_name": "dob",
-    "synonyms": [
-      "birthday"
-    ]
-  },
-  {
-    "column_name": "sex",
-    "synonyms": [
-      "gender"
-    ]
-  },
-  {
-    "column_name": "citizendesc",
-    "synonyms": [
-      "citizen",
-      "citizen description"
-    ]
-  },
-  {
-    "column_name": "date_of_hire",
-    "synonyms": [
-      "hire date"
-    ]
-  },
-  {
-    "column_name": "reason_for_term",
-    "synonyms": [
-      "termination reason"
-    ]
-  },
-  {
-    "column_name": "employment_status",
-    "synonyms": [
-      "employment status"
-    ]
-  },
-  {
-    "column_name": "pay_rate",
-    "synonyms": [
-      "pay rate",
-      "income",
-      "salary"
-    ]
-  },
-  {
-    "column_name": "employee_source",
-    "synonyms": [
-      "employee source"
-    ]
-  },
-  {
-    "column_name": "performance_score",
-    "synonyms": [
-      "performance",
-      "performance score"
-    ]
-  },
-  {
-    "column_name": "date_of_termination",
-    "synonyms": [
-      "termination date"
-    ]
-  },
-  {
-    "column_name": "manager_name",
-    "synonyms": [
-      "manager name"
+    "dataset": "world_develop_indicators__indicator_dataset",
+    "columns": [
+      {
+        "column_name": "countryname",
+        "synonyms": [
+          "country",
+          "nation",
+          "territory"
+        ]
+      },
+      {
+        "column_name": "indicatorname",
+        "synonyms": [
+          "indicator"
+        ]
+      },
+      {
+        "column_name": "year",
+        "synonyms": [
+          "time",
+          "term"
+        ]
+      }
     ]
   }
 ]
