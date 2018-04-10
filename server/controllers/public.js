@@ -69,7 +69,8 @@ exports.getExamples = function (req, res) {
                     // send example to client
                     examples.push({
                         input: test.input,
-                        dataset: test.dataset
+                        dataset: test.dataset,
+                        is_plot_function: test.is_plot_function
                     })
                 }
             })

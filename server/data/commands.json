@@ -22,7 +22,8 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Plot a histogram of age"
+        "input": "Plot a histogram of age",
+        "is_plot_function" : true
       },
       {
         "function": "transformData",
@@ -31,7 +32,8 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Set title to \"Title goes here\""
+        "input": "Set title to \"Title goes here\"",
+        "is_plot_function" : false
       },
       {
         "function": "transformData",
@@ -40,7 +42,8 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Set title of y-axis to \"y-axis Count\""
+        "input": "Set title of y-axis to \"y-axis Count\"",
+        "is_plot_function" : false
       },
       {
         "function": "transformData",
@@ -49,7 +52,8 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Set width of gridlines of x-axis to 8"
+        "input": "Set width of gridlines of x-axis to 8",
+        "is_plot_function" : false
       }
     ]
   },
@@ -66,6 +70,7 @@
     "tests": [
       {
         "input": "Make a scatter plot with age and pay rate.",
+        "is_plot_function" : true,
         "dataset": "human_resources__core_dataset",
         "function": "plotScatterOfTwoColumns",
         "functionParameters": {
@@ -91,7 +96,18 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Set position of legend to 10,0"
+        "input": "Set position of legend to 10,0",
+        "is_plot_function" : false
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "age change symbol to \"star\"",
+        "is_plot_function" : false
       }
     ]
   },
@@ -107,6 +123,7 @@
     "tests": [
       {
         "input": "Show the number of department as pie chart",
+        "is_plot_function" : true,
         "dataset": "human_resources__core_dataset",
         "function": "plotPieChartOfColumn",
         "functionParameters": {
@@ -127,43 +144,8 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Set color to red, black, yellow, green, purple, pink, orange"
-      },
-      {
-        "function": "transformData",
-        "functionParameters": {
-          "columns": [],
-          "filters": []
-        },
-        "dataset": "human_resources__core_dataset",
-        "input": "Plot histogram (error)"
-      },
-      {
-        "function": "transformData",
-        "functionParameters": {
-          "columns": [],
-          "filters": []
-        },
-        "dataset": "human_resources__core_dataset",
-        "input": "Plot a graph (error)"
-      },
-      {
-        "function": "transformData",
-        "functionParameters": {
-          "columns": [],
-          "filters": []
-        },
-        "dataset": "human_resources__core_dataset",
-        "input": "Draw a scatter plot of department (error)"
-      },
-      {
-        "function": "transformData",
-        "functionParameters": {
-          "columns": [],
-          "filters": []
-        },
-        "dataset": "human_resources__core_dataset",
-        "input": "Plot departments (error)"
+        "input": "Set colors to red, black, yellow, green, purple, pink, orange",
+        "is_plot_function" : false
       }
     ]
   },
@@ -180,6 +162,7 @@
     "tests": [
       {
         "input": "Draw a scatter plot of department and age",
+        "is_plot_function" : true,
         "dataset": "human_resources__core_dataset",
         "function": "plotScatterOfTwoColumns",
         "functionParameters": {
@@ -205,7 +188,8 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Change title of x-axis to x-axis"
+        "input": "Change title of x-axis to \"x-axis\"",
+        "is_plot_function" : false
       },
       {
         "function": "transformData",
@@ -214,7 +198,18 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Change color of gridlines of x-axis to red"
+        "input": "Change color of gridlines of x-axis to red",
+        "is_plot_function" : false
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "age change opacity to 0.8",
+        "is_plot_function" : false
       }
     ]
   },
@@ -231,6 +226,7 @@
       {
         "input": "Show the position as pie chart",
         "dataset": "human_resources__core_dataset",
+        "is_plot_function" : true,
         "function": "plotPieChartOfColumn",
         "functionParameters": {
           "columns": [
@@ -250,7 +246,8 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Change info type to value"
+        "input": "Change info type to \"value\"",
+        "is_plot_function" : false
       }
     ]
   },
@@ -267,6 +264,7 @@
     "tests": [
       {
         "input": "Show the position and sex as line chart",
+        "is_plot_function" : true,
         "dataset": "human_resources__core_dataset",
         "function": "plotLineChartOfTwoColumns",
         "functionParameters": {
@@ -284,6 +282,26 @@
           ],
           "filters": []
         }
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Female set width of line to 7",
+        "is_plot_function" : false
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Male set dash to \"dashdot\"",
+        "is_plot_function" : false
       }
     ]
   },
@@ -300,6 +318,7 @@
     "tests": [
       {
         "input": "Show a pie chart of all departements for all male where age is bigger than 20",
+        "is_plot_function" : true,
         "dataset": "human_resources__core_dataset",
         "function": "plotPieChartOfColumn",
         "functionParameters": {
@@ -356,6 +375,7 @@
     "tests": [
       {
         "input": "Show a scatter plot of all state where pay rate is smaller than 40",
+        "is_plot_function" : true,
         "dataset": "human_resources__core_dataset",
         "function": "plotScatterOfTwoColumns",
         "functionParameters": {
@@ -400,6 +420,7 @@
     "tests": [
       {
         "input": "Show a histogram of all sex where age is bigger than 30",
+        "is_plot_function" : true,
         "dataset": "human_resources__core_dataset",
         "function": "plotHistogramOfColumn",
         "functionParameters": {

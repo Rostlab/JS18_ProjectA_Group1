@@ -107,6 +107,8 @@ function createTableEntry(data, table, onClickFunction) {
     let td = document.createElement("td");
     td.setAttribute("class", "mdl-data-table__cell--non-numeric");
     td.append(data.input);
+    if(data.is_plot_function)
+        td.setAttribute("style", "font-weight : bold");
     if (onClickFunction) {
         tr.onclick = function () {
             onClickFunction(this);
