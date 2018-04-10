@@ -92,6 +92,15 @@
         },
         "dataset": "human_resources__core_dataset",
         "input": "Set position of legend to 10,0"
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "age change symbol to \"star\""
       }
     ]
   },
@@ -127,43 +136,7 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Set color to red, black, yellow, green, purple, pink, orange"
-      },
-      {
-        "function": "transformData",
-        "functionParameters": {
-          "columns": [],
-          "filters": []
-        },
-        "dataset": "human_resources__core_dataset",
-        "input": "Plot histogram (error)"
-      },
-      {
-        "function": "transformData",
-        "functionParameters": {
-          "columns": [],
-          "filters": []
-        },
-        "dataset": "human_resources__core_dataset",
-        "input": "Plot a graph (error)"
-      },
-      {
-        "function": "transformData",
-        "functionParameters": {
-          "columns": [],
-          "filters": []
-        },
-        "dataset": "human_resources__core_dataset",
-        "input": "Draw a scatter plot of department (error)"
-      },
-      {
-        "function": "transformData",
-        "functionParameters": {
-          "columns": [],
-          "filters": []
-        },
-        "dataset": "human_resources__core_dataset",
-        "input": "Plot departments (error)"
+        "input": "Set colors to red, black, yellow, green, purple, pink, orange"
       }
     ]
   },
@@ -205,7 +178,7 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Change title of x-axis to x-axis"
+        "input": "Change title of x-axis to \"x-axis\""
       },
       {
         "function": "transformData",
@@ -215,6 +188,15 @@
         },
         "dataset": "human_resources__core_dataset",
         "input": "Change color of gridlines of x-axis to red"
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "age change opacity to 0.8"
       }
     ]
   },
@@ -250,7 +232,7 @@
           "filters": []
         },
         "dataset": "human_resources__core_dataset",
-        "input": "Change info type to value"
+        "input": "Change info type to \"value\""
       }
     ]
   },
@@ -284,6 +266,24 @@
           ],
           "filters": []
         }
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Female set width of line to 7"
+      },
+      {
+        "function": "transformData",
+        "functionParameters": {
+          "columns": [],
+          "filters": []
+        },
+        "dataset": "human_resources__core_dataset",
+        "input": "Male set dash to \"dashdot\""
       }
     ]
   },
