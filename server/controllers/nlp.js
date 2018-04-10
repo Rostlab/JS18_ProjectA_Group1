@@ -13,26 +13,16 @@ function getDatasets() {
  * for debug purposes
  * renders only the classify results, request parameters are similar to /API/nlp
  */
-exports.classifyTokens = function (req, res) {
+exports.classifyTokens = async function (req, res) {
     let input = req.body.input;
     let dataset = req.body.dataset;
 
     let data = nlp(input);
     data.values().toNumber();
-    let tokenHolders = data.terms().data().map(item => Classifier.createUnlabeledTokenInfo(item.normal, item.bestTag));
 
-    let initState = {
-        input: input,
-        tokenHolders: tokenHolders,
-        layer: 0,
-        currentToken: 0,
-        dataset: dataset
-    };
-
-    new Classifier(initState, state => {
-        combineComplexTokens(state);
-        res.send(state.tokenHolders.map(simplifyTokenHolder))
-    });
+    let tokenHolders = await Classifier.classifyTokens(data.terms().data(), dataset);
+    tokenHolders = combineComplexTokens(tokenHolders);
+    res.send(tokenHolders.map(simplifyTokenHolder))
 };
 
 /**
@@ -76,18 +66,10 @@ exports.handleInput = async function (req, res) {
 exports.generateNewHistory = async function (input, dataset, history) {
     let data = nlp(input);
     data.values().toNumber();
-    let tokenHolders = data.terms().data().map(item => Classifier.createUnlabeledTokenInfo(item.normal, item.bestTag));
+    let tokenHolders = await Classifier.classifyTokens(data.terms().data(), dataset);
 
-    let initState = {
-        input: input,
-        tokenHolders: tokenHolders,
-        layer: 0,
-        currentToken: 0,
-        dataset: dataset
-    };
-
-    return new Promise((resolve, reject) => {
-        new Classifier(initState, state => findDataTransformationFunction(state, matchedCommand => {
+    return new Promise(resolve => {
+        findDataTransformationFunction(tokenHolders, matchedCommand => {
             if (history === undefined || !matchedCommand.command.parameters.isTransformation) {
                 history = []
             }
@@ -97,7 +79,7 @@ exports.generateNewHistory = async function (input, dataset, history) {
                 input: input
             });
             resolve(history);
-        }, reject))
+        })
     })
 };
 
@@ -145,19 +127,19 @@ function simplifyTokenHolder(tokenHolder) {
 
 /**
  * Query the needed data and transform them i nto the dataformat for plotly.js
- * @param state containing the classified input
+ * @param tokenHolders: containing the classified input tokens
  * @param callback: a function that takes the found command and the connected parameters as a object
  * @param errorCallback: a function that is only called then a error occurred. It takes the error message as a parameter.
  */
-function findDataTransformationFunction(state, callback, errorCallback) {
+function findDataTransformationFunction(tokenHolders, callback, errorCallback) {
     let operation = null;
     let chartType = null;
     let columnsArray = [];
     let filterArray = [];
 
-    combineComplexTokens(state);
+    let complexTokenHolders = combineComplexTokens(tokenHolders);
 
-    state.tokenHolders.forEach(tokenHolder => {
+    complexTokenHolders.forEach(tokenHolder => {
         if (tokenHolder.labelType === Classifier.staticWords.operation) {
             operation = tokenHolder.label
         } else if (tokenHolder.labelType === Classifier.staticWords.chartType) {
@@ -225,43 +207,43 @@ function findDataTransformationFunction(state, callback, errorCallback) {
 
 
 /**
- * takes the list of (simplified) tokenHolders from the state, combines them by predefined rules to filters and groupings and puts the new structure back into the state
- * @param state
+ * takes the list of (simplified) tokenHolders, combines them by predefined rules to filters and groupings and returns the new complex tokens
+ * @param tokenHolders
  */
-function combineComplexTokens(state) {
+function combineComplexTokens(tokenHolders) {
     // hide unclassified tokens
-    state.tokenHolders = state.tokenHolders.filter(tokenHolder => tokenHolder.label != null || tokenHolder.labelType === Classifier.staticWords.value);
+    let complexTokenHolders = tokenHolders.filter(tokenHolder => tokenHolder.label != null || tokenHolder.labelType === Classifier.staticWords.value);
 
     // include ColumnValues/Values into FilterSelectors
-    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
+    for (let i = 0; i < complexTokenHolders.length - 1; i++) {
         // if (current token is a FilterSelector and next token is a Value|ColumnValue) or (current token is a GenericSelector and next token is a ColumnValue)
-        if ((state.tokenHolders[i].labelType === Classifier.staticWords.filterSelector
-            && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
-            || (state.tokenHolders[i].labelType === Classifier.staticWords.genericSelector && state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue)) {
+        if ((complexTokenHolders[i].labelType === Classifier.staticWords.filterSelector
+            && (complexTokenHolders[i + 1].labelType === Classifier.staticWords.value || complexTokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
+            || (complexTokenHolders[i].labelType === Classifier.staticWords.genericSelector && complexTokenHolders[i + 1].labelType === Classifier.staticWords.columnValue)) {
 
-            state.tokenHolders[i].filterValue = state.tokenHolders[i + 1];
-            state.tokenHolders.splice(i + 1, 1);
+            complexTokenHolders[i].filterValue = complexTokenHolders[i + 1];
+            complexTokenHolders.splice(i + 1, 1);
 
             // if we don't yet know the filter is operating on and the token before is a column it is most likely the column we search for
-            if (state.tokenHolders[i].filterValue.column === null && i > 0 && state.tokenHolders[i - 1].labelType === Classifier.staticWords.column) {
-                state.tokenHolders[i].filterValue.column = state.tokenHolders[i - 1].label
+            if (complexTokenHolders[i].filterValue.column === null && i > 0 && complexTokenHolders[i - 1].labelType === Classifier.staticWords.column) {
+                complexTokenHolders[i].filterValue.column = complexTokenHolders[i - 1].label
             }
 
             // if we don't yet know the filter is operating on and the token before is a filter as well that knows on which column it is operating on it is most likely the column we search for
             // TODO verify that (assigning the same column as the previous filter)
-            if (state.tokenHolders[i].filterValue.column === null && i > 0 && (state.tokenHolders[i - 1].labelType === Classifier.staticWords.filterSelector || state.tokenHolders[i - 1].labelType === Classifier.staticWords.genericSelector)) {
-                state.tokenHolders[i].filterValue.column = state.tokenHolders[i - 1].filterValue.column
+            if (complexTokenHolders[i].filterValue.column === null && i > 0 && (complexTokenHolders[i - 1].labelType === Classifier.staticWords.filterSelector || complexTokenHolders[i - 1].labelType === Classifier.staticWords.genericSelector)) {
+                complexTokenHolders[i].filterValue.column = complexTokenHolders[i - 1].filterValue.column
             }
         }
     }
 
     // combine same columns (remove all duplicated column tokens)
-    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
-        if (state.tokenHolders[i].labelType === Classifier.staticWords.column) {
-            for (let j = i + 1; j < state.tokenHolders.length; j++) {
-                if (state.tokenHolders[j].labelType === Classifier.staticWords.column && state.tokenHolders[j].label === state.tokenHolders[i].label) {
-                    //state.tokenHolders[i].filter.filters = state.tokenHolders[i].filter.filters.concat(state.tokenHolders[j].filter.filters);
-                    state.tokenHolders.splice(j, 1);
+    for (let i = 0; i < complexTokenHolders.length - 1; i++) {
+        if (complexTokenHolders[i].labelType === Classifier.staticWords.column) {
+            for (let j = i + 1; j < complexTokenHolders.length; j++) {
+                if (complexTokenHolders[j].labelType === Classifier.staticWords.column && complexTokenHolders[j].label === complexTokenHolders[i].label) {
+                    //complexTokenHolders[i].filter.filters = complexTokenHolders[i].filter.filters.concat(complexTokenHolders[j].filter.filters);
+                    complexTokenHolders.splice(j, 1);
                     break;
                 }
             }
@@ -270,11 +252,13 @@ function combineComplexTokens(state) {
 
     /*
     // include Columns into GroupSelectors
-    for (let i = 0; i < state.tokenHolders.length - 1; i++) {
-        if (state.tokenHolders[i].labelType === Classifier.staticWords.groupSelector && state.tokenHolders[i + 1].labelType === Classifier.staticWords.column) {
-            state.tokenHolders[i].groupColumn = state.tokenHolders[i + 1];
-            state.tokenHolders.splice(i + 1, 1)
+    for (let i = 0; i < complexTokenHolders.length - 1; i++) {
+        if (complexTokenHolders[i].labelType === Classifier.staticWords.groupSelector && complexTokenHolders[i + 1].labelType === Classifier.staticWords.column) {
+            complexTokenHolders[i].groupColumn = complexTokenHolders[i + 1];
+            complexTokenHolders.splice(i + 1, 1)
         }
     }
     */
+
+    return complexTokenHolders
 }

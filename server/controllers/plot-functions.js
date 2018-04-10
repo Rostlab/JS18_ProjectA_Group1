@@ -17,7 +17,6 @@ knex.on('query', function (queryData) {
  */
 async function getData(dataset, {columns, filters}) {
     let columnInfo = await knex(dataset).columnInfo();
-    console.log(columnInfo);
     let query = knex(dataset).select(columns.map(token => token.label));
     filters.forEach(filter => {
         if (filter.filterValue !== undefined && filter.filterValue.column !== undefined) {
