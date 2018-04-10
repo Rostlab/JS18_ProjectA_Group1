@@ -147,6 +147,9 @@ let plot_functions = {
                 error(err);
             } else {
                 createData(yAxisValues, xAxisValues, dataset).then(data => {
+                    data.forEach(trace => {
+                        trace.type = "scatter"
+                    });
                     callback(data, {
                         title: 'Line Chart of ' + xAxisValues[0].column + ' and ' + yAxisValues[0].column,
                         xaxis: {
