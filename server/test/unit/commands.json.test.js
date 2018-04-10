@@ -12,9 +12,7 @@ describe('Tests from commands.json', function () {
             let historyToCompare = command.tests.slice(0, index + 1);
 
             it('nlp ' + input, async () => {
-                let generatedHistory = await new Promise((resolve, reject) => {
-                    nlp.generateNewHistory(input, dataset, inputHistory, resolve, reject);
-                });
+                let generatedHistory = await nlp.generateNewHistory(input, dataset, inputHistory);
                 expect(generatedHistory.length).to.be.equal(historyToCompare.length);
                 generatedHistory.forEach((historyItem, currentHistoryIndex) => {
                     let historyItemToCompare = historyToCompare[currentHistoryIndex];
