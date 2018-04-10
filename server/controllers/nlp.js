@@ -37,38 +37,43 @@ exports.classifyTokens = function (req, res) {
 
 /**
  * POST /API/nlp
+ * main function
+ * takes the input string, the dataset and the history from the request and renders the requested plot and the new history to the response
  */
-exports.handleInput = function (req, res) {
-    getDatasets().then(datasets => {
-        req.assert('input', 'A plot command must be provided').notEmpty();
-        req.assert('dataset', 'A dataset must be selected').notEmpty();
-        req.assert('dataset', 'The dataset does not exist').custom(req_dataset => datasets.some(tmp_dataset => tmp_dataset.attributes.table_name === req_dataset));
+exports.handleInput = async function (req, res) {
+    let datasets = await getDatasets();
+    req.assert('input', 'A plot command must be provided').notEmpty();
+    req.assert('dataset', 'A dataset must be selected').notEmpty();
+    req.assert('dataset', 'The dataset does not exist').custom(req_dataset => datasets.some(tmp_dataset => tmp_dataset.attributes.table_name === req_dataset));
 
-        let errors = req.validationErrors();
+    let errors = req.validationErrors();
 
-        if (errors) {
-            return res.status(400).send(errors);
-        }
+    if (errors) {
+        return res.status(400).send(errors);
+    }
 
-        let input = req.body.input;
-        let dataset = req.body.dataset;
-        let history = req.body.history;
+    let input = req.body.input;
+    let dataset = req.body.dataset;
+    let history = req.body.history;
 
-        module.exports.generateNewHistory(input, dataset, history, (newHistory) => {
-            executeFunctions(newHistory, dataset, err => res.status(500).send({
-                error: err,
-                history: history
-            })).then(
-                data => res.send({plotly: data, history: newHistory})
-            )
-        }, (errorMessage) => {
-            console.log(errorMessage);
-            res.status(417).send({error: errorMessage})
-        })
-    })
+    try {
+        let newHistory = await module.exports.generateNewHistory(input, dataset, history);
+        let data = await executeFunctions(newHistory, dataset);
+        res.send({plotly: data, history: newHistory})
+    } catch (error) {
+        console.log(error);
+        res.status(417).send({error: error.toString(), history: history})
+    }
 };
 
-exports.generateNewHistory = function (input, dataset, history, callback, errorCallback) {
+/**
+ * Creates a new history for a given history and a new input
+ * @param input: a string which contains a command to create a new pot or to change a existing one
+ * @param dataset: the dataset on which the input is operating on
+ * @param history: a history of previous commands
+ * @returns {Promise<history>}
+ */
+exports.generateNewHistory = async function (input, dataset, history) {
     let data = nlp(input);
     data.values().toNumber();
     let tokenHolders = data.terms().data().map(item => Classifier.createUnlabeledTokenInfo(item.normal, item.bestTag));
@@ -81,30 +86,35 @@ exports.generateNewHistory = function (input, dataset, history, callback, errorC
         dataset: dataset
     };
 
-    new Classifier(initState, state => findDataTransformationFunction(state, matchedCommand => {
-        if (history === undefined || !matchedCommand.command.parameters.isTransformation) {
-            history = []
-        }
-        history.push({
-            function: matchedCommand.command.function,
-            functionParameters: matchedCommand.parameters,
-            input: input
-        });
-        callback(history)
-    }, (errorMessage) => {
-        console.log(errorMessage);
-        errorCallback(errorMessage);
-    }));
+    return new Promise((resolve, reject) => {
+        new Classifier(initState, state => findDataTransformationFunction(state, matchedCommand => {
+            if (history === undefined || !matchedCommand.command.parameters.isTransformation) {
+                history = []
+            }
+            history.push({
+                function: matchedCommand.command.function,
+                functionParameters: matchedCommand.parameters,
+                input: input
+            });
+            resolve(history);
+        }, reject))
+    })
 };
 
-async function executeFunctions(history, dataset, errorCallback) {
+/**
+ * executes all commands from a history on a dataset and returns the resulting data
+ * @param history: the history which contains the commands
+ * @param dataset: the dataset on which the commands are operating on
+ * @returns {Promise<{data: *, layout: *}>}: A Promise that returns (when resolved) a object that holds the plotly data and layout objects
+ */
+async function executeFunctions(history, dataset) {
     let currentData = {};
     for (let currentFunction of history) {
-        await new Promise(resolve => {
+        await new Promise((resolve, reject) => {
             plot_functions[currentFunction.function](dataset, currentFunction.functionParameters, currentFunction.input, currentData, (data, layout) => {
                 currentData = {data: data, layout: layout};
                 resolve()
-            }, errorCallback)
+            }, reject)
         })
     }
     return currentData
@@ -112,6 +122,8 @@ async function executeFunctions(history, dataset, errorCallback) {
 
 /**
  * takes a tokenHolder and extracts (recursively) all information that is needed after classification
+ * @param tokenHolder
+ * @returns {{token: *, label: *, labelType: *}}
  */
 function simplifyTokenHolder(tokenHolder) {
     let data = {
@@ -224,7 +236,7 @@ function combineComplexTokens(state) {
     for (let i = 0; i < state.tokenHolders.length - 1; i++) {
         // if (current token is a FilterSelector and next token is a Value|ColumnValue) or (current token is a GenericSelector and next token is a ColumnValue)
         if ((state.tokenHolders[i].labelType === Classifier.staticWords.filterSelector
-                && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
+            && (state.tokenHolders[i + 1].labelType === Classifier.staticWords.value || state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue))
             || (state.tokenHolders[i].labelType === Classifier.staticWords.genericSelector && state.tokenHolders[i + 1].labelType === Classifier.staticWords.columnValue)) {
 
             state.tokenHolders[i].filterValue = state.tokenHolders[i + 1];
