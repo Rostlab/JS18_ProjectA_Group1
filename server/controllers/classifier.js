@@ -1,4 +1,4 @@
-let natural = require('natural');
+let levenshtein = require('../librarys/levenshtein_distance');
 let config = require('../knexfile');
 let knex = require('knex')(config);
 let columnSynonyms = require('../data/column_synonyms');
@@ -214,7 +214,7 @@ function getMostLikelyMatch(state, labelInfos) {
 
 function getLevenshteinDistance(token, label) {
     let weight = 11.25 / Math.max(1, token.length);
-    return natural.LevenshteinDistance(token, label, {
+    return levenshtein.LevenshteinDistance(token, label, {
         insertion_cost: 2 * weight,
         deletion_cost: 2 * weight,
         substitution_cost: weight
