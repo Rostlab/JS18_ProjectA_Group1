@@ -42,7 +42,7 @@
     "gulp-sass": "^3.1.0",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify": "^3.0.0",
-    "js18_projectb_group3": "git+https://github.com/Rostlab/JS18_ProjectB_Group3#beta-release",
+    "js18_projectb_group3": "git+https://github.com/Rostlab/JS18_ProjectB_Group3#v1.0.0",
     "knex": "^0.14.4",
     "lodash": "^4.17.5",
     "morgan": "^1.7.0",
