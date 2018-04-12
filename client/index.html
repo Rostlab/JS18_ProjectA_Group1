@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+    <base href="/">
+    <meta charset="utf-8"/>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>nlp-graph</title>
+    <!-- getmdl -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="./librarys/material.min.css">
+    <script defer src="./librarys/material.min.js"></script>
+    <!-- getmdl-select -->
+    <link rel="stylesheet" href="./librarys/getmdl-select.min.css">
+    <script defer src="./librarys/getmdl-select.min.js"></script>
+    <!-- plotly.js -->
+    <script src="./librarys/plotly-latest.min.js"></script>
+    <!-- custom -->
+    <link rel="stylesheet" href="./css/main.css">
+    <script src="./js/application.js"></script>
+</head>
+<body>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
+    <div class="mdl-layout__drawer" id="drawer">
+        <div id="dataset-select"
+             class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
+            <input type="text" value="" class="mdl-textfield__input" id="dataset" readonly>
+            <input type="hidden" value="" name="dataset" id="dataset-selected">
+            <i class="mdl-icon-toggle__label material-icons">keyboard_arrow_down</i>
+            <label class="mdl-textfield__label">Dataset</label>
+            <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu" id="dataset-list">
+            </ul>
+        </div>
+        <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+            <div class="mdl-tabs__tab-bar">
+                <a href="#columns" class="mdl-tabs__tab is-active">Columns</a>
+                <a href="#examples" class="mdl-tabs__tab">Examples</a>
+                <a href="#history" class="mdl-tabs__tab">History</a>
+            </div>
+            <div class="mdl-tabs__panel is-active" id="columns">
+                <table class="mdl-data-table mdl-js-data-table">
+                    <thead class="mdl-data-table__cell--non-numeric">
+                    <tr>
+                        <th class="mdl-data-table__cell--non-numeric">Column Name</th>
+                        <th class="mdl-data-table__cell--non-numeric">Type</th>
+                    </tr>
+                    </thead>
+                    <tbody id="column_body" class="mdl-data-table__cell--non-numeric">
+                    </tbody>
+                </table>
+            </div>
+            <div class="mdl-tabs__panel" id="examples">
+                <table class="mdl-data-table mdl-js-data-table">
+                    <thead class="mdl-data-table__cell--non-numeric">
+                    </thead>
+                    <tbody id="example_body" class="mdl-data-table__cell--non-numeric">
+                    </tbody>
+                </table>
+            </div>
+            <div class="mdl-tabs__panel" id="history">
+                <table class="mdl-data-table mdl-js-data-table">
+                    <thead class="mdl-data-table__cell--non-numeric">
+                    </thead>
+                    <tbody id="history_body" class="mdl-data-table__cell--non-numeric">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <header class="mdl-layout__header" id="header">
+        <div class="mdl-layout__header-row">
+            <button id="menu-button" class="mdl-button mdl-js-button mdl-button--icon">
+                <i class="material-icons">menu</i>
+            </button>
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="query-textfield">
+                <input class="mdl-textfield__input" type="text" id="command-textfield">
+                <label class="mdl-textfield__label" for="command-textfield">Plot a...</label>
+            </div>
+            <div class="mdl-spinner mdl-js-spinner is-active" id="command-loading"></div>
+            <button class="mdl-button mdl-js-button mdl-button--icon" id="command-button">
+                <i class="material-icons">send</i>
+            </button>
+        </div>
+    </header>
+    <main class="mdl-layout__content" id="content">
+        <div class="page-content">
+            <div id="error"></div>
+            <div id="graph"></div>
+        </div>
+    </main>
+</div>
+</body>
+</html>
+

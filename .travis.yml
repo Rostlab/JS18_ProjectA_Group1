@@ -1,0 +1,34 @@
+language: node_js
+node_js:
+  - "8.9.4"     #Azure web app compability
+notifications:
+  on_success: never
+  on_failure: always
+  slack: js2018sose:Xavb1Q1dBIeFGCjiBOS1nb4c
+cache: false
+addons:
+  postgresql: "9.6"
+before_install: if [[ `npm -v` != 5.8* ]]; then npm i -g npm@5.8; fi
+before_script:
+  - psql -c 'CREATE DATABASE group1;' -U postgres
+  - psql -c "CREATE USER group1 WITH PASSWORD 'password';" -U postgres
+  - psql -c "GRANT ALL PRIVILEGES ON DATABASE group1 TO group1;"
+script:
+  - npm run migrate
+  - npm test
+env:
+  global:
+    - DB_HOST=localhost
+    - DB_USER=group1
+    - DB_PASSWORD=password
+    - DB_NAME=group1
+deploy:
+  provider: azure_web_apps
+  on: develop
+  verbose: true
+
+#karma
+#before_script:
+#  - export DISPLAY=:99.0
+#  - sh -e /etc/init.d/xvfb start
+#  karma start --browsers Firefox --single-run
