@@ -13,32 +13,42 @@ checkout this repository
 ```
 .
 ├── client/
-│   ├── index.html              # Client-side html              
+│   ├── index.html                  # Client-side html              
 │   ├── js/
-│   │   └── app.js              # Client-side JavaScrip entry
+│   │   └── app.js                  # Client-side JavaScrip entry
 │   ├── scss/
-│   │   └── main.scss           # Client-side SCSS entry               
+│   │   └── main.scss               # Client-side SCSS entry               
 │   ├── test/                  
-│   │   ├── karma.conf.js       # Client-side test configuration
-│   │   └── unit/               # Client-side Unit tests  
-│   └── public/                 # Compiled client sources
+│   │   ├── karma.conf.js           # Client-side test configuration
+│   │   └── unit/                   # Client-side Unit tests  
+│   └── public/                     # Compiled client sources
 ├── server/
-│   ├── server.js               # Express application
-│   ├── .env                    # API keys, passwords, and other sensitive information
+│   ├── server.js                   # Express application
+│   ├── knexfile.js                 # Knex configuration file
+│   ├── .env                        # API keys, passwords, and other sensitive information
 │   ├── config/
-│   │   └── bookshelf.js        # Bookshelf configuration
-│   ├── controllers/            # Express controllers
+│   │   └── bookshelf.js            # Bookshelf configuration
+│   ├── controllers/                # Express controllers
+│   │   ├── classifier.js           # Logic for labeling tokens
+│   │   ├── nlp.js                  # Logic for evaluating labeled tokens
+│   │   ├── plot-functions.js       # Supported plot functions (get data for input and return plotly object)
+│   │   └── public.js               # Provides data for client
 │   ├── data/
-│   │   └── core_dataset.csv    # Dataset to plot
-│   │   └── commands.json       # NLP command specification
+│   │   ├── core_dataset.csv        # Dataset to plot
+│   │   ├── column_synonyms.json    # Synonyms for column names of datasets
+│   │   └── commands.json           # Hardcoded commands command specification
+│   ├── docs/
+│   │   └── api-docs.js             # Swagger-specification file for enpoints
+│   ├── librarys/
+│   │   └── levensthein_distance.js # Calculates string distance from tokens to labels 
 │   ├── migrations/
-│   │   └── enployees.js        # migration that creates the database table
+│   │   └── enployees.js            # Migration that creates the database table
 │   └── test/
-│       └── unit/               # Client-side Unit tests     
-├── .travis.yaml                # Continous integration script
-├── gulpfile.js                 # Task desinitions
-├── knexfile.js                 # knex configuration
-└── package.json                # NPM Dependencies and scripts
+│       └── unit/                   # Server-side unit tests     
+├── .travis.yaml                    # Continous integration script
+├── gulpfile.js                     # Task definitions
+├── knexfile.js                     # Knex configuration
+└── package.json                    # NPM Dependencies and scripts
 ```
 ### how to build
  1) install node/npm
@@ -53,6 +63,8 @@ $ brew install postgres
 # Start PostgreSQL Server
 $ postgres -D /usr/local/var/postgres
 ```
+  (Hint: if you are using the provided dataset make sure the date-format of postgres is mdy)
+
  3) create a .env file in the repository root with the following content (change it according to your postgres configuration)
 ```
 DB_HOST="localhost"
@@ -71,7 +83,11 @@ $ npm install
 $ npm run build
 ```
 ### how to deploy 
--TODO
+ Currently travis will push the application automatically to azure git repo, which will trigger a deployment. The branches which should be deployed are specified in the .travis.yml . 
+ 
+### how to change build server config
+ Change .travis.yml file according to your needs. See https://docs.travis-ci.com/user/customizing-the-build for more information
+  
 ### how to run/usage
 1) run the following command
 ```
@@ -89,6 +105,7 @@ $ npm run migrate
   -> Batch 1 run: 1 migrations    or
   -> Already up to date
 ```
+Hint: The server will try to execute the migration on every server start
 
 ### how to rollback
 1) run the following command
