@@ -141,7 +141,7 @@ $ npm run watch
 $ npm test
 ```
 
-####Structure of the test cases:
+#### Structure of the test cases:
 - Five tests for testing API endpoints. 
 - Test simple plot functions
   - Histogram test
