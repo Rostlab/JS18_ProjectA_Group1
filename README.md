@@ -220,7 +220,37 @@ $ npm test
   - Pie chart with age filter
 - Tests from commands.json
 
+### API documentation - Swagger
+Swagger-UI is used to document the implemented APIs. 
 
+##### What is Swagger?
+Swagger is a collection of open-source tools build around OpenAPI. 
+OpenAPI itself is a specification which specifies how to document REST APIs.
+If you come up with a description according to the specification can be used to 
+document an API.
+One of these benefits is that it can be used to generate working clients
+in many programming languages.
+
+The API-description file can be found in {project-root}/server/docs/api-docs.json
+
+Swagger-UI enhances this functionality by
+providing a website which can be used as a client for calling
+ the API. For generating the website the API description file is used.
+
+Current status:
+- Enpoints: 
+    - /API/datasets         -documented
+    - /API/columns          -documented
+    - /API/examples         -documented
+    - /API/nlp              -documented
+    - /API/classifyTokens   -not documented
+
+
+- Links:
+    - [swagger-ui-express](https://www.npmjs.com/package/swagger-ui-express)
+    - [API documentation](https://js2018-group1.azurewebsites.net/API/documentation)
+    - [OpenAPI](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md)
+    
 ### Links
 - [Public demo](https://js2018-group1.azurewebsites.net)
 - [API documentation](https://js2018-group1.azurewebsites.net/API/documentation)
