@@ -1,6 +1,15 @@
-# How to add another dataset
-Hint: a dataset is assumed to be depictable as one table
-1) create a method for creating the structure of the table for the dataset. bookshelf.js in combination with [knex.js](http://knexjs.org/) is used as orm. Find more detailed information about creating datatables with knex in the official documentation
+# 2.5 How to add another dataset
+Adding another dataset covers adding functionality for the new migration-step and rollback-step.
+The migration comprises manipulating the data schema and data and the rollback how to undo the manipulation.
+In general all the database interaction in this project work with an orm ([bookshelf.js](http://bookshelfjs.org/) in combination with [knex.js](http://knexjs.org/)),
+so the migration depends heavily on those libraries.
+
+- Assumption: a dataset is assumed to be depictable as one table
+
+### 2.5.1 Creating migration functionality
+
+1) Create a method for creating the structure of the table for
+ the dataset. 
 
 ```javascript
 function createDatset(knex) {
@@ -14,7 +23,7 @@ function createDatset(knex) {
 }
 ```
 
-2) enqueue the method of the promise chain in exports.up method in migration.js
+2) Enqueue the method of the promise chain in exports.up method in migration.js
 ```javascript
 return Promise.resolve()
        .then(...)
@@ -22,7 +31,7 @@ return Promise.resolve()
        .then(() => createDataset(knex))
 ```
 
-3) provide a mechanism to access the data you want to insert into the dataset. In this project the data was provided in .csv files which were stored either local or remote.
+3) Provide a mechanism to access the data you want to insert into the dataset. In this project the data was provided in .csv files which were stored either local or remote.
 
 Local: The local dataset was checked in with version control (accessed via [filesystem](https://nodejs.org/api/fs.html)).
 
@@ -35,7 +44,7 @@ To parse the .csv files, a third party library ([papaparse](https://www.papapars
     let parseResult = papaparse.parse(parseData, parseConfiguration);
 ```
 
-4) insert data into datatable
+4) Insert data into datatable
 
 ```javascript
 function insertData(knex, tableName, data) {
@@ -43,9 +52,11 @@ function insertData(knex, tableName, data) {
 }
 ```
 
-5) insert the dataset metadata in the generic dataset table
+5) Insert the dataset metadata in the generic dataset table
 
-6) create a drop table method
+### 2.5.2 Create rollback functionality
+
+1) Create a drop table method
 
 ```javascript
 function deleteDataset(knex) {
@@ -53,20 +64,14 @@ function deleteDataset(knex) {
 }
 ```
 
-7) enqueue the drop table method in the promise chain of the exports.down method in migrations.js
+2) Enqueue the drop table method in the promise chain of the exports.down method in migrations.js
 
-8) delete the entry for the dataset in the generic dataset table
-
-9) links:
-- https: https://nodejs.org/api/https.html
-- papaparse: https://www.papaparse.com/docs
-- filesystem: https://nodejs.org/api/fs.html
-- knex: http://knexjs.org/
+3) Delete the entry for the dataset in the generic dataset table
 
 
 # Database migration
 ## Migration
-1) run the following command
+1) Run the following command
 ```
 # Start the app
 $ npm run migrate
@@ -76,7 +81,7 @@ $ npm run migrate
 Hint: The server will try to execute the migration on every server start
 
 ## Rollback
-1) run the following command
+1) Run the following command
 ```
 # Start the app
 $ npm run rollback

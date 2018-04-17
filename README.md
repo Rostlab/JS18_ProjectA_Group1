@@ -101,6 +101,8 @@ $ npm run start
 
 ### 2.7. [NLP Concept](documentation/nlp_concept.md)
 
+### 2.8. [API documentation](documentation/api_doc.md)
+
 ## 3. Useful commands
 ```
 # build the system
