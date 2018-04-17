@@ -225,7 +225,7 @@ Swagger-UI is used to document the implemented APIs.
 
 ##### What is Swagger?
 Swagger is a collection of open-source tools build around OpenAPI. 
-OpenAPI itself is a specification which specifies how to document REST APIs.
+OpenAPI itself is a specification which determines how to document REST APIs.
 If you come up with a description according to the specification can be used to 
 document an API.
 One of these benefits is that it can be used to generate working clients
