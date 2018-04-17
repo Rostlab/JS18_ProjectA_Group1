@@ -1,5 +1,5 @@
 # Dataset handling
-##How to add another dataset
+## How to add another dataset
 
 The general process how to add data from a datastorage to a relational db looks like this:
 - Accessing the datastorage
