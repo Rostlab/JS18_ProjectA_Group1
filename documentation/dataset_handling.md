@@ -1,4 +1,5 @@
-# 2.5 How to add another dataset
+# 2.5 Dataset handling
+### 2.5.1 How to add another dataset
 Adding another dataset covers adding functionality for the new migration-step and rollback-step.
 The migration comprises manipulating the data schema and data and the rollback how to undo the manipulation.
 In general all the database interaction in this project work with an orm ([bookshelf.js](http://bookshelfjs.org/) in combination with [knex.js](http://knexjs.org/)),
@@ -6,7 +7,7 @@ so the migration depends heavily on those libraries.
 
 - Assumption: a dataset is assumed to be depictable as one table
 
-### 2.5.1 Creating migration functionality
+##### 2.5.1.1 Creating migration functionality
 
 1) Create a method for creating the structure of the table for
  the dataset. 
@@ -54,7 +55,7 @@ function insertData(knex, tableName, data) {
 
 5) Insert the dataset metadata in the generic dataset table
 
-### 2.5.2 Create rollback functionality
+##### 2.5.1.2 Create rollback functionality
 
 1) Create a drop table method
 
@@ -69,8 +70,8 @@ function deleteDataset(knex) {
 3) Delete the entry for the dataset in the generic dataset table
 
 
-# Database migration
-## Migration
+### 2.5.2 Manual database migration
+##### 2.5.2.1 Migration
 1) Run the following command
 ```
 # Start the app
@@ -80,7 +81,7 @@ $ npm run migrate
 ```
 Hint: The server will try to execute the migration on every server start
 
-## Rollback
+##### 2.5.2.2 Rollback
 1) Run the following command
 ```
 # Start the app
