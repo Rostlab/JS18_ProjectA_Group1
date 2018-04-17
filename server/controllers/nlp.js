@@ -177,6 +177,7 @@ function findDataTransformationFunction(tokenHolders, callback, errorCallback) {
 
             // check if it is a better match than the current one
             if (possiblyMatches && bestMatchedCommand != null && !bestMatchedCommand.parameters.isTransformation) {
+                // TODO check if this is correct (is more specific not the other way around?)
                 possiblyMatches = command.parameters.numberColumns > bestMatchedCommand.parameters.numberColumns
             }
 
@@ -192,6 +193,7 @@ function findDataTransformationFunction(tokenHolders, callback, errorCallback) {
     });
 
     // error handling
+    // TODO find a better metric
     if (bestMatchedCommand == null) {
         let errorMessage = "";
         if (chartType != null) {
@@ -224,12 +226,12 @@ function combineComplexTokens(tokenHolders) {
             complexTokenHolders[i].filterValue = complexTokenHolders[i + 1];
             complexTokenHolders.splice(i + 1, 1);
 
-            // if we don't yet know the filter is operating on and the token before is a column it is most likely the column we search for
+            // if we don't yet know the column the filter is operating on and the token before is a column it is most likely the column we search for
             if (complexTokenHolders[i].filterValue.column === null && i > 0 && complexTokenHolders[i - 1].labelType === Classifier.staticWords.column) {
                 complexTokenHolders[i].filterValue.column = complexTokenHolders[i - 1].label
             }
 
-            // if we don't yet know the filter is operating on and the token before is a filter as well that knows on which column it is operating on it is most likely the column we search for
+            // if we still don't know the column the filter is operating on and the token before is a filter as well that knows on which column it is operating on it is most likely the column we search for
             // TODO verify that (assigning the same column as the previous filter)
             if (complexTokenHolders[i].filterValue.column === null && i > 0 && (complexTokenHolders[i - 1].labelType === Classifier.staticWords.filterSelector || complexTokenHolders[i - 1].labelType === Classifier.staticWords.genericSelector)) {
                 complexTokenHolders[i].filterValue.column = complexTokenHolders[i - 1].filterValue.column
