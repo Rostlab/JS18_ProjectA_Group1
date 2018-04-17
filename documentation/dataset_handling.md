@@ -18,7 +18,7 @@ reverts all the changes done by the migration.
 
 For this project it works a little differently. There is only one migration and one rollback method, 
 so there are no migrations files which are executed in succession, but one file which will create 
-the current status of the API. How it works in detail is described in the following paragraphs.
+the current status of the db. How it works in detail is described in the following paragraphs.
 ##### 2.5.1.1 Creating migration functionality
 
 1) Create a method for the manipulation of the db which shall be made e.g. for creating a 
