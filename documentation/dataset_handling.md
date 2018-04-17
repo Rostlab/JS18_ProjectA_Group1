@@ -1,5 +1,5 @@
-# 2.5 Dataset handling
-### 2.5.1 How to add another dataset
+# Dataset handling
+##How to add another dataset
 
 The general process how to add data from a datastorage to a relational db looks like this:
 - Accessing the datastorage
@@ -19,7 +19,7 @@ reverts all the changes done by the migration.
 For this project it works a little differently. There is only one migration and one rollback method, 
 so there are no migrations files which are executed in succession, but one file which will create 
 the current status of the db. How it works in detail is described in the following paragraphs.
-##### 2.5.1.1 Creating migration functionality
+### Creating migration functionality
 
 1) Create a method for the manipulation of the db which shall be made e.g. for creating a 
  new dataset one would create a new table. 
@@ -80,7 +80,7 @@ insertData(knex, tableName_generic_dataset, [
             }])
 ```
 
-##### 2.5.1.2 Create rollback functionality
+### Create rollback functionality
 
 1) Enqueue a drop table call in the promise chain of the exports.down 
 method in migrations.js
@@ -91,8 +91,8 @@ return Promise.resolve()
 ```
 
 
-### 2.5.2 Manual database migration
-##### 2.5.2.1 Migration
+## Manual database migration
+### Migration
 1) Run the following command
 ```
 # Start the app
@@ -102,7 +102,7 @@ $ npm run migrate
 ```
 Hint: The server will try to execute the migration on every server start
 
-##### 2.5.2.2 Rollback
+### Rollback
 1) Run the following command
 ```
 # Start the app
