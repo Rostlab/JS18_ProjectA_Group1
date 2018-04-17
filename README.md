@@ -4,7 +4,7 @@
 TODO-TEAM: project description
 
 ## 2. Technical introduction
-TODO-SEBI: architecture
+![Alt](documentation/Architecture.png)
 ### 2.1. Code structure
 ```
 .
