@@ -29,7 +29,7 @@ exports.down = function (knex, Promise) {
     console.log("Rollback");
 
     return Promise.resolve()
-        .then(() => deleteHumanResourcesDataCore(knex))
+        .then(() => deleteTable(knex, tableName_human_resource__core_dataset))
         .then(() => deleteGenericDataset(knex));
 };
 
@@ -75,9 +75,9 @@ function createHumanResourcesDataCore(knex) {
     });
 }
 
-function deleteHumanResourcesDataCore(knex) {
-    console.log("Delete " + tableName_human_resource__core_dataset);
-    return knex.schema.dropTable(tableName_human_resource__core_dataset)
+function deleteTable(knex,tableName) {
+    console.log("Delete " + tableName);
+    return knex.schema.dropTable(tableName);
 }
 
 

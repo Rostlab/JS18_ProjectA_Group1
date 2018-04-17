@@ -1,16 +1,28 @@
 # 2.5 Dataset handling
 ### 2.5.1 How to add another dataset
-Adding another dataset covers adding functionality for the new migration-step and rollback-step.
-The migration comprises manipulating the data schema and data and the rollback how to undo the manipulation.
-In general all the database interaction in this project work with an orm ([bookshelf.js](http://bookshelfjs.org/) in combination with [knex.js](http://knexjs.org/)),
-so the migration depends heavily on those libraries.
 
-- Assumption: a dataset is assumed to be depictable as one table
+The general process how to add data from a datastorage to a relational db looks like this:
+- Accessing the datastorage
+- Parsing the data from the datastorage
+- Writing the data to the database
 
+In case of this project the functionality to add data to the db comes with the orm ([bookshelf.js](http://bookshelfjs.org/) in combination with [knex.js](http://knexjs.org/)).
+The data is inserted in so called migrations. A migration is an operation which comprises 
+the creation and the manipulation of the data schema and data of the database. One of the big advantages is
+that one can adapt the db-schema to changes of the project and recreate the current db status
+by executing the migrations in succession. Since each dataset is represented as its own table
+this is the way to go in this project.
+
+Usually there is also a rollback operation which reflects the counterpart of a migration. It
+reverts all the changes done by the migration.
+
+For this project it works a little differently. There is only one migration and one rollback method, 
+so there are no migrations files which are executed in succession, but one file which will create 
+the current status of the API. How it works in detail is described in the following paragraphs.
 ##### 2.5.1.1 Creating migration functionality
 
-1) Create a method for creating the structure of the table for
- the dataset. 
+1) Create a method for the manipulation of the db which shall be made e.g. for creating a 
+ new dataset one would create a new table. 
 
 ```javascript
 function createDatset(knex) {
@@ -32,12 +44,15 @@ return Promise.resolve()
        .then(() => createDataset(knex))
 ```
 
-3) Provide a mechanism to access the data you want to insert into the dataset. In this project the data was provided in .csv files which were stored either local or remote.
+3) Provide a mechanism to access the data you want to insert into the dataset. 
+In this project the data was provided in .csv files which were stored either local (development branch) or remote (feature/20/second-dataset branch).
 
 Local: The local dataset was checked in with version control (accessed via [filesystem](https://nodejs.org/api/fs.html)).
 
-Remote: The remote dataset is downloaded ([https](https://nodejs.org/api/https.html)) from a blob-server and decompressed if necessary. 
-To parse the .csv files, a third party library ([papaparse](https://www.papaparse.com/docs)) was used.
+Remote: The remote dataset is downloaded ([https](https://nodejs.org/api/https.html)) and decompressed if necessary ([zlib](https://nodejs.org/api/zlib.html)). 
+For parsing the .csv files, a third party library ([papaparse](https://www.papaparse.com/docs)) was used.
+
+Here is an example of accessing and parsing a local .csv file:
 
 ```javascript
     //example of parsing a file
@@ -55,19 +70,25 @@ function insertData(knex, tableName, data) {
 
 5) Insert the dataset metadata in the generic dataset table
 
-##### 2.5.1.2 Create rollback functionality
-
-1) Create a drop table method
-
 ```javascript
-function deleteDataset(knex) {
-    return knex.schema.dropTable(dataset_name)
-}
+insertData(knex, tableName_generic_dataset, [
+            {
+                table_name: tableName,
+                display_name: 'DisplayName',
+                description: 'New dataset',
+                file: './data/new_dataset.csv'
+            }])
 ```
 
-2) Enqueue the drop table method in the promise chain of the exports.down method in migrations.js
+##### 2.5.1.2 Create rollback functionality
 
-3) Delete the entry for the dataset in the generic dataset table
+1) Enqueue a drop table call in the promise chain of the exports.down 
+method in migrations.js
+```javascript
+return Promise.resolve()
+               .then(() => deleteTable(knex, tableName))
+               ...
+```
 
 
 ### 2.5.2 Manual database migration
