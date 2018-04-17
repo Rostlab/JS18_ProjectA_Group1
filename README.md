@@ -1,10 +1,14 @@
-# JS18_ProjectA_Group1 [![Build Status](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1.svg?branch=develop)](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1)
+# JS18_ProjectA_Group1 
+[![Build Status](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1.svg?branch=develop)](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1)
+[![Demo](https://img.shields.io/badge/demo-online-brightgreen.svg)](https://js2018-group1.azurewebsites.net)
+[![API doc](https://img.shields.io/badge/API-online-brightgreen.svg)](https://js2018-group1.azurewebsites.net/API/documentation)
 
 ## 1. Project description
 TODO-TEAM: project description
 
+[Public demo](https://js2018-group1.azurewebsites.net)
 ## 2. Technical introduction
-TODO-SEBI: architecture
+![Alt](documentation/Architecture.png)
 ### 2.1. Code structure
 ```
 .
@@ -101,7 +105,7 @@ $ npm run start
 
 ### 2.7. [NLP Concept](documentation/nlp_concept.md)
 
-### 2.8. [API documentation](documentation/api_doc.md)
+### 2.8. [API documentation](https://js2018-group1.azurewebsites.net/API/documentation) - [About Swagger](documentation/api_doc.md)
 
 ## 3. Useful commands
 ```
@@ -120,7 +124,3 @@ $ npm run test
 # automatically build the css while development
 $ npm run watch
 ```
-
-## 4. Links
-- [Public demo](https://js2018-group1.azurewebsites.net)
-- [API documentation](https://js2018-group1.azurewebsites.net/API/documentation)
