@@ -1,5 +1,5 @@
 # Dataset handling
-## How to add another dataset
+## 1. How to add another dataset
 
 The general process how to add data from a datastorage to a relational db looks like this:
 - Accessing the datastorage
@@ -19,7 +19,7 @@ reverts all the changes done by the migration.
 For this project it works a little differently. There is only one migration and one rollback method, 
 so there are no migrations files which are executed in succession, but one file which will create 
 the current status of the db. How it works in detail is described in the following paragraphs.
-### Creating migration functionality
+### 1.1 Creating migration functionality
 
 1) Create a method for the manipulation of the db which shall be made e.g. for creating a 
  new dataset one would create a new table. 
@@ -80,7 +80,7 @@ insertData(knex, tableName_generic_dataset, [
             }])
 ```
 
-### Create rollback functionality
+### 1.2 Create rollback functionality
 
 1) Enqueue a drop table call in the promise chain of the exports.down 
 method in migrations.js
@@ -91,8 +91,8 @@ return Promise.resolve()
 ```
 
 
-## Manual database migration
-### Migration
+## 2. Manual database migration
+### 2.1 Migration
 1) Run the following command
 ```
 # Start the app
@@ -102,7 +102,7 @@ $ npm run migrate
 ```
 Hint: The server will try to execute the migration on every server start
 
-### Rollback
+### 2.2 Rollback
 1) Run the following command
 ```
 # Start the app
@@ -110,4 +110,21 @@ $ npm run rollback
   -> Batch 1 rolled back: 1 migrations     or
   -> Already at the base migration
 ```
-
+## 3. Maintain synonyms
+Synonmys are maintained in separate files in the server/data/ folder. 
+Right now it exists only one file "column_synonyms.json", in which synonyms for 
+columns of the different datasets are provided (see featurebranch feature/20/second-dataset).
+The structure is self explaining and looks this:
+```javascript
+[
+ {
+   "column_name": "column"
+   "synonyms": [
+   "synonym1",
+   "synonym2",
+   ...
+   ]
+ },
+ ...
+] 
+```
