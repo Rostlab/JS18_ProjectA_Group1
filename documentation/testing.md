@@ -13,9 +13,9 @@ $ npm test
   - Scatter plot tests
   - Line chart test
 - Test filter operations
-  - Pie chart with sex filter
-  - Histogram with age filter
-  - Pie chart with age filter
+  - Pie chart with sex filter (is equal to)
+  - Histogram with age filter (is smaller than)
+  - Pie chart with age filter (is smaller than)
 - Tests from commands.json
   - Plot a histogram of age 
   - Set title to "Title goes here" 
@@ -39,8 +39,8 @@ $ npm test
   - Show a scatter plot of all state where pay rate is smaller than 40 
   - Show a histogram of all sex where age is bigger than 30 
 
-The plot function tests are written for the human recource dataset. Since this dataset does not change the outcome of the plot functions will always be the same under the same input parameters and can be tested.
+The plot function tests are written for the human recource dataset. Since this dataset does not change the outcome of the plot functions will always be the same under the same input parameters and can be tested this way. The filter operation tests check it the filters "is equal to" and "is smaller than" work with different plot funktions.
 
-These plot function tests also check if the layout is correct, since the plot functions create the layout as well.
+All the plot function tests also check if the layout is correct, since the plot functions create the layout as well.
 
 The commands.json tests are dynamically created based on the commands in commands.json. Each input of the test object is tested with input, dataset and history parameters. The classification of the input is tested by matching the output with the function and function parameters specified in commands.json. The same technique is followed for testing transformation functions of Project B.
