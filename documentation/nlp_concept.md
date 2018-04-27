@@ -23,10 +23,10 @@ The server ensures that all three parameters are valid.
 
 This step aims to find out what functionality has to be executed to fulfill the users request. 
 
-The result of this is a new history containing a list of function names and parameters. If user wants to create a new plot the history is wiped and contains only the new functions but not the previous ones.
+The result of this is a new history containing a list of function names and parameters. If the user wants to create a new plot the history is wiped and contains only the new function but not the previous ones.
 
 ### 2.1. Tokenize input
-To be able to work with the input the string is tokenized by the framework [compromise](http://compromise.cool/). It ensures that values like `42` or `3.14` are tokenized correctly and labels values differently from text so that we can work with them directly.
+The input which is send to server is tokenized. That means it is split in several tokens, each consisting of a piece of information. The tokenizing functionality is provided by the framework [compromise](http://compromise.cool/). It ensures that values like `42` or `3.14` are tokenized correctly and labels such values differently from text.
 
 ### 2.2. Classify tokens
 > see `server/controllers/classifier.js`: `Classifier.classifyTokens(tokens, dataset)`
@@ -35,7 +35,7 @@ Each token is compared with all items of the following classes.
 We use [Levenshtein string distance](https://raw.githubusercontent.com/NaturalNode/natural/master/lib/natural/distance/levenshtein_distance.js) here to find the nearest match which allows us to compensate some typos. 
 Additionally we use a synonym lexicon which is used for every item as well (see `server/data/column_synonyms.json`).
 Afterwards the token is labeled with the class of the best match. 
-As some tokens are longer than one word (e.g. `pie chart`) we use a dynamic lookahead in the classifier, so tokens can be accumulated to a bigger token.
+As some tokens are longer than one word (e.g. `pie chart`) a dynamic lookahead is used, so that tokens can be accumulated to bigger tokens.
 
 Class | Examples | Comment
 --- | --- | ---
@@ -79,7 +79,7 @@ If no command has been found we assume that it is a transformation function. Thi
 ## 3. Command execution
 > see `server/controllers/nlp.js`: `executeFunctions(history, dataset)`
 
-Now we have a list of functionality the we have to execute to get the data that the user has requested. 
+At this point the server has a list of functionality which has to be executed to get the data that the user has requested. 
 We start with an empty **plotly object** and call for each item in the **history** the referenced function from `server/controllser/plot-functions.js`. 
 Each call will return a new **plotly object** that we then can hand into the next function (this allows transformations of the data and the layout).
 The result is a [plotly.js](https://plot.ly/javascript/) compatible object that holds the data and the layout for the **plot** that has been queried by the user.
