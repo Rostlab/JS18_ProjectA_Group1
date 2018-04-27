@@ -1,48 +1,62 @@
-# JS18_ProjectA_Group1 [![Build Status](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1.svg?branch=develop)](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1)
+# JS18_ProjectA_Group1 
+[![Build Status](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1.svg?branch=develop)](https://travis-ci.org/Rostlab/JS18_ProjectA_Group1)
+[![Demo](https://img.shields.io/badge/demo-online-brightgreen.svg)](https://js2018-group1.azurewebsites.net)
+[![API doc](https://img.shields.io/badge/API-online-brightgreen.svg)](https://js2018-group1.azurewebsites.net/API/documentation)
 
-## This file contains the following items:
-### project description
-### technical consideration:
-* dependencies
-* architecture
-* other
-* env variables
-### how to get the code
-checkout this repository
-### code structure
+## 1. Project description
+TODO-TEAM: project description
+
+[Public demo](https://js2018-group1.azurewebsites.net)
+## 2. Technical introduction
+![Alt](documentation/Architecture.png)
+### 2.1. Code structure
 ```
 .
 ├── client/
-│   ├── index.html              # Client-side html              
+│   ├── index.html                  # Client-side html              
 │   ├── js/
-│   │   └── app.js              # Client-side JavaScrip entry
+│   │   └── app.js                  # Client-side JavaScrip entry
 │   ├── scss/
-│   │   └── main.scss           # Client-side SCSS entry               
+│   │   └── main.scss               # Client-side SCSS entry               
 │   ├── test/                  
-│   │   ├── karma.conf.js       # Client-side test configuration
-│   │   └── unit/               # Client-side Unit tests  
-│   └── public/                 # Compiled client sources
+│   │   ├── karma.conf.js           # Client-side test configuration
+│   │   └── unit/                   # Client-side Unit tests  
+│   └── public/                     # Compiled client sources
 ├── server/
-│   ├── server.js               # Express application
-│   ├── .env                    # API keys, passwords, and other sensitive information
+│   ├── server.js                   # Express application
+│   ├── knexfile.js                 # Knex configuration file
+│   ├── .env                        # API keys, passwords, and other sensitive information
 │   ├── config/
-│   │   └── bookshelf.js        # Bookshelf configuration
-│   ├── controllers/            # Express controllers
+│   │   └── bookshelf.js            # Bookshelf configuration
+│   ├── controllers/                # Express controllers
+│   │   ├── classifier.js           # Logic for labeling tokens
+│   │   ├── nlp.js                  # Logic for evaluating labeled tokens
+│   │   ├── plot-functions.js       # Supported plot functions (get data for input and return plotly object)
+│   │   └── public.js               # Provides data for client
 │   ├── data/
-│   │   └── core_dataset.csv    # Dataset to plot
-│   │   └── commands.json       # NLP command specification
+│   │   ├── core_dataset.csv        # Dataset to plot
+│   │   ├── column_synonyms.json    # Synonyms for column names of datasets
+│   │   └── commands.json           # Hardcoded commands command specification
+│   ├── docs/
+│   │   └── api-docs.js             # Swagger-specification file for enpoints
+│   ├── librarys/
+│   │   └── levensthein_distance.js # Calculates string distance from tokens to labels 
 │   ├── migrations/
-│   │   └── enployees.js        # migration that creates the database table
+│   │   └── enployees.js            # Migration that creates the database table
 │   └── test/
-│       └── unit/               # Client-side Unit tests     
-├── .travis.yaml                # Continous integration script
-├── gulpfile.js                 # Task desinitions
-├── knexfile.js                 # knex configuration
-└── package.json                # NPM Dependencies and scripts
+│       └── unit/                   # Server-side unit tests     
+├── documentation/                  # MArkdown files that contain further documentation
+├── .travis.yaml                    # Continous integration script
+├── gulpfile.js                     # Task definitions
+├── knexfile.js                     # Knex configuration
+└── package.json                    # NPM Dependencies and scripts
 ```
-### how to build
+### 2.2. Project setup
  1) install node/npm
  2) setup the database (install and configure postgres, example is for mac using homebrew)
+ 
+ (Hint: if you are using the provided dataset make sure the date-format of postgres is mdy)
+ 
 ```
 # Update Homebrew's package database
 $ brew update
@@ -70,36 +84,30 @@ $ npm install
 # Build the frontend
 $ npm run build
 ```
-### how to deploy 
--TODO
-### how to run/usage
+
+### 2.3. Run development server
 1) run the following command
 ```
 # Start the app
 $ npm run start
   -> Express server listening on port 3000
 ```
-2) visit http://localhost:3000/ in the browser
+2) visit [http://localhost:3000/]() in the browser
 
-### how to migrate
-1) run the following command
-```
-# Start the app
-$ npm run migrate
-  -> Batch 1 run: 1 migrations    or
-  -> Already up to date
-```
+### 2.4. Deployment 
+ Currently travis will push the application automatically to azure git repo, which will trigger a deployment. The branches which should be deployed are specified in the .travis.yml . 
 
-### how to rollback
-1) run the following command
-```
-# Start the app
-$ npm run rollback
-  -> Batch 1 rolled back: 1 migrations     or
-  -> Already at the base migration
-```
+ Change .travis.yml file according to your needs. See https://docs.travis-ci.com/user/customizing-the-build for more information
 
-### useful commands
+### 2.5. [Dataset handling](documentation/dataset_handling.md)
+
+### 2.6. [Testing](documentation/testing.md)
+
+### 2.7. [NLP Concept](documentation/nlp_concept.md)
+
+### 2.8. [API documentation](https://js2018-group1.azurewebsites.net/API/documentation) - [About Swagger](documentation/api_doc.md)
+
+## 3. Useful commands
 ```
 # build the system
 $ npm run build
@@ -116,6 +124,3 @@ $ npm run test
 # automatically build the css while development
 $ npm run watch
 ```
-### Links
-- [Public demo](https://js2018-group1.azurewebsites.net)
-- [API documentation](https://js2018-group1.azurewebsites.net/API/documentation)
